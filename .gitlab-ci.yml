@@ -156,13 +156,21 @@ publish:internal:
 # NuGet, create the GitLab release via the Releases API with package links,
 # and stash the resolved version in a dotenv so publish:nuget-org picks it up.
 # The publish:nuget-org follow-up is a manual gate on top of this.
+#
+# `artifacts: false` on build_job/test_job dependencies is deliberate: without
+# it, build_job's SemVer-tagged .nupkg files (e.g. *.1.18.1-15.nupkg) would
+# land in $NUPKG_FOLDER alongside our release-version packages, and the
+# `dotnet nuget push *.nupkg` below would push both versions. We want a clean
+# folder so only RELEASE_VERSION packages exist when we push.
 .release_base:
   interruptible: false
   allow_failure: true
   needs:
     - get_unique_semversion
-    - build_job
-    - test_job
+    - job: build_job
+      artifacts: false
+    - job: test_job
+      artifacts: false
   script:
     - echo "Releasing version $RELEASE_VERSION"
     - dotnet build --packages .nuget/packages/ -c Release -p:Version=$RELEASE_VERSION -p:AssemblyVersion=${RELEASE_VERSION}.${CI_PIPELINE_IID}

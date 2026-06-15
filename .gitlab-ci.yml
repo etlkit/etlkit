@@ -221,26 +221,44 @@ release_new_version_job:
   before_script:
     - export RELEASE_VERSION="${GitVersion_Major}.$((GitVersion_Minor + 1)).0"
 
-# Push the release packages to nuget.org. Depends on whichever release job ran
-# (release_job or release_new_version_job); the dotenv from that job sets
-# RELEASE_VERSION here. Manual gate so the maintainer can verify the GitLab
-# release before going public.
-publish:nuget-org:
-  needs:
-    - job: release_job
-      optional: true
-      artifacts: true
-    - job: release_new_version_job
-      optional: true
-      artifacts: true
+# Push release packages to nuget.org. Two variants — one paired 1:1 with
+# each release job — because GitLab does NOT have an "any of these needs"
+# semantics: with `needs: optional: true` on multiple manual upstream
+# jobs, the dependent was marked "skipped" (terminal, not retriggerable)
+# once the pipeline reached its manual gate. By pairing each variant with
+# one specific release job via a mandatory single `needs:`, the dependent
+# stays "created" until its release job runs, then transitions to
+# "manual" so the maintainer can trigger it — and it inherits the release
+# job's already-built artifacts instead of rebuilding from scratch.
+.publish_nuget_org_base:
   rules:
     - if: '$CI_COMMIT_BRANCH && $CI_COMMIT_REF_PROTECTED == "true"'
       when: manual
       allow_failure: true
   interruptible: false
   script:
-    - echo "Publishing version $RELEASE_VERSION to nuget.org..."
-    - dotnet nuget push "$NUPKG_FOLDER/*.nupkg" --source $NUGETORG_SOURCE --api-key $NUGET_ORG_API_KEY
+    - echo "Publishing $RELEASE_VERSION to nuget.org..."
+    - dotnet nuget push "$NUPKG_FOLDER/*.${RELEASE_VERSION}.nupkg" --source $NUGETORG_SOURCE --api-key $NUGET_ORG_API_KEY
+
+# Paired with release_job (patch bump). Pushes the .nupkg files produced
+# by release_job at $GitVersion_MajorMinorPatch.
+publish:nuget-org:patch:
+  extends: .publish_nuget_org_base
+  needs:
+    - job: release_job
+      artifacts: true
+  before_script:
+    - export RELEASE_VERSION="${GitVersion_MajorMinorPatch}"
+
+# Paired with release_new_version_job (minor bump). Pushes the .nupkg
+# files produced by release_new_version_job at $Major.$((Minor+1)).0.
+publish:nuget-org:new-version:
+  extends: .publish_nuget_org_base
+  needs:
+    - job: release_new_version_job
+      artifacts: true
+  before_script:
+    - export RELEASE_VERSION="${GitVersion_Major}.$((GitVersion_Minor + 1)).0"
 
 pages:
   needs:

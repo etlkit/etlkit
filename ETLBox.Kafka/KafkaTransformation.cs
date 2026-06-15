@@ -34,17 +34,24 @@ namespace ALE.ETLBox.DataFlow
         /// <summary>
         /// Additional configuration for the producer builder, before building producer
         /// </summary>
-        public Action<ProducerBuilder<Ignore, TKafkaValue>>? ConfigureProducerBuilder { get; set; }
+        public Action<ProducerBuilder<string, TKafkaValue>>? ConfigureProducerBuilder { get; set; }
 
         /// <summary>
         /// Producer instance override for use in tests
         /// </summary>
-        private IProducer<Null, TKafkaValue>? _producer;
+        private IProducer<string, TKafkaValue>? _producer;
 
         /// <summary>
         /// Build Kafka message
         /// </summary>
         protected abstract TKafkaValue BuildMessageValue(TInput input);
+
+        /// <summary>
+        /// Build Kafka message key. Returns null by default, so the message is produced without a key
+        /// (default partitioning) - preserving backward compatibility for transformations that do not
+        /// define a key.
+        /// </summary>
+        protected virtual string? BuildMessageKey(TInput input) => null;
 
         /// <summary>
         /// Default constructor
@@ -60,13 +67,13 @@ namespace ALE.ETLBox.DataFlow
         {
             TransformationFunc = SendToKafka;
             InitAction = () =>
-                _producer ??= new ProducerBuilder<Null, TKafkaValue>(ProducerConfig).Build();
+                _producer ??= new ProducerBuilder<string, TKafkaValue>(ProducerConfig).Build();
         }
 
         /// <summary>
         /// Constructor with producer, for unit testing only
         /// </summary>
-        protected KafkaTransformation(IProducer<Null, TKafkaValue> producer)
+        protected KafkaTransformation(IProducer<string, TKafkaValue> producer)
             : this()
         {
             _producer = producer;
@@ -107,7 +114,12 @@ namespace ALE.ETLBox.DataFlow
         private void SendToKafkaInternal(TInput input)
         {
             var messageValue = BuildMessageValue(input);
-            var message = new Message<Null, TKafkaValue> { Value = messageValue };
+            var message = new Message<string, TKafkaValue> { Value = messageValue };
+            var messageKey = BuildMessageKey(input);
+            if (messageKey != null)
+            {
+                message.Key = messageKey;
+            }
             if (_producer == null)
                 throw new InvalidOperationException("Producer is not initialized.");
             _producer.Produce(
@@ -142,6 +154,12 @@ namespace ALE.ETLBox.DataFlow
         public KafkaStringTransformation() { }
 
         /// <summary>
+        /// Constructor with producer, for unit testing only
+        /// </summary>
+        protected KafkaStringTransformation(IProducer<string, string> producer)
+            : base(producer) { }
+
+        /// <summary>
         /// Message template in <a href="https://shopify.github.io/liquid/">Liquid</a> syntax.
         /// </summary>
         /// <remarks>
@@ -149,20 +167,48 @@ namespace ALE.ETLBox.DataFlow
         /// </remarks>
         public string MessageTemplate { get; set; } = null!;
 
+        /// <summary>
+        /// Optional message key template in <a href="https://shopify.github.io/liquid/">Liquid</a> syntax.
+        /// </summary>
+        /// <remarks>
+        /// Parameters are provided from the input source, same mechanism as <see cref="MessageTemplate"/>.
+        /// When not set (null or whitespace), messages are produced without a key (default partitioning),
+        /// preserving backward compatibility.
+        /// </remarks>
+        public string? MessageKeyTemplate { get; set; }
+
         protected override string BuildMessageValue(TInput input)
         {
             if (input is null)
             {
                 throw new ArgumentNullException(nameof(input));
             }
-            var templateMessage = Template.Parse(MessageTemplate);
+            return RenderLiquid(input, MessageTemplate);
+        }
+
+        protected override string? BuildMessageKey(TInput input)
+        {
+            if (string.IsNullOrWhiteSpace(MessageKeyTemplate))
+            {
+                return null;
+            }
+            if (input is null)
+            {
+                throw new ArgumentNullException(nameof(input));
+            }
+            return RenderLiquid(input, MessageKeyTemplate!);
+        }
+
+        private static string RenderLiquid(TInput input, string template)
+        {
+            var parsedTemplate = Template.Parse(template);
             var inputDictionary =
                 input as IDictionary<string, object>
-                ?? input
+                ?? input!
                     .GetType()
                     .GetProperties()
                     .ToDictionary(p => p.Name, p => p.GetValue(input));
-            return templateMessage.Render(Hash.FromDictionary(inputDictionary));
+            return parsedTemplate.Render(Hash.FromDictionary(inputDictionary));
         }
     }
 

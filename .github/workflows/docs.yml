@@ -1,0 +1,67 @@
+name: Deploy Documentation
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'docfx/**'
+      - 'ETLBox/**'
+      - 'ETLBox.Common/**'
+      - 'ETLBox.Primitives/**'
+      - 'ETLBox.Json/**'
+      - 'ETLBox.Kafka/**'
+      - 'ETLBox.Rest/**'
+      - 'ETLBox.RabbitMq/**'
+      - 'ETLBox.Serialization/**'
+      - 'ETLBox.AI/**'
+      - 'ETLBox.ClickHouse/**'
+      - 'ETLBox.Logging.Database/**'
+      - 'ETLBox.Scripting/**'
+      - 'ETLBox.DynamicLinq/**'
+      - 'ETLBox.MongoDB/**'
+      - 'ETLBox.PostgresStreaming/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Install DocFx
+        run: dotnet tool restore
+
+      - name: Build solution
+        run: dotnet build ETLBox.sln -c Release
+        env:
+          HUSKY: 0
+
+      - name: Generate docs
+        run: dotnet docfx docfx/docfx.json
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

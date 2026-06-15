@@ -116,6 +116,8 @@ namespace ALE.ETLBox.DataFlow
             var messageValue = BuildMessageValue(input);
             var message = new Message<string, TKafkaValue> { Value = messageValue };
             var messageKey = BuildMessageKey(input);
+            // A null key (no key template) leaves Message.Key unset = keyless (default partitioning).
+            // A rendered key (including an empty string) is set explicitly and is NOT treated as keyless.
             if (messageKey != null)
             {
                 message.Key = messageKey;
@@ -173,7 +175,9 @@ namespace ALE.ETLBox.DataFlow
         /// <remarks>
         /// Parameters are provided from the input source, same mechanism as <see cref="MessageTemplate"/>.
         /// When not set (null or whitespace), messages are produced without a key (default partitioning),
-        /// preserving backward compatibility.
+        /// preserving backward compatibility. When the template is set but renders to an empty string,
+        /// the message is produced with an explicit empty-string key (an empty key still maps to a
+        /// partition and is distinct from a keyless message).
         /// </remarks>
         public string? MessageKeyTemplate { get; set; }
 

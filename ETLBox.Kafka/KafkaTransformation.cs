@@ -12,14 +12,17 @@ using Microsoft.Extensions.Logging;
 namespace ALE.ETLBox.DataFlow
 {
     /// <summary>
-    /// Transformation sends text messages to Kafka and provides to output rows, successfully processed.
-    /// Message template is defined in configuration with <a href="https://shopify.github.io/liquid/">Liquid</a> syntax.
+    /// Transformation sends messages to Kafka and provides to output rows, successfully processed.
+    /// The message value is built by <see cref="BuildMessageValue"/>; the optional message key is built
+    /// by the <see cref="MessageKeyResolver"/> delegate.
     /// </summary>
-    /// <typeparam name="TInput">Parameters for text message template</typeparam>
+    /// <typeparam name="TInput">Parameters for the message templates</typeparam>
+    /// <typeparam name="TKafkaKey">Kafka key type (reference type; null key = keyless message)</typeparam>
     /// <typeparam name="TKafkaValue">Kafka value type</typeparam>
     [PublicAPI]
-    public abstract class KafkaTransformation<TInput, TKafkaValue>
+    public abstract class KafkaTransformation<TInput, TKafkaKey, TKafkaValue>
         : RowTransformation<TInput, TInput?>
+        where TKafkaKey : class
     {
         /// <summary>
         /// Kafka topic name
@@ -34,24 +37,28 @@ namespace ALE.ETLBox.DataFlow
         /// <summary>
         /// Additional configuration for the producer builder, before building producer
         /// </summary>
-        public Action<ProducerBuilder<string, TKafkaValue>>? ConfigureProducerBuilder { get; set; }
+        public Action<
+            ProducerBuilder<TKafkaKey, TKafkaValue>
+        >? ConfigureProducerBuilder { get; set; }
 
         /// <summary>
         /// Producer instance override for use in tests
         /// </summary>
-        private IProducer<string, TKafkaValue>? _producer;
+        private IProducer<TKafkaKey, TKafkaValue>? _producer;
 
         /// <summary>
-        /// Build Kafka message
+        /// Build Kafka message value.
         /// </summary>
         protected abstract TKafkaValue BuildMessageValue(TInput input);
 
         /// <summary>
-        /// Build Kafka message key. Returns null by default, so the message is produced without a key
-        /// (default partitioning) - preserving backward compatibility for transformations that do not
-        /// define a key.
+        /// Optional resolver for the Kafka message key. The keyed/keyless decision is made once, not per row:
+        /// when this delegate is null, every message is produced without a key (keyless, default partitioning),
+        /// preserving backward compatibility; when it is set, it is expected to return a key for every input
+        /// row (the topic is keyed). Subclasses wire it from their own configuration - for example
+        /// <see cref="KafkaStringTransformation{TInput}.MessageKeyTemplate"/>.
         /// </summary>
-        protected virtual string? BuildMessageKey(TInput input) => null;
+        protected Func<TInput, TKafkaKey>? MessageKeyResolver { get; set; }
 
         /// <summary>
         /// Default constructor
@@ -62,18 +69,20 @@ namespace ALE.ETLBox.DataFlow
         /// <summary>
         /// Creates a new instance with an injected logger.
         /// </summary>
-        protected KafkaTransformation(ILogger<KafkaTransformation<TInput, TKafkaValue>>? logger)
+        protected KafkaTransformation(
+            ILogger<KafkaTransformation<TInput, TKafkaKey, TKafkaValue>>? logger
+        )
             : base(logger)
         {
             TransformationFunc = SendToKafka;
             InitAction = () =>
-                _producer ??= new ProducerBuilder<string, TKafkaValue>(ProducerConfig).Build();
+                _producer ??= new ProducerBuilder<TKafkaKey, TKafkaValue>(ProducerConfig).Build();
         }
 
         /// <summary>
         /// Constructor with producer, for unit testing only
         /// </summary>
-        protected KafkaTransformation(IProducer<string, TKafkaValue> producer)
+        protected KafkaTransformation(IProducer<TKafkaKey, TKafkaValue> producer)
             : this()
         {
             _producer = producer;
@@ -113,14 +122,13 @@ namespace ALE.ETLBox.DataFlow
 
         private void SendToKafkaInternal(TInput input)
         {
-            var messageValue = BuildMessageValue(input);
-            var message = new Message<string, TKafkaValue> { Value = messageValue };
-            var messageKey = BuildMessageKey(input);
-            // A null key (no key template) leaves Message.Key unset = keyless (default partitioning).
-            // A rendered key (including an empty string) is set explicitly and is NOT treated as keyless.
-            if (messageKey != null)
+            var message = new Message<TKafkaKey, TKafkaValue> { Value = BuildMessageValue(input) };
+            // MessageKeyResolver null -> Message.Key stays unset = keyless (default partitioning) for the
+            // whole topic. MessageKeyResolver set -> a key is produced for every row (the topic is keyed).
+            var keyResolver = MessageKeyResolver;
+            if (keyResolver != null)
             {
-                message.Key = messageKey;
+                message.Key = keyResolver(input);
             }
             if (_producer == null)
                 throw new InvalidOperationException("Producer is not initialized.");
@@ -140,6 +148,37 @@ namespace ALE.ETLBox.DataFlow
                 }
             );
         }
+    }
+
+    /// <summary>
+    /// Backward-compatible base for string-keyed Kafka transformations. Preserves the original
+    /// two-type-parameter shape (the key type is fixed to <see cref="string"/>); use the three-parameter
+    /// <see cref="KafkaTransformation{TInput, TKafkaKey, TKafkaValue}"/> for non-string keys.
+    /// </summary>
+    /// <typeparam name="TInput">Parameters for the message templates</typeparam>
+    /// <typeparam name="TKafkaValue">Kafka value type</typeparam>
+    [PublicAPI]
+    public abstract class KafkaTransformation<TInput, TKafkaValue>
+        : KafkaTransformation<TInput, string, TKafkaValue>
+    {
+        /// <summary>
+        /// Default constructor
+        /// </summary>
+        protected KafkaTransformation() { }
+
+        /// <summary>
+        /// Creates a new instance with an injected logger.
+        /// </summary>
+        protected KafkaTransformation(
+            ILogger<KafkaTransformation<TInput, string, TKafkaValue>>? logger
+        )
+            : base(logger) { }
+
+        /// <summary>
+        /// Constructor with producer, for unit testing only
+        /// </summary>
+        protected KafkaTransformation(IProducer<string, TKafkaValue> producer)
+            : base(producer) { }
     }
 
     public class KafkaStringTransformation<TInput> : KafkaTransformation<TInput, string>
@@ -169,6 +208,8 @@ namespace ALE.ETLBox.DataFlow
         /// </remarks>
         public string MessageTemplate { get; set; } = null!;
 
+        private string? _messageKeyTemplate;
+
         /// <summary>
         /// Optional message key template in <a href="https://shopify.github.io/liquid/">Liquid</a> syntax.
         /// </summary>
@@ -182,36 +223,33 @@ namespace ALE.ETLBox.DataFlow
         /// and applies uniformly to every row; the standard implementation never mixes keyed and keyless
         /// messages within a single topic.
         /// </remarks>
-        public string? MessageKeyTemplate { get; set; }
-
-        protected override string BuildMessageValue(TInput input)
+        public string? MessageKeyTemplate
         {
-            if (input is null)
+            get => _messageKeyTemplate;
+            set
             {
-                throw new ArgumentNullException(nameof(input));
+                _messageKeyTemplate = value;
+                // Wire the base key resolver once, by configuration: no template -> keyless for all rows,
+                // template set -> render a key for every row.
+                MessageKeyResolver = string.IsNullOrWhiteSpace(value)
+                    ? null
+                    : input => RenderLiquid(input, value!);
             }
-            return RenderLiquid(input, MessageTemplate);
         }
 
-        protected override string? BuildMessageKey(TInput input)
-        {
-            if (string.IsNullOrWhiteSpace(MessageKeyTemplate))
-            {
-                return null;
-            }
-            if (input is null)
-            {
-                throw new ArgumentNullException(nameof(input));
-            }
-            return RenderLiquid(input, MessageKeyTemplate!);
-        }
+        protected override string BuildMessageValue(TInput input) =>
+            RenderLiquid(input, MessageTemplate);
 
         private static string RenderLiquid(TInput input, string template)
         {
+            if (input is null)
+            {
+                throw new ArgumentNullException(nameof(input));
+            }
             var parsedTemplate = Template.Parse(template);
             var inputDictionary =
                 input as IDictionary<string, object>
-                ?? input!
+                ?? input
                     .GetType()
                     .GetProperties()
                     .ToDictionary(p => p.Name, p => p.GetValue(input));

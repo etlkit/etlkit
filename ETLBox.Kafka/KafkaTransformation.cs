@@ -178,6 +178,9 @@ namespace ALE.ETLBox.DataFlow
         /// preserving backward compatibility. When the template is set but renders to an empty string,
         /// the message is produced with an explicit empty-string key (an empty key still maps to a
         /// partition and is distinct from a keyless message).
+        /// Whether a topic is keyed or keyless is therefore decided once by whether this template is set,
+        /// and applies uniformly to every row; the standard implementation never mixes keyed and keyless
+        /// messages within a single topic.
         /// </remarks>
         public string? MessageKeyTemplate { get; set; }
 

@@ -128,7 +128,14 @@ namespace ALE.ETLBox.DataFlow
             var keyResolver = MessageKeyResolver;
             if (keyResolver != null)
             {
-                message.Key = keyResolver(input);
+                // Keyed topic: the resolver is expected to return a key for every row. Set Key only when
+                // the resolved value is non-null, so the keyless case stays explicit and is never silently
+                // mixed in.
+                var key = keyResolver(input);
+                if (key != null)
+                {
+                    message.Key = key;
+                }
             }
             if (_producer == null)
                 throw new InvalidOperationException("Producer is not initialized.");

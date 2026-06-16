@@ -11,7 +11,7 @@ public class KafkaTransformationDeliveryHandlerTests
 {
     private class TestableKafkaTransformation : KafkaTransformation<string, string>
     {
-        public TestableKafkaTransformation(IProducer<Null, string> producer)
+        public TestableKafkaTransformation(IProducer<string, string> producer)
             : base(producer) { }
 
         protected override string BuildMessageValue(string input) => input;
@@ -27,17 +27,17 @@ public class KafkaTransformationDeliveryHandlerTests
         mockFactory.Setup(f => f.CreateLogger(It.IsAny<string>())).Returns(mockLogger.Object);
         ControlFlow.LoggerFactory = mockFactory.Object;
 
-        var capturedHandlers = new List<Action<DeliveryReport<Null, string>>>();
-        var mockProducer = new Mock<IProducer<Null, string>>();
+        var capturedHandlers = new List<Action<DeliveryReport<string, string>>>();
+        var mockProducer = new Mock<IProducer<string, string>>();
         mockProducer
             .Setup(p =>
                 p.Produce(
                     It.IsAny<string>(),
-                    It.IsAny<Message<Null, string>>(),
-                    It.IsAny<Action<DeliveryReport<Null, string>>>()
+                    It.IsAny<Message<string, string>>(),
+                    It.IsAny<Action<DeliveryReport<string, string>>>()
                 )
             )
-            .Callback<string, Message<Null, string>, Action<DeliveryReport<Null, string>>>(
+            .Callback<string, Message<string, string>, Action<DeliveryReport<string, string>>>(
                 (_, _, handler) => capturedHandlers.Add(handler)
             );
 
@@ -57,10 +57,10 @@ public class KafkaTransformationDeliveryHandlerTests
         // Act: Kafka reports an error
         capturedHandlers[0]
             (
-                new DeliveryReport<Null, string>
+                new DeliveryReport<string, string>
                 {
                     Error = new Error(ErrorCode.BrokerNotAvailable, "Broker not available"),
-                    Message = new Message<Null, string> { Value = "test-value" },
+                    Message = new Message<string, string> { Value = "test-value" },
                 }
             );
 
@@ -92,17 +92,17 @@ public class KafkaTransformationDeliveryHandlerTests
         mockFactory.Setup(f => f.CreateLogger(It.IsAny<string>())).Returns(mockLogger.Object);
         ControlFlow.LoggerFactory = mockFactory.Object;
 
-        var capturedHandlers = new List<Action<DeliveryReport<Null, string>>>();
-        var mockProducer = new Mock<IProducer<Null, string>>();
+        var capturedHandlers = new List<Action<DeliveryReport<string, string>>>();
+        var mockProducer = new Mock<IProducer<string, string>>();
         mockProducer
             .Setup(p =>
                 p.Produce(
                     It.IsAny<string>(),
-                    It.IsAny<Message<Null, string>>(),
-                    It.IsAny<Action<DeliveryReport<Null, string>>>()
+                    It.IsAny<Message<string, string>>(),
+                    It.IsAny<Action<DeliveryReport<string, string>>>()
                 )
             )
-            .Callback<string, Message<Null, string>, Action<DeliveryReport<Null, string>>>(
+            .Callback<string, Message<string, string>, Action<DeliveryReport<string, string>>>(
                 (_, _, handler) => capturedHandlers.Add(handler)
             );
 
@@ -122,10 +122,10 @@ public class KafkaTransformationDeliveryHandlerTests
         // Act: Kafka reports success
         capturedHandlers[0]
             (
-                new DeliveryReport<Null, string>
+                new DeliveryReport<string, string>
                 {
                     Error = new Error(ErrorCode.NoError),
-                    Message = new Message<Null, string> { Value = "test-value" },
+                    Message = new Message<string, string> { Value = "test-value" },
                 }
             );
 
@@ -147,13 +147,13 @@ public class KafkaTransformationDeliveryHandlerTests
     public void ShouldSendToErrorBuffer_WhenProduceThrows()
     {
         // Arrange
-        var mockProducer = new Mock<IProducer<Null, string>>();
+        var mockProducer = new Mock<IProducer<string, string>>();
         mockProducer
             .Setup(p =>
                 p.Produce(
                     It.IsAny<string>(),
-                    It.IsAny<Message<Null, string>>(),
-                    It.IsAny<Action<DeliveryReport<Null, string>>>()
+                    It.IsAny<Message<string, string>>(),
+                    It.IsAny<Action<DeliveryReport<string, string>>>()
                 )
             )
             .Throws(new InvalidOperationException("Simulated produce failure"));

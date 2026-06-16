@@ -68,6 +68,42 @@ namespace ETLBox.Kafka.Tests
             Assert.Equal("{\"NewMessage\": {\"TestValue\":\"Tom\"}}", result[0]);
         }
 
+        [Fact]
+        public void ShouldProduceMessageWithKey_WhenMessageKeyTemplateSet()
+        {
+            // Arrange
+            dynamic data = new ExpandoObject();
+            data.loyalty_program_id = 2;
+            data.transaction_id = 12345;
+
+            var transformation = new KafkaTransformation()
+            {
+                ProducerConfig = new ProducerConfig
+                {
+                    BootstrapServers = _fixture.BootstrapAddress,
+                },
+                MessageTemplate = "{{transaction_id}}",
+                MessageKeyTemplate = "{{loyalty_program_id}}:{{transaction_id}}",
+                TopicName = TopicName,
+            };
+
+            var source = new MemorySource<ExpandoObject>(new ExpandoObject[] { data });
+            var dest = new MemoryDestination<ExpandoObject?>();
+
+            // Act
+            source.LinkTo(transformation);
+            transformation.LinkTo(dest);
+            source.Execute();
+            dest.Wait();
+
+            var result = ConsumeKeyed(true, CancellationToken.None).ToArray();
+
+            // Assert: composite key rendered from MessageKeyTemplate, body from MessageTemplate
+            Assert.Single(result);
+            Assert.Equal("2:12345", result[0].Key);
+            Assert.Equal("12345", result[0].Value);
+        }
+
         private IEnumerable<string> ConsumeJson(
             bool enablePartitionEof,
             CancellationToken cancellationToken,
@@ -99,6 +135,39 @@ namespace ETLBox.Kafka.Tests
                 }
 
                 yield return consumeResult.Message.Value;
+            }
+        }
+
+        // Like ConsumeJson, but reads the message key too (ConsumerBuilder<string, string> instead of
+        // <Ignore, string>) so the rendered Kafka key can be asserted.
+        private IEnumerable<(string? Key, string Value)> ConsumeKeyed(
+            bool enablePartitionEof,
+            CancellationToken cancellationToken,
+            string? topicName = null
+        )
+        {
+            using var consumer = new ConsumerBuilder<string, string>(
+                GetConsumerConfig(enablePartitionEof, topicName)
+            ).Build();
+            _output.WriteLine($"Subscribing to topic {topicName ?? TopicName}...");
+            consumer.Subscribe(topicName ?? TopicName);
+            while (true)
+            {
+                ConsumeResult<string, string> consumeResult;
+                try
+                {
+                    consumeResult = consumer.Consume(cancellationToken);
+                }
+                catch (OperationCanceledException)
+                {
+                    break;
+                }
+                if (consumeResult.IsPartitionEOF || consumeResult.Message is null)
+                {
+                    break;
+                }
+
+                yield return (consumeResult.Message.Key, consumeResult.Message.Value);
             }
         }
     }

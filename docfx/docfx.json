@@ -14,7 +14,9 @@
             "ETLBox.Serialization/ETLBox.Serialization.csproj",
             "ETLBox.AI/ETLBox.AI.csproj",
             "ETLBox.Logging.Database/ETLBox.Logging.Database.csproj",
-            "ETLBox.Scripting/ETLBox.Scripting.csproj"
+            "ETLBox.Scripting/ETLBox.Scripting.csproj",
+            "ETLBox.DynamicLinq/ETLBox.DynamicLinq.csproj",
+            "ETLBox.PostgresStreaming/ETLBox.PostgresStreaming.csproj"
           ],
           "src": ".."
         }
@@ -29,7 +31,9 @@
       "src": [
         {
           "files": [
-            "ETLBox.ClickHouse/ETLBox.ClickHouse.csproj"
+            "ETLBox.ClickHouse/ETLBox.ClickHouse.csproj",
+            "ETLBox.Common/ETLBox.Common.csproj",
+            "ETLBox.Primitives/ETLBox.Primitives.csproj"
           ],
           "src": ".."
         }
@@ -37,6 +41,23 @@
       "dest": "api",
       "properties": {
         "TargetFramework": "netstandard2.1"
+      },
+      "filter": "filterConfig.yml"
+    },
+    {
+      "src": [
+        {
+          "files": [
+            "ETLBox.MongoDB/ETLBox.MongoDB.csproj",
+            "ETLBox.Common/ETLBox.Common.csproj",
+            "ETLBox.Primitives/ETLBox.Primitives.csproj"
+          ],
+          "src": ".."
+        }
+      ],
+      "dest": "api",
+      "properties": {
+        "TargetFramework": "net6.0"
       },
       "filter": "filterConfig.yml"
     }

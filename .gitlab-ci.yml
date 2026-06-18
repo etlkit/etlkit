@@ -59,7 +59,7 @@ default:
     # job pod and everything KubeDock spawned for it.
     TESTCONTAINERS_RYUK_DISABLED: 'true'
     TESTCONTAINERS_CHECKS_DISABLE: 'true'
-
+    
 build_job:
   needs:
     - get_unique_semversion
@@ -171,6 +171,10 @@ publish:internal:
       artifacts: false
     - job: test_job
       artifacts: false
+  rules:
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_REF_PROTECTED == "true" || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop" || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "master"
+      when: manual
+      allow_failure: true
   script:
     - echo "Releasing version $RELEASE_VERSION"
     - dotnet build --packages .nuget/packages/ -c Release -p:Version=$RELEASE_VERSION -p:AssemblyVersion=${RELEASE_VERSION}.${CI_PIPELINE_IID}
@@ -203,10 +207,6 @@ publish:internal:
 # Patch release: tag = $GitVersion_MajorMinorPatch (e.g. 1.18.1 from 1.18.0).
 release_job:
   extends: .release_base
-  rules:
-    - if: '$CI_COMMIT_BRANCH && $CI_COMMIT_REF_PROTECTED == "true"'
-      when: manual
-      allow_failure: true
   before_script:
     - export RELEASE_VERSION="${GitVersion_MajorMinorPatch}"
 
@@ -214,10 +214,6 @@ release_job:
 # Use this whenever the changelog adds features or breaking changes.
 release_new_version_job:
   extends: .release_base
-  rules:
-    - if: '$CI_COMMIT_BRANCH && $CI_COMMIT_REF_PROTECTED == "true"'
-      when: manual
-      allow_failure: true
   before_script:
     - export RELEASE_VERSION="${GitVersion_Major}.$((GitVersion_Minor + 1)).0"
 
@@ -232,7 +228,7 @@ release_new_version_job:
 # job's already-built artifacts instead of rebuilding from scratch.
 .publish_nuget_org_base:
   rules:
-    - if: '$CI_COMMIT_BRANCH && $CI_COMMIT_REF_PROTECTED == "true"'
+    - if: $CI_COMMIT_BRANCH && $CI_COMMIT_REF_PROTECTED == "true" || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop" || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "master"
       when: manual
       allow_failure: true
   interruptible: false

@@ -34,29 +34,43 @@ namespace TestConnectionManager.ConnectionManager
             return openConnections;
         }
 
+        // Count isolated by a unique Application Name (see PostgresOpenConnectionCounter),
+        // so it is robust to connections from other tests/builds against a shared database.
+        private static int OpenConnectionsByAppName(
+            string connectionString,
+            string applicationName
+        ) => PostgresOpenConnectionCounter.CountOpenConnections(connectionString, applicationName);
+
         [Fact]
         public void TestLeaveConnectionOpen()
         {
-            Assert.Equal(0, GetOpenConnections(ConnectionStringParameter));
             //Arrange
-            var con = new PostgresConnectionManager(ConnectionStringParameter) { LeaveOpen = true };
+            var appName = PostgresOpenConnectionCounter.NewApplicationName(
+                nameof(TestLeaveConnectionOpen)
+            );
+            var connectionString = PostgresOpenConnectionCounter.TagConnectionString(
+                ConnectionStringParameter,
+                appName
+            );
+            Assert.Equal(0, OpenConnectionsByAppName(ConnectionStringParameter, appName));
+            var con = new PostgresConnectionManager(connectionString) { LeaveOpen = true };
 
             //Act
-            Assert.Equal(0, GetOpenConnections(ConnectionStringParameter) - 0);
+            Assert.Equal(0, OpenConnectionsByAppName(ConnectionStringParameter, appName));
             Assert.True(con.State == null);
             con.Open();
             Assert.True(con.State == ConnectionState.Open);
-            Assert.Equal(1, GetOpenConnections(ConnectionStringParameter) - 0);
+            Assert.Equal(1, OpenConnectionsByAppName(ConnectionStringParameter, appName));
             con.Open();
-            Assert.Equal(1, GetOpenConnections(ConnectionStringParameter) - 0);
+            Assert.Equal(1, OpenConnectionsByAppName(ConnectionStringParameter, appName));
             Assert.True(con.State == ConnectionState.Open);
             NpgsqlConnection.ClearAllPools();
 
             //Assert
-            Assert.Equal(1, GetOpenConnections(ConnectionStringParameter) - 0);
+            Assert.Equal(1, OpenConnectionsByAppName(ConnectionStringParameter, appName));
             con.Close();
             NpgsqlConnection.ClearAllPools();
-            Assert.Equal(0, GetOpenConnections(ConnectionStringParameter) - 0);
+            Assert.Equal(0, OpenConnectionsByAppName(ConnectionStringParameter, appName));
 
             con.Dispose();
         }
@@ -211,18 +225,25 @@ namespace TestConnectionManager.ConnectionManager
         [Fact]
         public void TestOpeningConnectionTwice_WithLeaveOpenFalse()
         {
-            using var con = new PostgresConnectionManager(ConnectionStringParameter);
+            var appName = PostgresOpenConnectionCounter.NewApplicationName(
+                nameof(TestOpeningConnectionTwice_WithLeaveOpenFalse)
+            );
+            var connectionString = PostgresOpenConnectionCounter.TagConnectionString(
+                ConnectionStringParameter,
+                appName
+            );
+            using var con = new PostgresConnectionManager(connectionString);
             con.LeaveOpen = false;
-            var connectionCount = GetOpenConnections(ConnectionStringParameter);
+            var connectionCount = OpenConnectionsByAppName(ConnectionStringParameter, appName);
             Assert.Equal(0, connectionCount);
 
             con.Open();
-            connectionCount = GetOpenConnections(ConnectionStringParameter);
+            connectionCount = OpenConnectionsByAppName(ConnectionStringParameter, appName);
             Assert.Equal(1, connectionCount);
 
             // With LeaveOpen = false, second Open() closes the first connection and creates a new one
             con.Open();
-            connectionCount = GetOpenConnections(ConnectionStringParameter);
+            connectionCount = OpenConnectionsByAppName(ConnectionStringParameter, appName);
             // Allow for up to 2 connections due to timing of connection closure
             Assert.True(
                 connectionCount is 1 or 2,
@@ -231,7 +252,7 @@ namespace TestConnectionManager.ConnectionManager
 
             con.Close();
             NpgsqlConnection.ClearAllPools();
-            connectionCount = GetOpenConnections(ConnectionStringParameter);
+            connectionCount = OpenConnectionsByAppName(ConnectionStringParameter, appName);
             Assert.Equal(0, connectionCount);
         }
 

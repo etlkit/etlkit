@@ -113,6 +113,100 @@ All notable changes to this project will be documented in this file.
   disabled per-repo (SYSOPS-1667), and `hotfix/*` branches inherit their version from the nearest
   source branch instead of always patching `master`.
 
+<a name="1.19.0"></a>
+
+# 1.19.0 (2026-06-13)
+
+✨ Features
+
+- New package `ETLBox.MongoDB`: `MongoChangeStreamSource<TOutput>` tails a MongoDB change stream
+  and emits one record per change event. Requires a replica set deployment. Accepts a caller-provided
+  `IMongoClient`, an optional aggregation `Pipeline` for server-side filtering, and (for resumable
+  processing) a `CheckpointStore` + `CheckpointId`. To checkpoint, surface the change-stream resume
+  token on the mapped output so the `CheckpointWriter` can commit it (see below).
+
+- New package `ETLBox.PostgresStreaming`: `PostgresXminTailSource<TOutput>` continuously polls a
+  PostgreSQL table using `xmin`-frontier polling
+  (`pg_snapshot_xmin(pg_current_snapshot())`). Rows inserted by in-flight transactions are excluded
+  from each batch and automatically picked up once their transaction commits. Supports cursor
+  pagination via `OrderByColumns`, server-side predicate filtering via `AdditionalWhere`, and
+  resumable processing via `CheckpointStore` + `CheckpointId`. To stream UPDATEs (not just INSERTs)
+  the cursor column must be re-stamped on every write (e.g. a `bigint` filled by a server-side
+  sequence); use a server-side value, not an app-generated one, or concurrent writers can defeat the
+  frontier.
+
+- New: at-least-once checkpointing in `ETLBox.Common.DataFlow.Streaming`.
+    - `ICheckpointStore<TPosition>` (`where TPosition : IComparable<TPosition>`) persists a typed,
+      monotone stream position keyed by `checkpointId` — one stream can be tailed by many independent
+      consumers, each with its own checkpoint (the Kafka consumer-group model).
+    - `CheckpointWriter<TInput, TPosition>` is a terminal destination placed after the real
+      destination; it commits the position (extracted from the record via a `Position` selector) only
+      once a record has been durably written downstream, advancing strictly forward. A crash between
+      the destination write and the commit replays the record (a duplicate) rather than dropping it —
+      at-least-once; consumers must be idempotent. For a co-located destination + checkpoint, call
+      `CommitAsync` inside the destination's transaction for effective exactly-once.
+    - `DbCheckpointStore<TPosition>` is a ready-made store over an ETLBox `IConnectionManager`
+      (configurable table/key/position columns; positions stored natively).
+    - The sources are load-only: they load the committed position on start and never commit it
+      themselves. Implement `ICheckpointStore<TPosition>` for any backend (Redis, database, file, …).
+
+- New: `DataFlowResources` helper class in `ETLBox.Serialization`. Provides a composable,
+  thread-safe implementation of dataflow resource ownership — the `IDataFlow` connection manager
+  pool and the `IDataFlowResourceOwner` disposable resource pool. Embed it as a field and delegate
+  `GetOrAddConnectionManager` / `GetOrAddResource` to it to avoid re-implementing the
+  `ConcurrentDictionary` boilerplate in every `IDataFlow` implementor.
+
+- New: `IDataFlowResourceOwner` — an **optional** capability interface that declares the full
+  resource-ownership contract: `GetOrAddConnectionManager(...)` and
+  `GetOrAddResource(string key, Func<IDisposable> factory)` (plus the generic
+  `DataFlowResourceOwnerExtensions.GetOrAddResource<T>` extension). `GetOrAddConnectionManager` also
+  stays on `IDataFlow` for backward compatibility, so a data flow implementing both interfaces
+  satisfies them with one method — and the composable `DataFlowResources` helper now implements every
+  resource method through this single interface rather than exposing a contract-less public method.
+  Exposing `GetOrAddResource` here rather than directly on `IDataFlow` is what keeps disposable-resource
+  ownership from binary-breaking existing external `IDataFlow` implementations compiled against earlier
+  versions. `DataFlowXmlReader` probes for the capability (`is IDataFlowResourceOwner`) and, when
+  present, automatically registers `IDisposable` component properties with the owning flow —
+  components with identical XML configuration share a single instance (deduplicated by type +
+  content key) and are disposed with the flow. When the flow does **not** implement
+  `IDataFlowResourceOwner`, the reader falls back to plain instance creation (no dedup, no
+  flow-owned disposal), preserving pre-existing behavior. This applies to both concrete class
+  properties (e.g., `MongoClient`) and abstract/interface properties that resolve to an
+  `IDisposable` implementation.
+
+- New: `ILifetimeAwareActivator` — an optional `IDataFlowActivator` capability that reports whether
+  instances of a type are owned by an external scope (e.g. a DI container). When a disposable
+  property resolves to a container-managed service (`ServiceProviderActivator` over a registered
+  type), the data flow no longer takes ownership of it — the container's lifetime applies and the
+  flow does not dispose it. Instances created fresh by the activator (e.g. `DefaultDataFlowActivator`)
+  remain flow-owned and are disposed with the flow.
+
+🐛 Bug Fixes
+
+- Fixed (SUPPORT-56620): `KafkaTransformation` now logs `DeliveryReport` errors through the standard
+  ETLBox logger when a Kafka broker reports a delivery failure, so per-message failures surface
+  instead of being swallowed by the producer callback.
+
+- Fixed (SUPPORT-56620): `KafkaTransformation.CleanUp` now disposes the underlying producer in a
+  `finally` block, so a `Flush` that throws still releases the producer instead of leaking it. The
+  experimental `FlushTimeout` property and the "Kafka flush timed out" exception were removed —
+  `Flush()` runs with the Confluent driver's default behavior again.
+
+- Fixed (RSSL-11704): `PostgresXminTailSource` now quotes `OrderByColumns` identifiers in the
+  generated SQL via `AppendQuotedColumnList`. Mixed-case columns created with quoted identifiers
+  (e.g. `"StreamPosition"`) previously failed in `ORDER BY` and tuple-cursor `WHERE` clauses because
+  PostgreSQL folds unquoted identifiers to lowercase. `IDataRecord` lookups (`GetOrdinal`) stay
+  case-insensitive and continue to use bare names.
+
+🔧 Internal
+
+- `ETLBox.MongoDB` upgrades `MongoDB.Driver` from `2.28.0` to `3.8.0` and retargets from
+  `netstandard2.0` to `net6.0`. MongoDB.Driver 3.x dropped `netstandard2.0` support, so consumers of
+  `ETLBox.MongoDB` now need `net6.0` or newer; the rest of the ETLBox libraries are unaffected.
+- CI: `test_job` migrated from Docker-in-Docker to KubeDock (SYSOPS-1668), Testcontainers Ryuk is
+  disabled per-repo (SYSOPS-1667), and `hotfix/*` branches inherit their version from the nearest
+  source branch instead of always patching `master`.
+
 <a name="1.18.0"></a>
 
 # 1.18.0

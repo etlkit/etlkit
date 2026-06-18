@@ -53,7 +53,13 @@ default:
 .using-kubedock:
   variables:
     DOCKER_HOST: tcp://kubedock.gitlab-runner.svc.cluster.local:2475
-
+    # Required by KubeDock: it doesn't implement Testcontainers' Ryuk reaper
+    # (which also can't work across the k8s-runner network boundary anyway —
+    # see SYSOPS-1667). Cleanup is handled by Kubernetes tearing down the
+    # job pod and everything KubeDock spawned for it.
+    TESTCONTAINERS_RYUK_DISABLED: 'true'
+    TESTCONTAINERS_CHECKS_DISABLE: 'true'
+    
 build_job:
   needs:
     - get_unique_semversion

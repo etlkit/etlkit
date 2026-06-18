@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+<a name="1.20.0"></a>
+
+# 1.20.0
+
+✨ Features
+
+- `KafkaTransformation` now supports optional message keys. `KafkaStringTransformation<TInput>` (and the
+  `KafkaTransformation` ExpandoObject variant) expose a new `MessageKeyTemplate` — a Liquid template
+  rendered per row from the same input as `MessageTemplate` and used as the Kafka message key. When it is
+  not set (null or whitespace) the topic stays keyless (default partitioning), so existing configurations
+  are unchanged; when set, every message is produced with a key (a template that renders to an empty string
+  produces an explicit empty-string key, which still maps to a partition). Keyed vs keyless is decided once
+  by whether the template is set and applies uniformly to the whole topic.
+- New generic base `KafkaTransformation<TInput, TKafkaKey, TKafkaValue>` allows non-string Kafka keys
+  (resolved per row via `MessageKeyResolver`). The original string-keyed `KafkaTransformation<TInput, TKafkaValue>`
+  is retained for backward compatibility.
+
 <a name="1.19.0"></a>
 
 # 1.19.0 (2026-06-13)

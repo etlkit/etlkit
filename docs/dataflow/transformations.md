@@ -217,6 +217,22 @@ Heterogeneous collections (items with different field sets or types in the same 
 
 User-defined types (DTOs, domain classes) are not visible to the parser by default; their methods become callable from the predicate after either per-type registration via `RegisterCustomTypes(typeof(MyType))` or bulk registration via the `AdditionalAssemblyNames` / `AdditionalImports` properties (symmetric with `ScriptedRowTransformation`). For full configuration, performance characteristics, and the typed-POCO variant `ExpressionRowFiltration<TInput>` see [docs/dataflow/row-filtration.md](row-filtration.md).
 
+### KafkaTransformation
+
+`KafkaTransformation` (in `ETLBox.Kafka`) produces one Kafka message per input row and forwards the row to its output. The message value is a Liquid `MessageTemplate` rendered from the input fields (an `ExpandoObject` or a POCO).
+
+An optional `MessageKeyTemplate` (also Liquid, rendered from the same input) sets the Kafka message key. When it is not set (null or whitespace) messages are produced without a key - default partitioning, preserving backward compatibility; when set, every message carries a key (a template that renders to an empty string yields an explicit empty-string key, which still maps to a partition). Whether the topic is keyed or keyless is decided once by whether the template is set and applies uniformly to every row.
+
+```csharp
+var kafka = new KafkaTransformation();
+kafka.TopicName = "transactions";
+kafka.ProducerConfig = new ProducerConfig { BootstrapServers = "localhost:9092" };
+kafka.MessageTemplate = "{{transaction_id}};{{sum}}";
+kafka.MessageKeyTemplate = "{{loyalty_program_id}}:{{transaction_id}}"; // optional - omit for a keyless topic
+```
+
+In an XML-defined data flow these are the `<MessageTemplate>` and `<MessageKeyTemplate>` elements. For non-string keys use the generic base `KafkaTransformation<TInput, TKafkaKey, TKafkaValue>`, which resolves the key per row via a `MessageKeyResolver` delegate; the string-keyed `KafkaTransformation<TInput, TKafkaValue>` is kept for backward compatibility.
+
 ### Splitting data
 
 In some of your data flow you may want to split the data and have it processed differently in the further flow.

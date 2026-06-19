@@ -2,7 +2,7 @@
 # Branching strategy: GitFlow (see Confluence: "Процесс разработки в Git")
 #
 # Branch types and their version increment:
-#   hotfix/*       — bug fix on master/support    → Patch  (built-in default)
+#   hotfix/*       — bug fix on master/support    → Patch  (configured below)
 #   bugfix/*       — bug fix on develop/release   → Patch  (configured below)
 #   feature/*      — new feature from develop     → Minor  (built-in default)
 #   dev/*          — subtask branch from feature  → Inherit from feature (configured below)
@@ -12,14 +12,16 @@
 
 branches:
   hotfix:
-    # increment Inherit + label {BranchName}: a hotfix takes its base version from the
-    # NEAREST source branch. A hotfix off main/support inherits the master line (Patch -> 1.18.x);
-    # a hotfix off the develop/feature line (e.g. branched from a dev/* subtask) inherits that
-    # minor line (1.19.x). This keeps the published version consistent with the branch content
-    # instead of always forcing a master-relative patch.
+    # increment Patch + label {BranchName}: a hotfix is a fix for the already-released
+    # master/support line, so it always bumps the patch (e.g. 1.20.0 -> 1.20.1).
+    #
+    # Do NOT use 'Inherit' here. Our master tip is a "Merge develop into master" commit and
+    # the release tag sits on the develop side of that merge, so master and develop share the
+    # same history. GitVersion's Inherit then cannot tell them apart and resolves to develop's
+    # Minor, producing 1.21.0 instead of 1.20.1 (reproduced with GitVersion 6.7).
     mode: ContinuousDelivery
     label: '{BranchName}'
-    increment: Inherit
+    increment: Patch
     prevent-increment:
       when-current-commit-tagged: false
     regex: ^hotfix(es)?[/-](?<BranchName>.+)

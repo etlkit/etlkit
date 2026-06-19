@@ -48,11 +48,13 @@ public class DocFxMetadataCoverageTests
     [Fact]
     public void Every_documented_project_is_compatible_with_its_metadata_block_TargetFramework()
     {
-        // Why this isn't strict equality: ETLBox.Common and ETLBox.Primitives target
-        // netstandard2.0 only, but appear in the netstandard2.1 and net6.0 blocks too — that's
-        // intentional. netstandard2.0 is forward-compatible (consumable by netstandard2.1,
-        // net5.0+, .NET Framework 4.6.2+, etc.). The check here is TFM compatibility, not
-        // identity — at least one of the project's TFMs must be consumable by the block's TFM.
+        // Why this isn't strict equality: a project may sit in a block whose TFM differs from its
+        // own as long as its own TFM is consumable by the block's (netstandard2.0 is consumable by
+        // netstandard2.1 and net5.0+, etc.). This check verifies consumability only. Note that
+        // DocFx additionally *compiles* each project under the block's forced TargetFramework, so a
+        // netstandard2.0-only project still cannot live in a net6.0 / netstandard2.1 block without
+        // breaking the metadata build — that buildability rule is enforced by
+        // Common_and_Primitives_are_present_in_every_compatible_metadata_block.
         var blocks = LoadMetadataBlocks();
         var mismatches = new List<string>();
 
@@ -124,29 +126,42 @@ public class DocFxMetadataCoverageTests
     }
 
     [Fact]
-    public void Common_and_Primitives_are_present_in_every_metadata_block()
+    public void Common_and_Primitives_are_present_in_every_compatible_metadata_block()
     {
         // ETLBox.Common and ETLBox.Primitives are transitive dependencies of nearly every
-        // ETLBox package via <ProjectReference>. DocFx walks the project graph and emits
-        // `Found project reference without a matching metadata reference` when a block's
-        // TFM has no metadata entry for these. The cheapest guarantee against that warning
-        // is to include both in every TFM block.
+        // ETLBox package via <ProjectReference>. Ideally they'd appear in every block so DocFx
+        // never emits `Found project reference without a matching metadata reference`. But DocFx
+        // forces the block's TargetFramework onto *every* project in it, and these two are
+        // netstandard2.0-only — listing them in the net6.0 / netstandard2.1 blocks makes DocFx
+        // compile them under a TFM they don't declare, which fails the whole metadata build (the
+        // 1.20.x pages breakage). So we only require them in a block whose TargetFramework is one
+        // of their own TFMs (one DocFx can actually build them under); the cross-TFM reference
+        // warnings for ClickHouse / MongoDB are accepted as the lesser evil.
         var blocks = LoadMetadataBlocks();
+        var commonTfms = LoadProjectTargetFrameworks(
+            Path.Combine(RepoRoot, "ETLBox.Common", "ETLBox.Common.csproj")
+        );
+        var primitivesTfms = LoadProjectTargetFrameworks(
+            Path.Combine(RepoRoot, "ETLBox.Primitives", "ETLBox.Primitives.csproj")
+        );
         var offenders = new List<string>();
 
         foreach (var (tfm, projects) in blocks)
         {
-            // Skip blocks that don't contain any project that ProjectReferences Common or Primitives.
-            // In practice every block does, but the check is defensive.
             var referencers = projects.Where(p => ProjectReferencesCommonOrPrimitives(p)).ToList();
             if (referencers.Count == 0)
                 continue;
 
-            if (!projects.Contains("ETLBox.Common/ETLBox.Common.csproj"))
+            if (
+                commonTfms.Contains(tfm) && !projects.Contains("ETLBox.Common/ETLBox.Common.csproj")
+            )
                 offenders.Add(
                     $"'{tfm}' block: ETLBox.Common is missing but is referenced by [{string.Join(", ", referencers)}]"
                 );
-            if (!projects.Contains("ETLBox.Primitives/ETLBox.Primitives.csproj"))
+            if (
+                primitivesTfms.Contains(tfm)
+                && !projects.Contains("ETLBox.Primitives/ETLBox.Primitives.csproj")
+            )
                 offenders.Add(
                     $"'{tfm}' block: ETLBox.Primitives is missing but is referenced by [{string.Join(", ", referencers)}]"
                 );
@@ -154,8 +169,8 @@ public class DocFxMetadataCoverageTests
 
         Assert.True(
             offenders.Count == 0,
-            $"docfx/docfx.json Common/Primitives reachability gaps "
-                + $"(DocFx will emit 'Found project reference without a matching metadata reference'):{Environment.NewLine}"
+            $"docfx/docfx.json: Common/Primitives missing from a block whose TargetFramework "
+                + $"they natively build under:{Environment.NewLine}"
                 + $"  {string.Join(Environment.NewLine + "  ", offenders)}"
         );
     }

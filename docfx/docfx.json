@@ -31,9 +31,7 @@
       "src": [
         {
           "files": [
-            "ETLBox.ClickHouse/ETLBox.ClickHouse.csproj",
-            "ETLBox.Common/ETLBox.Common.csproj",
-            "ETLBox.Primitives/ETLBox.Primitives.csproj"
+            "ETLBox.ClickHouse/ETLBox.ClickHouse.csproj"
           ],
           "src": ".."
         }
@@ -48,9 +46,7 @@
       "src": [
         {
           "files": [
-            "ETLBox.MongoDB/ETLBox.MongoDB.csproj",
-            "ETLBox.Common/ETLBox.Common.csproj",
-            "ETLBox.Primitives/ETLBox.Primitives.csproj"
+            "ETLBox.MongoDB/ETLBox.MongoDB.csproj"
           ],
           "src": ".."
         }

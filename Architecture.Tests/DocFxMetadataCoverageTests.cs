@@ -115,7 +115,7 @@ public class DocFxMetadataCoverageTests
         return projMajor.HasValue && blockMajor.HasValue && blockMajor >= projMajor;
     }
 
-    private static bool IsNet5OrHigher(string tfm) => ParseNetMajor(tfm) is int m && m >= 5;
+    private static bool IsNet5OrHigher(string tfm) => ParseNetMajor(tfm) is >= 5;
 
     private static int? ParseNetMajor(string tfm)
     {

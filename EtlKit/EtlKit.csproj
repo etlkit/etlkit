@@ -1,0 +1,56 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageId>EtlKit</PackageId>
+    <Description>
+      EtlKit is a fully open-source 1.x version fork from original etlbox (etlbox.net).
+      A lightweight ETL (extract, transform, load) library and data integration
+      toolbox for .NET. Source and destination components let you read and write data from
+      the most common databases and file types. Transformations allow you to you harmonize,
+      filter, aggregate, validate and clean your data
+    </Description>
+    <RootNamespace>EtlKit</RootNamespace>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="src\Logging\**" />
+    <EmbeddedResource Remove="src\Logging\**" />
+    <None Remove="src\Logging\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ETLBox.Kafka" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CsvHelper" Version="30.0.1" />
+    <PackageReference Include="DotLiquid" Version="2.2.692" />
+    <PackageReference Include="ExcelDataReader" Version="3.6.0" />
+    <PackageReference Include="JetBrains.Annotations" Version="2023.3.0" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.7" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="7.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
+    <PackageReference Include="MySql.Data" Version="8.4.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Npgsql" Version="8.0.3" />
+    <PackageReference Include="System.Data.Odbc" Version="7.0.0" />
+    <PackageReference Include="System.Text.Json" Version="8.0.6" />
+    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="7.0.0" />
+    <PackageReference Include="TSQL.Parser" Version="2.6.0" />
+    <PackageReference Include="Unofficial.Microsoft.AnalysisServices.AdomdClientNetCore" Version="15.3.1.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EtlKit.Common\EtlKit.Common.csproj" />
+    <ProjectReference Include="..\EtlKit.Primitives\EtlKit.Primitives.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="TestDatabaseConnectors" />
+    <InternalsVisibleTo Include="TestShared" />
+  </ItemGroup>
+
+</Project>

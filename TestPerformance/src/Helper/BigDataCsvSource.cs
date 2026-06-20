@@ -1,8 +1,8 @@
 using System.IO;
-using ALE.ETLBox;
-using TestShared.Helper;
+using EtlKit;
+using EtlKit.TestShared.Helper;
 
-namespace ALE.ETLBoxTests.Performance.Helper
+namespace EtlKit.TestPerformance.ETLBoxTests.Performance.Helper
 {
     public static class BigDataCsvSource
     {
@@ -12,7 +12,7 @@ namespace ALE.ETLBoxTests.Performance.Helper
                 new TableColumn("Col1", "CHAR(255)", allowNulls: false),
                 new TableColumn("Col2", "CHAR(255)", allowNulls: false),
                 new TableColumn("Col3", "CHAR(255)", allowNulls: false),
-                new TableColumn("Col4", "CHAR(255)", allowNulls: true)
+                new TableColumn("Col4", "CHAR(255)", allowNulls: true),
             };
 
         internal static string CSVFolderName = "res/Csv";
@@ -31,7 +31,7 @@ namespace ALE.ETLBoxTests.Performance.Helper
             {
                 FileName = GetCompleteFilePath(numberOfRows),
                 NumberOfRows = numberOfRows,
-                TableDefinition = new TableDefinition("CSV", DestTableCols)
+                TableDefinition = new TableDefinition("CSV", DestTableCols),
             };
             bigData.CreateBigDataCSV();
         }

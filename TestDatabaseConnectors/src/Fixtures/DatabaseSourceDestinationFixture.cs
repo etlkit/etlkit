@@ -1,6 +1,6 @@
-﻿using TestShared.Helper;
+﻿using EtlKit.TestShared.Helper;
 
-namespace TestDatabaseConnectors.Fixtures;
+namespace EtlKit.TestDatabaseConnectors.Fixtures;
 
 [UsedImplicitly]
 public sealed class DatabaseSourceDestinationFixture : IDisposable

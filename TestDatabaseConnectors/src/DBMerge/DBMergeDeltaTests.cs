@@ -1,7 +1,8 @@
-using ALE.ETLBox.DataFlow;
-using ETLBox.Primitives;
+using EtlKit.DataFlow;
+using EtlKit.Primitives;
+using EtlKit.TestDatabaseConnectors.Fixtures;
 
-namespace TestDatabaseConnectors.DBMerge
+namespace EtlKit.TestDatabaseConnectors.DBMerge
 {
     [Collection(nameof(DataFlowSourceDestinationCollection))]
     public class DbMergeDeltaTests : DatabaseConnectorsTestBase
@@ -46,7 +47,7 @@ namespace TestDatabaseConnectors.DBMerge
                 "DBMergeDeltaDestination"
             )
             {
-                DeltaMode = DeltaMode.Delta
+                DeltaMode = DeltaMode.Delta,
             };
             source.LinkTo(dest);
             source.Execute();

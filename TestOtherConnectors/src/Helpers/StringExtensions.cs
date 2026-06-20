@@ -1,4 +1,4 @@
-namespace TestOtherConnectors.Helpers
+namespace EtlKit.TestOtherConnectors.Helpers
 {
     public static class StringExtensions
     {

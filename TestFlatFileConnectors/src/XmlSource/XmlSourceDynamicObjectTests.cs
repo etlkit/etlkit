@@ -1,9 +1,9 @@
-using ALE.ETLBox.Common.DataFlow;
-using ALE.ETLBox.DataFlow;
-using TestFlatFileConnectors.Fixture;
-using TestShared.SharedFixtures;
+using EtlKit.Common.DataFlow;
+using EtlKit.DataFlow;
+using EtlKit.TestFlatFileConnectors.Fixture;
+using EtlKit.TestShared.SharedFixtures;
 
-namespace TestFlatFileConnectors.XmlSource
+namespace EtlKit.TestFlatFileConnectors.XmlSource
 {
     [Collection("FlatFilesToDatabase")]
     public class XmlSourceDynamicObjectTests : FlatFileConnectorsTestBase
@@ -15,9 +15,7 @@ namespace TestFlatFileConnectors.XmlSource
         public void SourceWithDifferentNames()
         {
             //Arrange
-            var dest2Columns = new TwoColumnsTableFixture(
-                "XmlSource2ColsDynamic"
-            );
+            var dest2Columns = new TwoColumnsTableFixture("XmlSource2ColsDynamic");
             var trans = new RowTransformation<ExpandoObject>(row =>
             {
                 dynamic r = row;
@@ -25,10 +23,7 @@ namespace TestFlatFileConnectors.XmlSource
                 r.Col2 = r.Column2;
                 return r;
             });
-            var dest = new DbDestination<ExpandoObject>(
-                SqlConnection,
-                "XmlSource2ColsDynamic"
-            );
+            var dest = new DbDestination<ExpandoObject>(SqlConnection, "XmlSource2ColsDynamic");
 
             //Act
             var source = new XmlSource<ExpandoObject>(
@@ -36,7 +31,7 @@ namespace TestFlatFileConnectors.XmlSource
                 ResourceType.File
             )
             {
-                ElementName = "MySimpleRow"
+                ElementName = "MySimpleRow",
             };
             source.LinkTo(trans).LinkTo(dest);
             source.Execute();

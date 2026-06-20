@@ -1,4 +1,4 @@
-﻿namespace TestShared
+﻿namespace EtlKit.TestShared
 {
     public static class TheoryDataExtensions
     {

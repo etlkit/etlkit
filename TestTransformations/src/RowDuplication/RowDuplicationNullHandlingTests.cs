@@ -1,6 +1,6 @@
-using ALE.ETLBox.DataFlow;
+using EtlKit.DataFlow;
 
-namespace TestTransformations.RowDuplication
+namespace EtlKit.TestTransformations.RowDuplication
 {
     public class RowDuplicationNullHandlingTests
     {
@@ -23,8 +23,8 @@ namespace TestTransformations.RowDuplication
                     null,
                     new() { Col1 = 2, Col2 = "Test2" },
                     new() { Col1 = 3, Col2 = "Test3" },
-                    null
-                }
+                    null,
+                },
             };
 
             //Act

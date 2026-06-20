@@ -1,9 +1,9 @@
-﻿using ALE.ETLBox.Common.DataFlow;
-using ALE.ETLBox.DataFlow;
-using ETLBox.Primitives;
-using TestTransformations.Fixtures;
+﻿using EtlKit.Common.DataFlow;
+using EtlKit.DataFlow;
+using EtlKit.Primitives;
+using EtlKit.TestTransformations.Fixtures;
 
-namespace TestTransformations.RowBatchTransformation;
+namespace EtlKit.TestTransformations.RowBatchTransformation;
 
 [Collection("Transformations")]
 public class RowBatchTransformationTests : TransformationsTestBase
@@ -50,7 +50,7 @@ public class RowBatchTransformationTests : TransformationsTestBase
         var data = Enumerable.Range(0, 8).ToArray(); // two full batches of 4
         var source = new MemorySource<int>(data);
         var dest = new MemoryDestination<int>();
-        var errorDest = new MemoryDestination<ETLBoxError>();
+        var errorDest = new MemoryDestination<EtlKitError>();
 
         int batchCall = 0;
         var trans = new IntBatchTrans(batch =>

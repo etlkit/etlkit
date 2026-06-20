@@ -1,8 +1,9 @@
-using ALE.ETLBox.Common.DataFlow;
-using ALE.ETLBox.DataFlow;
-using ETLBox.Primitives;
+using EtlKit.Common.DataFlow;
+using EtlKit.DataFlow;
+using EtlKit.Primitives;
+using EtlKit.TestDatabaseConnectors.Fixtures;
 
-namespace TestDatabaseConnectors.DBTransformation;
+namespace EtlKit.TestDatabaseConnectors.DBTransformation;
 
 [Collection(nameof(DataFlowSourceDestinationCollection))]
 public class DbRowTransformationTests : DatabaseConnectorsTestBase
@@ -43,7 +44,7 @@ public class DbRowTransformationTests : DatabaseConnectorsTestBase
             Id = int.Parse(row[0]),
             Text = row[1],
             Value = row[2] != null ? long.Parse(row[2]) : null,
-            Percentage = decimal.Parse(row[3])
+            Percentage = decimal.Parse(row[3]),
         });
         var dbTransformation = new DbRowTransformation<MyExtendedRow>(connection, "Transformation");
         var dest = new MemoryDestination<MyExtendedRow>();

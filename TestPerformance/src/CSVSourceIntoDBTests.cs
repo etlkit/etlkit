@@ -1,15 +1,15 @@
-using ALE.ETLBox;
-using ALE.ETLBox.Common;
-using ALE.ETLBox.Common.DataFlow;
-using ALE.ETLBox.ConnectionManager;
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.DataFlow;
-using ALE.ETLBoxTests.Performance.Fixtures;
-using ALE.ETLBoxTests.Performance.Helper;
-using ETLBox.Primitives;
-using TestShared.Helper;
+using EtlKit;
+using EtlKit.Common;
+using EtlKit.Common.DataFlow;
+using EtlKit.ConnectionManager;
+using EtlKit.ControlFlow;
+using EtlKit.DataFlow;
+using EtlKit.Primitives;
+using EtlKit.TestPerformance.ETLBoxTests.Performance.Fixtures;
+using EtlKit.TestPerformance.ETLBoxTests.Performance.Helper;
+using EtlKit.TestShared.Helper;
 
-namespace ALE.ETLBoxTests.Performance
+namespace EtlKit.TestPerformance.ETLBoxTests.Performance
 {
     [Collection("Performance")]
     public class CsvSourceIntoDBTests : PerformanceTestBase
@@ -134,7 +134,6 @@ namespace ALE.ETLBoxTests.Performance
             return timeElapsedETLBox;
         }
 
-
         [Trait("Category", "Performance")]
         [Fact()]
         public void CheckMemoryUsage()
@@ -157,7 +156,7 @@ namespace ALE.ETLBoxTests.Performance
                     Col1 = r.Col1,
                     Col2 = r.Col2,
                     Col3 = r.Col3,
-                    Col4 = r.Col4
+                    Col4 = r.Col4,
                 };
             });
             var destGeneric = new DbDestination<CsvData>(
@@ -223,7 +222,7 @@ namespace ALE.ETLBoxTests.Performance
                     Col1 = HashHelper.RandomString(255),
                     Col2 = HashHelper.RandomString(255),
                     Col3 = HashHelper.RandomString(255),
-                    Col4 = HashHelper.RandomString(255)
+                    Col4 = HashHelper.RandomString(255),
                 };
             }
         }

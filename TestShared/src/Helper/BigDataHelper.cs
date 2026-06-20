@@ -1,12 +1,12 @@
 ﻿using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using ALE.ETLBox;
-using ALE.ETLBox.Common;
-using ALE.ETLBox.ConnectionManager;
-using ALE.ETLBox.Logging;
+using EtlKit;
+using EtlKit.Common;
+using EtlKit.ConnectionManager;
+using EtlKit.Logging;
 
-namespace TestShared.Helper
+namespace EtlKit.TestShared.Helper
 {
     public class BigDataHelper
     {

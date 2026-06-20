@@ -1,17 +1,17 @@
-using ALE.ETLBox;
-using ALE.ETLBox.ConnectionManager;
-using ALE.ETLBox.ControlFlow;
+using EtlKit;
+using EtlKit.ConnectionManager;
+using EtlKit.ControlFlow;
+using EtlKit.TestConnectionManager.Fixtures;
+using EtlKit.TestShared.Attributes;
 using Microsoft.Data.SqlClient;
-using TestConnectionManager.Fixtures;
-using TestShared.Attributes;
 
-namespace TestConnectionManager.ConnectionManager
+namespace EtlKit.TestConnectionManager.ConnectionManager
 {
     [Collection("Connection Manager")]
     public sealed class SqlConnectionManagerTests : ConnectionManagerTestBase
     {
         public SqlConnectionManagerTests(ConnectionManagerFixture fixture)
-            : base(ETLBox.Primitives.ConnectionManagerType.SqlServer, fixture) { }
+            : base(EtlKit.Primitives.ConnectionManagerType.SqlServer, fixture) { }
 
         // Подсчёт изолирован по уникальному Application Name (см. SqlOpenConnectionCounter),
         // поэтому устойчив к соединениям других тестов/сборок к общей БД.

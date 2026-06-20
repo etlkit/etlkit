@@ -1,7 +1,7 @@
-using ALE.ETLBox.ControlFlow.SqlServer;
-using TestControlFlowTasks.Fixtures;
+using EtlKit.ControlFlow.SqlServer;
+using EtlKit.TestControlFlowTasks.Fixtures;
 
-namespace TestControlFlowTasks.SqlServer
+namespace EtlKit.TestControlFlowTasks.SqlServer
 {
     [Collection(nameof(ControlFlowCollection))]
     public class XmlaTaskTests : ControlFlowTestBase

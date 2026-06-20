@@ -1,9 +1,9 @@
-using ALE.ETLBox;
-using ALE.ETLBox.ControlFlow;
-using ETLBox.Primitives;
-using TestControlFlowTasks.Fixtures;
+using EtlKit;
+using EtlKit.ControlFlow;
+using EtlKit.Primitives;
+using EtlKit.TestControlFlowTasks.Fixtures;
 
-namespace TestControlFlowTasks
+namespace EtlKit.TestControlFlowTasks
 {
     [Collection(nameof(ControlFlowCollection))]
     public class CreateProcedureTaskTests : ControlFlowTestBase
@@ -42,7 +42,7 @@ namespace TestControlFlowTasks
             List<ProcedureParameter> pars = new List<ProcedureParameter>
             {
                 new("Par1", "VARCHAR(10)"),
-                new("Par2", "INT", "7")
+                new("Par2", "INT", "7"),
             };
             //Act
             CreateProcedureTask.CreateOrAlter(connection, "Proc3", "SELECT 1;", pars);
@@ -57,7 +57,7 @@ namespace TestControlFlowTasks
             List<ProcedureParameter> pars = new List<ProcedureParameter>
             {
                 new("Par1", "varchar(10)"),
-                new("Par2", "int", "7")
+                new("Par2", "int", "7"),
             };
             ProcedureDefinition procDef = new ProcedureDefinition("Proc4", "SELECT 1;", pars);
             //Act

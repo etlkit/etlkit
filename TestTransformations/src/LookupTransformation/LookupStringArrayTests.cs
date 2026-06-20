@@ -1,9 +1,9 @@
-using ALE.ETLBox.DataFlow;
-using ETLBox.Primitives;
-using TestShared.SharedFixtures;
-using TestTransformations.Fixtures;
+using EtlKit.DataFlow;
+using EtlKit.Primitives;
+using EtlKit.TestShared.SharedFixtures;
+using EtlKit.TestTransformations.Fixtures;
 
-namespace TestTransformations.LookupTransformation
+namespace EtlKit.TestTransformations.LookupTransformation
 {
     [Collection("Transformations")]
     public sealed class LookupStringArrayTests : TransformationsTestBase, IDisposable
@@ -22,42 +22,24 @@ namespace TestTransformations.LookupTransformation
         {
             //Arrange
             CultureInfo.CurrentCulture = connection.ConnectionCulture;
-            var source2Columns = new TwoColumnsTableFixture(
-                connection,
-                "SourceNonGenericLookup"
-            );
+            var source2Columns = new TwoColumnsTableFixture(connection, "SourceNonGenericLookup");
             source2Columns.InsertTestData();
             var dest4Columns = new FourColumnsTableFixture(
                 connection,
                 "DestinationNonGenericLookup",
                 -1
             );
-            var lookup4Columns = new FourColumnsTableFixture(
-                connection,
-                "LookupNonGeneric"
-            );
+            var lookup4Columns = new FourColumnsTableFixture(connection, "LookupNonGeneric");
             lookup4Columns.InsertTestData();
 
-            var source = new DbSource<string[]>(
-                connection,
-                "SourceNonGenericLookup"
-            );
-            var dest = new DbDestination<string[]>(
-                connection,
-                "DestinationNonGenericLookup"
-            );
+            var source = new DbSource<string[]>(connection, "SourceNonGenericLookup");
+            var dest = new DbDestination<string[]>(connection, "DestinationNonGenericLookup");
 
             //Act
             var lookupList = new List<string[]>();
 
-            var lookupSource = new DbSource<string[]>(
-                connection,
-                "LookupNonGeneric"
-            );
-            var lookup = new LookupTransformation<
-                string[],
-                string[]
-            >(
+            var lookupSource = new DbSource<string[]>(connection, "LookupNonGeneric");
+            var lookup = new LookupTransformation<string[], string[]>(
                 lookupSource,
                 row =>
                 {

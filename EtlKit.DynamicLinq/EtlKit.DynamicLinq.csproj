@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <RootNamespace>EtlKit.DynamicLinq</RootNamespace>
+    <PackageId>EtlKit.DynamicLinq</PackageId>
+    <Description>
+      EtlKit is a fully open-source 1.x version fork from original etlbox (etlbox.net).
+      Dynamic LINQ-based row filtration. Provides ExpressionRowFiltration that evaluates a
+      string predicate through System.Linq.Dynamic.Core. No Roslyn, no per-shape assembly
+      emission - lightweight compared to ETLBox.Scripting. Supports custom-type method calls
+      via RegisterCustomTypes, bulk type registration via AdditionalAssemblyNames, and short
+      type-name resolution via AdditionalImports for XML-defined flows.
+    </Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Linq.Dynamic.Core" Version="1.6.7"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EtlKit\EtlKit.csproj" />
+    <ProjectReference Include="..\EtlKit.Common\EtlKit.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="EtlKit.DynamicLinq.Tests"/>
+    <InternalsVisibleTo Include="EtlKit.DynamicLinq.Benchmarks"/>
+    <InternalsVisibleTo Include="EtlKit.Serialization.Tests"/>
+  </ItemGroup>
+</Project>

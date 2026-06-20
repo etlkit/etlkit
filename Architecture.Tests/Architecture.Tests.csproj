@@ -6,7 +6,7 @@
     <Nullable>enable</Nullable>
     <IsTestProject>true</IsTestProject>
     <IsPackable>false</IsPackable>
-    <RootNamespace>ETLBox.Architecture.Tests</RootNamespace>
+    <RootNamespace>EtlKit.Architecture.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

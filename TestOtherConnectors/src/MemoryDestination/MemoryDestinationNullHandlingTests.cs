@@ -1,4 +1,4 @@
-namespace TestOtherConnectors.MemoryDestination
+namespace EtlKit.TestOtherConnectors.MemoryDestination
 {
     public class MemoryDestinationNullHandlingTests
     {
@@ -21,8 +21,8 @@ namespace TestOtherConnectors.MemoryDestination
                     null,
                     new() { Col1 = 2, Col2 = "Test2" },
                     new() { Col1 = 3, Col2 = "Test3" },
-                    null
-                }
+                    null,
+                },
             };
 
             //Act

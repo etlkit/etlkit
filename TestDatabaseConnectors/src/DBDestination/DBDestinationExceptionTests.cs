@@ -1,8 +1,9 @@
 using System.Threading;
-using ALE.ETLBox;
-using ALE.ETLBox.DataFlow;
+using EtlKit;
+using EtlKit.DataFlow;
+using EtlKit.TestDatabaseConnectors.Fixtures;
 
-namespace TestDatabaseConnectors.DBDestination
+namespace EtlKit.TestDatabaseConnectors.DBDestination
 {
     [Collection(nameof(DataFlowSourceDestinationCollection))]
     public class DbDestinationExceptionTests : DatabaseConnectorsTestBase
@@ -54,7 +55,7 @@ namespace TestDatabaseConnectors.DBDestination
             DbDestination<string[]> dest = new DbDestination<string[]>
             {
                 ConnectionManager = SqlConnection,
-                DestinationTableDefinition = def
+                DestinationTableDefinition = def,
             };
             source.LinkTo(dest);
 

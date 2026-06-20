@@ -1,8 +1,8 @@
-﻿using ALE.ETLBox.DataFlow;
-using ALE.ETLBoxTests.Performance.Helper;
-using TestShared.Helper;
+﻿using EtlKit.DataFlow;
+using EtlKit.TestPerformance.ETLBoxTests.Performance.Helper;
+using EtlKit.TestShared.Helper;
 
-namespace ALE.ETLBoxTests.Performance
+namespace EtlKit.TestPerformance.ETLBoxTests.Performance
 {
     public class MemoryDestinationTests
     {
@@ -52,13 +52,13 @@ namespace ALE.ETLBoxTests.Performance
                 {
                     teGeneric.TotalMilliseconds,
                     teNonGeneric.TotalMilliseconds,
-                    teDynamic.TotalMilliseconds
+                    teDynamic.TotalMilliseconds,
                 }.Max()
                     < new[]
                     {
                         teGeneric.TotalMilliseconds,
                         teNonGeneric.TotalMilliseconds,
-                        teDynamic.TotalMilliseconds
+                        teDynamic.TotalMilliseconds,
                     }.Max() * (deviation + 1)
             );
         }

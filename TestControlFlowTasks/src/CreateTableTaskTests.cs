@@ -1,11 +1,11 @@
-using ALE.ETLBox;
-using ALE.ETLBox.Common;
-using ALE.ETLBox.ConnectionManager;
-using ALE.ETLBox.ControlFlow;
-using ETLBox.Primitives;
-using TestControlFlowTasks.Fixtures;
+using EtlKit;
+using EtlKit.Common;
+using EtlKit.ConnectionManager;
+using EtlKit.ControlFlow;
+using EtlKit.Primitives;
+using EtlKit.TestControlFlowTasks.Fixtures;
 
-namespace TestControlFlowTasks
+namespace EtlKit.TestControlFlowTasks
 {
     [Collection(nameof(ControlFlowCollection))]
     public class CreateTableTaskTests : ControlFlowTestBase
@@ -27,7 +27,7 @@ namespace TestControlFlowTasks
             List<TableColumn> columns = new List<TableColumn>
             {
                 new("Id", "INT", false, true),
-                new("Col1", "INT")
+                new("Col1", "INT"),
             };
 
             //Act
@@ -44,7 +44,7 @@ namespace TestControlFlowTasks
             List<TableColumn> columns = new List<TableColumn>
             {
                 new("Id", "INT", false, true),
-                new("value", "INT")
+                new("value", "INT"),
             };
             CreateTableTask.Create(connection, "CreateTable2", columns);
             //Act
@@ -60,7 +60,7 @@ namespace TestControlFlowTasks
             List<TableColumn> columns = new List<TableColumn>
             {
                 new("value", "INT", false, true),
-                new("value2", "DATE", true)
+                new("value2", "DATE", true),
             };
             //Act
             CreateTableTask.Create(connection, "CreateTable3", columns);
@@ -77,7 +77,7 @@ namespace TestControlFlowTasks
             List<TableColumn> columns = new List<TableColumn>
             {
                 new("Id", "INT", allowNulls: false, isPrimaryKey: true),
-                new("value2", "DATE", allowNulls: true)
+                new("value2", "DATE", allowNulls: true),
             };
 
             //Act
@@ -96,7 +96,7 @@ namespace TestControlFlowTasks
             List<TableColumn> columns = new List<TableColumn>
             {
                 new("Id", "INT", allowNulls: false, isPrimaryKey: true),
-                new("value2", "DATE", allowNulls: true)
+                new("value2", "DATE", allowNulls: true),
             };
             //Act
             CreateTableTask.Create(connection, "CreateTablePKWithIDX", columns);
@@ -124,7 +124,7 @@ namespace TestControlFlowTasks
             {
                 new("Id1", "INT", allowNulls: false, isPrimaryKey: true),
                 new("Id2", "INT", allowNulls: false, isPrimaryKey: true),
-                new("value", "DATE", allowNulls: true)
+                new("value", "DATE", allowNulls: true),
             };
 
             //Act
@@ -143,18 +143,18 @@ namespace TestControlFlowTasks
             List<TableColumn> columns = new List<TableColumn>
             {
                 new("value1", "INT", allowNulls: false, true),
-                new("value2", "DATE", allowNulls: true)
+                new("value2", "DATE", allowNulls: true),
             };
             CreateTableTask.Create(connection, "CreateTable5", columns);
             //Act
 
             //Assert
-            Assert.Throws<ETLBoxException>(() =>
+            Assert.Throws<EtlKitException>(() =>
             {
                 new CreateTableTask("CreateTable5", columns.ToList())
                 {
                     ConnectionManager = connection,
-                    ThrowErrorIfTableExists = true
+                    ThrowErrorIfTableExists = true,
                 }.Execute();
             });
         }
@@ -165,7 +165,7 @@ namespace TestControlFlowTasks
             //Arrange
             List<TableColumn> columns = new List<TableColumn>
             {
-                new("value1", "INT", allowNulls: false, isPrimaryKey: true, isIdentity: true)
+                new("value1", "INT", allowNulls: false, isPrimaryKey: true, isIdentity: true),
             };
 
             //Act
@@ -192,8 +192,8 @@ namespace TestControlFlowTasks
                 {
                     IsIdentity = true,
                     IdentityIncrement = 1000,
-                    IdentitySeed = 50
-                }
+                    IdentitySeed = 50,
+                },
             };
 
             //Act
@@ -216,7 +216,7 @@ namespace TestControlFlowTasks
             {
                 new("value1", "INT", allowNulls: false) { DefaultValue = "0" },
                 new("value2", "NVARCHAR(10)", allowNulls: false) { DefaultValue = "Test" },
-                new("value3", "DECIMAL(10,2)", allowNulls: false) { DefaultValue = "3.12" }
+                new("value3", "DECIMAL(10,2)", allowNulls: false) { DefaultValue = "3.12" },
             };
             //Act
             CreateTableTask.Create(connection, "CreateTable8", columns);
@@ -246,8 +246,8 @@ namespace TestControlFlowTasks
                 new("value2", "INT", allowNulls: false),
                 new("compValue", "BIGINT", allowNulls: true)
                 {
-                    ComputedColumn = "(value1 * value2)"
-                }
+                    ComputedColumn = "(value1 * value2)",
+                },
             };
 
             //Act
@@ -270,7 +270,7 @@ namespace TestControlFlowTasks
             {
                 new("Id1", "INT", allowNulls: false, isPrimaryKey: true),
                 new("Id2", "INT", allowNulls: false, isPrimaryKey: true),
-                new("value", "DATE", allowNulls: true)
+                new("value", "DATE", allowNulls: true),
             };
             string tableName;
             if (connection.GetType() == typeof(SqlConnectionManager))
@@ -296,17 +296,17 @@ namespace TestControlFlowTasks
         {
             //Arrange
             TableDefinition td = new TableDefinition { Name = "Test" };
-            Assert.Throws<ETLBoxException>(() => CreateTableTask.Create(SqlConnection, td));
+            Assert.Throws<EtlKitException>(() => CreateTableTask.Create(SqlConnection, td));
 
-            Assert.Throws<ETLBoxException>(
+            Assert.Throws<EtlKitException>(
                 () => CreateTableTask.Create(SqlConnection, "", new List<TableColumn>())
             );
 
-            Assert.Throws<ETLBoxException>(
+            Assert.Throws<EtlKitException>(
                 () => CreateTableTask.Create(SqlConnection, "test", new List<TableColumn>())
             );
 
-            Assert.Throws<ETLBoxException>(
+            Assert.Throws<EtlKitException>(
                 () =>
                     CreateTableTask.Create(
                         SqlConnection,
@@ -315,7 +315,7 @@ namespace TestControlFlowTasks
                     )
             );
 
-            Assert.Throws<ETLBoxException>(
+            Assert.Throws<EtlKitException>(
                 () =>
                     CreateTableTask.Create(
                         SqlConnection,
@@ -333,7 +333,7 @@ namespace TestControlFlowTasks
             {
                 new("Id", "INT", allowNulls: false, isPrimaryKey: true, isIdentity: true),
                 new("value1", "NVARCHAR(10)", allowNulls: true),
-                new("value2", "DECIMAL(10,2)", allowNulls: false) { DefaultValue = "3.12" }
+                new("value2", "DECIMAL(10,2)", allowNulls: false) { DefaultValue = "3.12" },
             };
             CreateTableTask.Create(connection, "CreateTable10", columns);
 
@@ -357,7 +357,7 @@ namespace TestControlFlowTasks
             {
                 new("Id", "INT", allowNulls: false, isPrimaryKey: true),
                 new("value1", "NVARCHAR(10)", allowNulls: true),
-                new("value2", "DECIMAL(10,2)", allowNulls: false) { DefaultValue = "3.12" }
+                new("value2", "DECIMAL(10,2)", allowNulls: false) { DefaultValue = "3.12" },
             };
             CreateTableTask.Create(ClickHouseConnection, "CreateTable10", columns);
 
@@ -384,9 +384,9 @@ namespace TestControlFlowTasks
                 {
                     Name = "ThisIsAReallyLongAndPrettyColumnNameWhichICantChange",
                     DataType = "int",
-                    IsPrimaryKey = true
+                    IsPrimaryKey = true,
                 },
-                new() { Name = "JustRandomColumn", DataType = "int" }
+                new() { Name = "JustRandomColumn", DataType = "int" },
             };
 
             var tableDefinition = new TableDefinition(
@@ -394,7 +394,7 @@ namespace TestControlFlowTasks
                 columns
             )
             {
-                PrimaryKeyConstraintName = "shortname"
+                PrimaryKeyConstraintName = "shortname",
             };
             CreateTableTask.Create(connection, tableDefinition);
             var td = TableDefinition.GetDefinitionFromTableName(

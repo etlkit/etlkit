@@ -1,7 +1,7 @@
+using EtlKit.TestShared.Helper;
 using JetBrains.Annotations;
-using TestShared.Helper;
 
-namespace ALE.ETLBoxTests.NonParallel.Fixtures
+namespace EtlKit.TestNonParallel.Fixtures
 {
     [UsedImplicitly]
     public sealed class LoggingDatabaseFixture : IDisposable

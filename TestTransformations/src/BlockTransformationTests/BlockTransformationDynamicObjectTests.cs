@@ -1,9 +1,9 @@
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.DataFlow;
-using TestShared.SharedFixtures;
-using TestTransformations.Fixtures;
+using EtlKit.ControlFlow;
+using EtlKit.DataFlow;
+using EtlKit.TestShared.SharedFixtures;
+using EtlKit.TestTransformations.Fixtures;
 
-namespace TestTransformations.BlockTransformationTests
+namespace EtlKit.TestTransformations.BlockTransformationTests
 {
     [Collection("Transformations")]
     public class BlockTransformationDynamicObjectTests : TransformationsTestBase
@@ -15,32 +15,23 @@ namespace TestTransformations.BlockTransformationTests
         public void ModifyInputDataList()
         {
             //Arrange
-            var source2Columns = new TwoColumnsTableFixture(
-                "BlockTransSourceDynamic"
-            );
+            var source2Columns = new TwoColumnsTableFixture("BlockTransSourceDynamic");
             source2Columns.InsertTestData();
             var _ = new TwoColumnsTableFixture("BlockTransDestDynamic");
 
-            var source = new DbSource<ExpandoObject>(
-                SqlConnection,
-                "BlockTransSourceDynamic"
-            );
-            var dest = new DbDestination<ExpandoObject>(
-                SqlConnection,
-                "BlockTransDestDynamic"
-            );
+            var source = new DbSource<ExpandoObject>(SqlConnection, "BlockTransSourceDynamic");
+            var dest = new DbDestination<ExpandoObject>(SqlConnection, "BlockTransDestDynamic");
 
             //Act
-            var block =
-                new BlockTransformation<ExpandoObject>(inputData =>
-                {
-                    inputData.RemoveRange(1, 2);
-                    dynamic nr = new ExpandoObject();
-                    nr.Col1 = 4;
-                    nr.Col2 = "Test4";
-                    inputData.Add(nr);
-                    return inputData;
-                });
+            var block = new BlockTransformation<ExpandoObject>(inputData =>
+            {
+                inputData.RemoveRange(1, 2);
+                dynamic nr = new ExpandoObject();
+                nr.Col1 = 4;
+                nr.Col2 = "Test4";
+                inputData.Add(nr);
+                return inputData;
+            });
             source.LinkTo(block);
             block.LinkTo(dest);
             source.Execute();

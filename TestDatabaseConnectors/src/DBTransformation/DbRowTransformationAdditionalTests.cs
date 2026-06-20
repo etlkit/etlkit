@@ -1,12 +1,13 @@
 using System.Data;
 using System.Dynamic;
 using System.Threading;
-using ALE.ETLBox;
-using ALE.ETLBox.Common.DataFlow;
-using ALE.ETLBox.DataFlow;
-using ETLBox.Primitives;
+using EtlKit;
+using EtlKit.Common.DataFlow;
+using EtlKit.DataFlow;
+using EtlKit.Primitives;
+using EtlKit.TestDatabaseConnectors.Fixtures;
 
-namespace TestDatabaseConnectors.DBTransformation
+namespace EtlKit.TestDatabaseConnectors.DBTransformation
 {
     [Collection(nameof(DataFlowSourceDestinationCollection))]
     public class DbRowTransformationAdditionalTests : DatabaseConnectorsTestBase
@@ -106,7 +107,7 @@ namespace TestDatabaseConnectors.DBTransformation
             );
             var dbTrans = new DbRowTransformation<MyRow>(connection, "NonExisting_Table_For_Error");
             var dest = new MemoryDestination<MyRow>();
-            var errorDest = new MemoryDestination<ETLBoxError>();
+            var errorDest = new MemoryDestination<EtlKitError>();
 
             source.LinkTo(dbTrans);
             dbTrans.LinkTo(dest);

@@ -1,6 +1,6 @@
-using ALE.ETLBox;
+using EtlKit;
 
-namespace TestHelper
+namespace EtlKit.TestHelper
 {
     public class ConnectionStringTests
     {
@@ -11,7 +11,7 @@ namespace TestHelper
             var connString = new SqlConnectionString
             {
                 //Act
-                Value = "Server=.;User Id=test;Password=test;Database=TestDB;"
+                Value = "Server=.;User Id=test;Password=test;Database=TestDB;",
             };
 
             var withoutDbName = connString.CloneWithoutDbName().Value;
@@ -37,7 +37,7 @@ namespace TestHelper
             var connString = new SQLiteConnectionString
             {
                 Value =
-                    $"Data Source=.{Path.DirectorySeparatorChar}db{Path.DirectorySeparatorChar}SQLiteControlFlow.db;"
+                    $"Data Source=.{Path.DirectorySeparatorChar}db{Path.DirectorySeparatorChar}SQLiteControlFlow.db;",
             };
 
             //Act
@@ -60,7 +60,7 @@ namespace TestHelper
             {
                 //Act
                 Value =
-                    "Server=10.211.55.2;Database=TestDb;User Id=postgres;Password=etlboxpassword;"
+                    "Server=10.211.55.2;Database=TestDb;User Id=postgres;Password=etlboxpassword;",
             };
 
             var withoutDbName = connString.CloneWithoutDbName().Value;
@@ -89,7 +89,7 @@ namespace TestHelper
             var connString = new MySqlConnectionString
             {
                 //Act
-                Value = "Server=10.211.55.2;Database=TestDb;Uid=root;Pwd=etlboxpassword;"
+                Value = "Server=10.211.55.2;Database=TestDb;Uid=root;Pwd=etlboxpassword;",
             };
 
             var withoutDbName = connString.CloneWithoutDbName().Value;

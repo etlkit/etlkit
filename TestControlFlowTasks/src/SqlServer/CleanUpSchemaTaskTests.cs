@@ -1,10 +1,10 @@
-using ALE.ETLBox;
-using ALE.ETLBox.Common;
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.ControlFlow.SqlServer;
-using TestControlFlowTasks.Fixtures;
+using EtlKit;
+using EtlKit.Common;
+using EtlKit.ControlFlow;
+using EtlKit.ControlFlow.SqlServer;
+using EtlKit.TestControlFlowTasks.Fixtures;
 
-namespace TestControlFlowTasks.SqlServer
+namespace EtlKit.TestControlFlowTasks.SqlServer
 {
     [Collection(nameof(ControlFlowCollection))]
     public class CleanUpSchemaTaskTests : ControlFlowTestBase
@@ -40,7 +40,7 @@ namespace TestControlFlowTasks.SqlServer
 WHERE sch.name = '{schemaName}'"
             )
             {
-                ConnectionManager = SqlConnection
+                ConnectionManager = SqlConnection,
             };
             Assert.Equal(3, objCountSql.ExecuteScalar<int>());
 

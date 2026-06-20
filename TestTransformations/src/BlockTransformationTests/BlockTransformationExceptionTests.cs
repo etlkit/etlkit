@@ -1,8 +1,8 @@
-using ALE.ETLBox.DataFlow;
-using TestShared.SharedFixtures;
-using TestTransformations.Fixtures;
+using EtlKit.DataFlow;
+using EtlKit.TestShared.SharedFixtures;
+using EtlKit.TestTransformations.Fixtures;
 
-namespace TestTransformations.BlockTransformationTests
+namespace EtlKit.TestTransformations.BlockTransformationTests
 {
     [Collection("Transformations")]
     public class BlockTransformationExceptionTests : TransformationsTestBase
@@ -24,19 +24,11 @@ namespace TestTransformations.BlockTransformationTests
             source2Columns.InsertTestData();
             var _ = new TwoColumnsTableFixture("BlockTransDest");
 
-            var source = new DbSource<MySimpleRow>(
-                SqlConnection,
-                "BlockTransSource"
-            );
-            var dest = new DbDestination<MySimpleRow>(
-                SqlConnection,
-                "BlockTransDest"
-            );
+            var source = new DbSource<MySimpleRow>(SqlConnection, "BlockTransSource");
+            var dest = new DbDestination<MySimpleRow>(SqlConnection, "BlockTransDest");
 
             //Act
-            var block = new BlockTransformation<MySimpleRow>(
-                _ => throw new Exception("Test")
-            );
+            var block = new BlockTransformation<MySimpleRow>(_ => throw new Exception("Test"));
             source.LinkTo(block);
             block.LinkTo(dest);
 

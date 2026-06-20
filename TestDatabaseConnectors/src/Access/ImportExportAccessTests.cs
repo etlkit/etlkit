@@ -1,9 +1,10 @@
 using System.Threading.Tasks;
-using ALE.ETLBox;
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.DataFlow;
+using EtlKit;
+using EtlKit.ControlFlow;
+using EtlKit.DataFlow;
+using EtlKit.TestDatabaseConnectors.Fixtures;
 
-namespace TestDatabaseConnectors.Access
+namespace EtlKit.TestDatabaseConnectors.Access
 {
     public sealed class ImportExportAccessTests : DatabaseConnectorsTestBase
     {

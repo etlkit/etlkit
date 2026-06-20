@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <RootNamespace>EtlKit.TestHelper</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,8 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ETLBox.Json\ETLBox.Json.csproj" />
-    <ProjectReference Include="..\ETLBox\ETLBox.csproj" />
+    <ProjectReference Include="..\EtlKit.Json\EtlKit.Json.csproj" />
+    <ProjectReference Include="..\EtlKit\EtlKit.csproj" />
     <ProjectReference Include="..\TestShared\TestShared.csproj" />
   </ItemGroup>
 
@@ -29,10 +30,6 @@
 
   <ItemGroup>
     <PackageReference Update="JunitXml.TestLogger" Version="3.0.134" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="src\Models\" />
   </ItemGroup>
 
 </Project>

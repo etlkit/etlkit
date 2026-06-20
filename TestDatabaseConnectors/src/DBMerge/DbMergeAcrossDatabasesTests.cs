@@ -1,11 +1,12 @@
 using System.Diagnostics.CodeAnalysis;
-using ALE.ETLBox;
-using ALE.ETLBox.Common.DataFlow;
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.DataFlow;
-using ETLBox.Primitives;
+using EtlKit;
+using EtlKit.Common.DataFlow;
+using EtlKit.ControlFlow;
+using EtlKit.DataFlow;
+using EtlKit.Primitives;
+using EtlKit.TestDatabaseConnectors.Fixtures;
 
-namespace TestDatabaseConnectors.DBMerge
+namespace EtlKit.TestDatabaseConnectors.DBMerge
 {
     [Collection(nameof(DataFlowSourceDestinationCollection))]
     public class DbMergeAcrossDatabasesTests : DatabaseConnectorsTestBase
@@ -57,7 +58,7 @@ namespace TestDatabaseConnectors.DBMerge
             {
                 FirstName = d.FIRST_NAME,
                 LastName = d.LAST_NAME,
-                Id = d.ID
+                Id = d.ID,
             });
 
             nameSource.LinkTo(transform);
@@ -108,7 +109,7 @@ namespace TestDatabaseConnectors.DBMerge
                 {
                     new(nameof(Name.ID), "INT", false, true),
                     new(nameof(Name.FIRST_NAME), "NVARCHAR(100)", true),
-                    new(nameof(Name.LAST_NAME), "NVARCHAR(100)", true)
+                    new(nameof(Name.LAST_NAME), "NVARCHAR(100)", true),
                 }
             );
             DropTableTask.DropIfExists(destConnection, "People");
@@ -119,7 +120,7 @@ namespace TestDatabaseConnectors.DBMerge
                 {
                     new(nameof(People.Id), "INT", false, true),
                     new(nameof(People.FirstName), "NVARCHAR(100)", true),
-                    new(nameof(People.LastName), "NVARCHAR(100)", true)
+                    new(nameof(People.LastName), "NVARCHAR(100)", true),
                 }
             );
 

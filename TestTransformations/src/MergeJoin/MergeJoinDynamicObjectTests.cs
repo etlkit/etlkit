@@ -1,9 +1,9 @@
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.DataFlow;
-using TestShared.SharedFixtures;
-using TestTransformations.Fixtures;
+using EtlKit.ControlFlow;
+using EtlKit.DataFlow;
+using EtlKit.TestShared.SharedFixtures;
+using EtlKit.TestTransformations.Fixtures;
 
-namespace TestTransformations.MergeJoin
+namespace EtlKit.TestTransformations.MergeJoin
 {
     [Collection("Transformations")]
     public class MergeJoinDynamicObjectTests : TransformationsTestBase
@@ -15,24 +15,14 @@ namespace TestTransformations.MergeJoin
         public void MergeJoinUsingOneObject()
         {
             //Arrange
-            var source1Table = new TwoColumnsTableFixture(
-                "MergeJoinDynamicSource1"
-            );
+            var source1Table = new TwoColumnsTableFixture("MergeJoinDynamicSource1");
             source1Table.InsertTestData();
-            var source2Table = new TwoColumnsTableFixture(
-                "MergeJoinDynamicSource2"
-            );
+            var source2Table = new TwoColumnsTableFixture("MergeJoinDynamicSource2");
             source2Table.InsertTestDataSet2();
             var _ = new TwoColumnsTableFixture("MergeJoinDynamicDestination");
 
-            var source1 = new DbSource<ExpandoObject>(
-                SqlConnection,
-                "MergeJoinDynamicSource1"
-            );
-            var source2 = new DbSource<ExpandoObject>(
-                SqlConnection,
-                "MergeJoinDynamicSource2"
-            );
+            var source1 = new DbSource<ExpandoObject>(SqlConnection, "MergeJoinDynamicSource1");
+            var source2 = new DbSource<ExpandoObject>(SqlConnection, "MergeJoinDynamicSource2");
             var dest = new DbDestination<ExpandoObject>(
                 SqlConnection,
                 "MergeJoinDynamicDestination"

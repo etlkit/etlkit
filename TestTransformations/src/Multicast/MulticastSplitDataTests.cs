@@ -1,10 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
-using ALE.ETLBox.Common.DataFlow;
-using ALE.ETLBox.DataFlow;
-using TestShared.SharedFixtures;
-using TestTransformations.Fixtures;
+using EtlKit.Common.DataFlow;
+using EtlKit.DataFlow;
+using EtlKit.TestShared.SharedFixtures;
+using EtlKit.TestTransformations.Fixtures;
 
-namespace TestTransformations.Multicast
+namespace EtlKit.TestTransformations.Multicast
 {
     [Collection("Transformations")]
     public class MulticastSplitDataTests : TransformationsTestBase
@@ -42,29 +42,26 @@ namespace TestTransformations.Multicast
         {
             //Arrange
             var dest1Table = new TwoColumnsTableFixture("SplitDataDestination1");
-            var dest2Table = new FourColumnsTableFixture(
-                "SplitDataDestination2"
-            );
+            var dest2Table = new FourColumnsTableFixture("SplitDataDestination2");
 
             var source = new CsvSource<CSVPoco>("res/Multicast/CsvSourceToSplit.csv")
             {
-                Configuration = { Delimiter = ";" }
+                Configuration = { Delimiter = ";" },
             };
 
             var multicast = new Multicast<CSVPoco>();
 
-            var row1 = new RowTransformation<CSVPoco, Entity1>(
-                input => new Entity1 { Col1 = input.CSVCol1, Col2 = input.CSVCol2 }
-            );
-            var row2 = new RowTransformation<CSVPoco, Entity2>(
-                input =>
-                    new Entity2
-                    {
-                        Col2 = input.CSVCol2,
-                        Col3 = input.CSVCol3,
-                        Col4 = input.CSVCol4
-                    }
-            );
+            var row1 = new RowTransformation<CSVPoco, Entity1>(input => new Entity1
+            {
+                Col1 = input.CSVCol1,
+                Col2 = input.CSVCol2,
+            });
+            var row2 = new RowTransformation<CSVPoco, Entity2>(input => new Entity2
+            {
+                Col2 = input.CSVCol2,
+                Col3 = input.CSVCol3,
+                Col4 = input.CSVCol4,
+            });
 
             var destination1 = new DbDestination<Entity1>(SqlConnection, "SplitDataDestination1");
             var destination2 = new DbDestination<Entity2>(SqlConnection, "SplitDataDestination2");

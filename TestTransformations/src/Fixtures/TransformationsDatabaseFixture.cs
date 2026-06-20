@@ -1,6 +1,6 @@
-﻿using TestShared.Helper;
+﻿using EtlKit.TestShared.Helper;
 
-namespace TestTransformations.Fixtures
+namespace EtlKit.TestTransformations.Fixtures
 {
     public sealed class TransformationsDatabaseFixture : IDisposable
     {

@@ -1,8 +1,9 @@
-using ALE.ETLBox.Common.DataFlow;
-using ALE.ETLBox.ControlFlow;
-using TestShared.SharedFixtures;
+using EtlKit.Common.DataFlow;
+using EtlKit.ControlFlow;
+using EtlKit.TestOtherConnectors.Fixture;
+using EtlKit.TestShared.SharedFixtures;
 
-namespace TestOtherConnectors.CustomDestination
+namespace EtlKit.TestOtherConnectors.CustomDestination
 {
     [Collection("OtherConnectors")]
     public class CustomDestinationStringArrayTests : OtherConnectorsTestBase

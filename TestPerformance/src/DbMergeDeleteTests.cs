@@ -1,11 +1,11 @@
-using ALE.ETLBox;
-using ALE.ETLBox.Common;
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.DataFlow;
-using ALE.ETLBoxTests.Performance.Fixtures;
-using TestShared.Helper;
+using EtlKit;
+using EtlKit.Common;
+using EtlKit.ControlFlow;
+using EtlKit.DataFlow;
+using EtlKit.TestPerformance.ETLBoxTests.Performance.Fixtures;
+using EtlKit.TestShared.Helper;
 
-namespace ALE.ETLBoxTests.Performance
+namespace EtlKit.TestPerformance.ETLBoxTests.Performance
 {
     [Collection("Performance")]
     public class DbMergeDeleteTests : PerformanceTestBase

@@ -1,8 +1,8 @@
-using ALE.ETLBox;
-using ALE.ETLBox.Common;
-using ALE.ETLBox.ControlFlow;
+using EtlKit;
+using EtlKit.Common;
+using EtlKit.ControlFlow;
 
-namespace TestControlFlowTasks
+namespace EtlKit.TestControlFlowTasks
 {
     public class NoConnectionManagerTests
     {
@@ -11,7 +11,7 @@ namespace TestControlFlowTasks
         {
             //Arrange
             //Act & Assert
-            Assert.Throws<ETLBoxException>(() =>
+            Assert.Throws<EtlKitException>(() =>
             {
                 SqlTask.ExecuteNonQuery("test", "SELECT 1");
             });
@@ -22,7 +22,7 @@ namespace TestControlFlowTasks
         {
             //Arrange
             //Act & Assert
-            Assert.Throws<ETLBoxException>(() =>
+            Assert.Throws<EtlKitException>(() =>
             {
                 RowCountTask.Count("test");
             });
@@ -33,7 +33,7 @@ namespace TestControlFlowTasks
         {
             //Arrange
             //Act & Assert
-            Assert.Throws<ETLBoxException>(() =>
+            Assert.Throws<EtlKitException>(() =>
             {
                 CreateTableTask.Create("test", new List<TableColumn>());
             });
@@ -44,7 +44,7 @@ namespace TestControlFlowTasks
         {
             //Arrange
             //Act & Assert
-            Assert.Throws<ETLBoxException>(() =>
+            Assert.Throws<EtlKitException>(() =>
             {
                 IfDatabaseExistsTask.IsExisting("test");
             });
@@ -55,7 +55,7 @@ namespace TestControlFlowTasks
         {
             //Arrange
             //Act & Assert
-            Assert.Throws<ETLBoxException>(() =>
+            Assert.Throws<EtlKitException>(() =>
             {
                 CreateSchemaTask.Create("test");
             });
@@ -66,7 +66,7 @@ namespace TestControlFlowTasks
         {
             //Arrange
             //Act & Assert
-            Assert.Throws<ETLBoxException>(() =>
+            Assert.Throws<EtlKitException>(() =>
             {
                 DropSchemaTask.DropIfExists("test");
             });

@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <PackageId>EtlKit.Json</PackageId>
+    <RootNamespace>EtlKit.Json</RootNamespace>
+    <Description>
+      EtlKit is a fully open-source 1.x version fork from original etlbox (etlbox.net).
+      Support for Json transformations.
+    </Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="JetBrains.Annotations" Version="2023.3.0"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EtlKit.Common\EtlKit.Common.csproj" />
+  </ItemGroup>
+</Project>

@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <IsTestProject>false</IsTestProject>
+    <RootNamespace>EtlKit.TestShared</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,8 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ETLBox.ClickHouse\ETLBox.ClickHouse.csproj" />
-    <ProjectReference Include="..\ETLBox\ETLBox.csproj" />
+    <ProjectReference Include="..\EtlKit.ClickHouse\EtlKit.ClickHouse.csproj" />
+    <ProjectReference Include="..\EtlKit\EtlKit.csproj" />
   </ItemGroup>
 
   <ItemGroup>

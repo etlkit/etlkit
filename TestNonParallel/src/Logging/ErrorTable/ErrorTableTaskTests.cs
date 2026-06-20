@@ -1,9 +1,9 @@
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.Logging;
-using ALE.ETLBoxTests.NonParallel.Fixtures;
-using ETLBox.Primitives;
+using EtlKit.ControlFlow;
+using EtlKit.Logging;
+using EtlKit.Primitives;
+using EtlKit.TestNonParallel.Fixtures;
 
-namespace ALE.ETLBoxTests.NonParallel.Logging.ErrorTable
+namespace EtlKit.TestNonParallel.Logging.ErrorTable
 {
     [Collection("Logging")]
     public sealed class ErrorTableTaskTests : NonParallelTestBase, IDisposable
@@ -13,7 +13,7 @@ namespace ALE.ETLBoxTests.NonParallel.Logging.ErrorTable
 
         public void Dispose()
         {
-            ALE.ETLBox.Common.ControlFlow.ControlFlow.ClearSettings();
+            EtlKit.Common.ControlFlow.ControlFlow.ClearSettings();
         }
 
         [Theory, MemberData(nameof(AllSqlConnections))]

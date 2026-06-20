@@ -1,7 +1,8 @@
 using System.Dynamic;
-using TestShared.SharedFixtures;
+using EtlKit.TestOtherConnectors.Fixture;
+using EtlKit.TestShared.SharedFixtures;
 
-namespace TestOtherConnectors.MemorySource
+namespace EtlKit.TestOtherConnectors.MemorySource
 {
     [Collection("OtherConnectors")]
     public class MemorySourceDynamicObjectTests : OtherConnectorsTestBase

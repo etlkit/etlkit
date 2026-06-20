@@ -1,12 +1,12 @@
-using ALE.ETLBox.Common.DataFlow;
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.DataFlow;
-using ALE.ETLBox.Logging;
-using ETLBox.Primitives;
-using TestShared.SharedFixtures;
-using TestTransformations.Fixtures;
+using EtlKit.Common.DataFlow;
+using EtlKit.ControlFlow;
+using EtlKit.DataFlow;
+using EtlKit.Logging;
+using EtlKit.Primitives;
+using EtlKit.TestShared.SharedFixtures;
+using EtlKit.TestTransformations.Fixtures;
 
-namespace TestTransformations.RowTransformation
+namespace EtlKit.TestTransformations.RowTransformation
 {
     [Collection("Transformations")]
     public class RowTransformationErrorLinkingTests : TransformationsTestBase
@@ -27,25 +27,14 @@ namespace TestTransformations.RowTransformation
             //Arrange
             var unused = new TwoColumnsTableFixture("RowTransExceptionTest");
 
-            var source = new CsvSource<string[]>(
-                "res/RowTransformation/TwoColumns.csv"
-            );
-            var dest = new DbDestination<MySimpleRow>(
-                SqlConnection,
-                "RowTransExceptionTest"
-            );
+            var source = new CsvSource<string[]>("res/RowTransformation/TwoColumns.csv");
+            var dest = new DbDestination<MySimpleRow>(SqlConnection, "RowTransExceptionTest");
 
             CreateErrorTableTask.DropAndCreate(SqlConnection, "errors");
-            var errorDest = new DbDestination<ETLBoxError>(
-                SqlConnection,
-                "errors"
-            );
+            var errorDest = new DbDestination<EtlKitError>(SqlConnection, "errors");
 
             //Act
-            var trans = new RowTransformation<
-                string[],
-                MySimpleRow
-            >(csvdata =>
+            var trans = new RowTransformation<string[], MySimpleRow>(csvdata =>
             {
                 var no = int.Parse(csvdata[0]);
                 if (no == 2)
@@ -69,16 +58,13 @@ namespace TestTransformations.RowTransformation
         public void ThrowExceptionWithoutHandling()
         {
             //Arrange
-            var source = new CsvSource<string[]>(
-                "res/RowTransformation/TwoColumns.csv"
-            );
+            var source = new CsvSource<string[]>("res/RowTransformation/TwoColumns.csv");
             var dest = new MemoryDestination<MySimpleRow>();
 
             //Act
-            var trans = new RowTransformation<
-                string[],
-                MySimpleRow
-            >(_ => throw new InvalidOperationException("Test"));
+            var trans = new RowTransformation<string[], MySimpleRow>(_ =>
+                throw new InvalidOperationException("Test")
+            );
 
             source.LinkTo(trans);
             trans.LinkTo(dest);

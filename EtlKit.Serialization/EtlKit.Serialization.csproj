@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>EtlKit.Serialization</RootNamespace>
+    <PackageId>EtlKit.Serialization</PackageId>
+    <Nullable>enable</Nullable>
+    <Description>
+      EtlKit is a fully open-source 1.x version fork from original etlbox (etlbox.net).
+      Support for XML serialized dataflow configuration.
+    </Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="EtlKit.Serialization.Tests"/>
+  </ItemGroup>
+    
+  <ItemGroup>
+    <PackageReference Include="CsvHelper" Version="30.0.1"/>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EtlKit.Primitives\EtlKit.Primitives.csproj" />
+    <ProjectReference Include="..\EtlKit\EtlKit.csproj" />
+  </ItemGroup>
+
+</Project>

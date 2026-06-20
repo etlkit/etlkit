@@ -1,9 +1,10 @@
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.ControlFlow.SqlServer;
-using ALE.ETLBox.DataFlow;
-using ETLBox.Primitives;
+using EtlKit.ControlFlow;
+using EtlKit.ControlFlow.SqlServer;
+using EtlKit.DataFlow;
+using EtlKit.Primitives;
+using EtlKit.TestDatabaseConnectors.Fixtures;
 
-namespace TestDatabaseConnectors.AzureSql
+namespace EtlKit.TestDatabaseConnectors.AzureSql
 {
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     public sealed class IgnoreOnNonAzureEnvironmentFactAttribute : FactAttribute

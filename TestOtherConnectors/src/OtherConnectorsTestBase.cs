@@ -1,4 +1,6 @@
-﻿namespace TestOtherConnectors
+﻿using EtlKit.TestOtherConnectors.Fixture;
+
+namespace EtlKit.TestOtherConnectors
 {
     [CollectionDefinition("OtherConnectors")]
     public class OtherConnectorsCollectionClass

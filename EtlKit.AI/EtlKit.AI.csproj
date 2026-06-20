@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <PackageId>EtlKit.AI</PackageId>
+    <Description>
+      EtlKit is a fully open-source 1.x version fork from original etlbox (etlbox.net).
+      Support for AI transformations in data flow.
+    </Description>
+    <RootNamespace>EtlKit.AI</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="EtlKit.AI.Tests" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\EtlKit\EtlKit.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.AI" Version="10.1.0" />
+    <PackageReference Include="Microsoft.Extensions.AI.Abstractions" Version="10.1.0" />
+    <PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="10.1.0-preview.1.25608.1" NoWarn="NU5104" />
+    <PackageReference Include="Newtonsoft.Json.Schema" Version="4.0.1" />
+  </ItemGroup>
+
+</Project>

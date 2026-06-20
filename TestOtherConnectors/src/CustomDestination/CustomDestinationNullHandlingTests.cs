@@ -1,6 +1,6 @@
-using ALE.ETLBox.Common.DataFlow;
+using EtlKit.Common.DataFlow;
 
-namespace TestOtherConnectors.CustomDestination
+namespace EtlKit.TestOtherConnectors.CustomDestination
 {
     public class CustomDestinationNullHandlingTests
     {
@@ -23,8 +23,8 @@ namespace TestOtherConnectors.CustomDestination
                     null,
                     new() { Col1 = 2, Col2 = "Test2" },
                     new() { Col1 = 3, Col2 = "Test3" },
-                    null
-                }
+                    null,
+                },
             };
 
             //Act

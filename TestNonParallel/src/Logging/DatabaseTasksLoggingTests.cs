@@ -1,9 +1,9 @@
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.Logging;
-using ALE.ETLBoxTests.NonParallel.Fixtures;
-using EtlBox.Logging.Database;
+using EtlKit.ControlFlow;
+using EtlKit.Logging;
+using EtlKit.Logging.Database;
+using EtlKit.TestNonParallel.Fixtures;
 
-namespace ALE.ETLBoxTests.NonParallel.Logging
+namespace EtlKit.TestNonParallel.Logging
 {
     [Collection("Logging")]
     public sealed class DatabaseTasksLoggingTests : NonParallelTestBase, IDisposable
@@ -18,8 +18,8 @@ namespace ALE.ETLBoxTests.NonParallel.Logging
 
         public void Dispose()
         {
-            DropTableTask.Drop(SqlConnection, ALE.ETLBox.Common.ControlFlow.ControlFlow.LogTable);
-            ALE.ETLBox.Common.ControlFlow.ControlFlow.ClearSettings();
+            DropTableTask.Drop(SqlConnection, EtlKit.Common.ControlFlow.ControlFlow.LogTable);
+            EtlKit.Common.ControlFlow.ControlFlow.ClearSettings();
         }
 
         private int? CountLogEntries(string taskName)
@@ -33,7 +33,7 @@ GROUP BY task_hash"
             )
             {
                 DisableLogging = true,
-                ConnectionManager = SqlConnection
+                ConnectionManager = SqlConnection,
             }.ExecuteScalar<int>();
         }
 
@@ -53,7 +53,7 @@ SELECT * FROM
             )
             {
                 ConnectionManager = SqlConnection,
-                DisableLogging = true
+                DisableLogging = true,
             }.ExecuteNonQuery();
         }
 
@@ -88,7 +88,7 @@ GROUP BY task_hash"
                 )
                 {
                     DisableLogging = true,
-                    ConnectionManager = SqlConnection
+                    ConnectionManager = SqlConnection,
                 }.ExecuteScalar<int>()
             );
         }
@@ -223,7 +223,7 @@ GROUP BY task_hash"
                 )
                 {
                     DisableLogging = true,
-                    ConnectionManager = SqlConnection
+                    ConnectionManager = SqlConnection,
                 }.ExecuteScalar<int>()
             );
         }

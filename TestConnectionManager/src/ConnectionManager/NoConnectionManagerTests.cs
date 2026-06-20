@@ -1,8 +1,8 @@
 using System.Threading;
-using ALE.ETLBox.Common;
-using ALE.ETLBox.DataFlow;
+using EtlKit.Common;
+using EtlKit.DataFlow;
 
-namespace TestConnectionManager.ConnectionManager
+namespace EtlKit.TestConnectionManager.ConnectionManager
 {
     public class NoConnectionManagerTests
     {
@@ -15,7 +15,7 @@ namespace TestConnectionManager.ConnectionManager
             source.LinkTo(dest);
 
             //Act & Assert
-            Assert.Throws<ETLBoxException>(() =>
+            Assert.Throws<EtlKitException>(() =>
             {
                 source.Execute();
                 dest.Wait();
@@ -33,7 +33,7 @@ namespace TestConnectionManager.ConnectionManager
             source.LinkTo(dest);
 
             //Act & Assert
-            Assert.Throws<ETLBoxException>(() =>
+            Assert.Throws<EtlKitException>(() =>
             {
                 try
                 {

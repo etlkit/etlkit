@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Xunit;
 
-namespace ETLBox.Architecture.Tests;
+namespace EtlKit.Architecture.Tests;
 
 /// <summary>
 /// Regression tests for <c>docfx/docfx.json</c> and the GitHub Actions workflow

@@ -1,9 +1,9 @@
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.DataFlow;
-using TestShared.SharedFixtures;
-using TestTransformations.Fixtures;
+using EtlKit.ControlFlow;
+using EtlKit.DataFlow;
+using EtlKit.TestShared.SharedFixtures;
+using EtlKit.TestTransformations.Fixtures;
 
-namespace TestTransformations.BlockTransformationTests
+namespace EtlKit.TestTransformations.BlockTransformationTests
 {
     [Collection("Transformations")]
     public class BlockTransformationTests : TransformationsTestBase
@@ -25,23 +25,16 @@ namespace TestTransformations.BlockTransformationTests
             source2Columns.InsertTestData();
             var _ = new TwoColumnsTableFixture("BlockTransDest");
 
-            var source = new DbSource<MySimpleRow>(
-                SqlConnection,
-                "BlockTransSource"
-            );
-            var dest = new DbDestination<MySimpleRow>(
-                SqlConnection,
-                "BlockTransDest"
-            );
+            var source = new DbSource<MySimpleRow>(SqlConnection, "BlockTransSource");
+            var dest = new DbDestination<MySimpleRow>(SqlConnection, "BlockTransDest");
 
             //Act
-            var block =
-                new BlockTransformation<MySimpleRow>(inputData =>
-                {
-                    inputData.RemoveRange(1, 2);
-                    inputData.Add(new MySimpleRow { Col1 = 4, Col2 = "Test4" });
-                    return inputData;
-                });
+            var block = new BlockTransformation<MySimpleRow>(inputData =>
+            {
+                inputData.RemoveRange(1, 2);
+                inputData.Add(new MySimpleRow { Col1 = 4, Col2 = "Test4" });
+                return inputData;
+            });
             source.LinkTo(block);
             block.LinkTo(dest);
             source.Execute();
@@ -76,20 +69,11 @@ namespace TestTransformations.BlockTransformationTests
             source2Columns.InsertTestData();
             var dest2Columns = new TwoColumnsTableFixture("BlockTransDest");
 
-            var source = new DbSource<MySimpleRow>(
-                SqlConnection,
-                "BlockTransSource"
-            );
-            var dest = new DbDestination<MyOtherRow>(
-                SqlConnection,
-                "BlockTransDest"
-            );
+            var source = new DbSource<MySimpleRow>(SqlConnection, "BlockTransSource");
+            var dest = new DbDestination<MyOtherRow>(SqlConnection, "BlockTransDest");
 
             //Act
-            var block = new BlockTransformation<
-                MySimpleRow,
-                MyOtherRow
-            >(inputData =>
+            var block = new BlockTransformation<MySimpleRow, MyOtherRow>(inputData =>
             {
                 return inputData
                     .Select(row => new MyOtherRow { Col3 = row.Col1, Col4 = row.Col2 })

@@ -1,1 +1,1 @@
-[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("ETLBox.AI.Tests")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo("EtlKit.AI.Tests")]

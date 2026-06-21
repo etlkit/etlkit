@@ -1,11 +1,10 @@
-using EtlKit;
 using EtlKit.Common;
 using EtlKit.ControlFlow;
 using EtlKit.DataFlow;
-using EtlKit.TestPerformance.ETLBoxTests.Performance.Fixtures;
+using EtlKit.TestPerformance.Fixtures;
 using EtlKit.TestShared.Helper;
 
-namespace EtlKit.TestPerformance.ETLBoxTests.Performance
+namespace EtlKit.TestPerformance
 {
     [Collection("Performance")]
     public class DbMergeDeleteTests : PerformanceTestBase

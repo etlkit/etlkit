@@ -65,7 +65,7 @@ public static class Config
                 return s_defaultConfigFile;
             }
 
-            var environmentVariable = Environment.GetEnvironmentVariable("ETLBoxConfig");
+            var environmentVariable = Environment.GetEnvironmentVariable("EtlKitConfig");
             var path = string.IsNullOrWhiteSpace(environmentVariable)
                 ? "default.config.json"
                 : environmentVariable;

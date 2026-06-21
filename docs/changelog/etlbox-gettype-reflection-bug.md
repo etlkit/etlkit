@@ -4,7 +4,7 @@
 
 ## Problem
 
-In `ALE.ETLBox.Serialization.DataFlow.DataFlowXmlReader` the static `GetType` method
+In `EtlKit.Serialization.DataFlow.DataFlowXmlReader` the static `GetType` method
 called `Assembly.GetTypes()` against every loaded assembly without handling
 `ReflectionTypeLoadException`. The neighbouring `GetDataFlowTypes` method in the same
 class already handled the same failure mode through `SafeGetTypes`.
@@ -48,4 +48,4 @@ private static Type[] SafeGetTypes(Assembly assembly)
 
 ## Affected package
 
-`ETLBox.Classic.Serialization`
+`EtlKit.Serialization`

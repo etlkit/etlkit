@@ -6,7 +6,9 @@
     <Nullable>enable</Nullable>
     <PackageId>EtlKit.RabbitMq</PackageId>
     <Description>
-      EtlKit is a fully open-source 1.x version fork from original etlbox (etlbox.net).
+      EtlKit is a fully open-source (MIT) ETL library and data integration toolbox for .NET.
+      Build extract-transform-load pipelines programmatically in C# with async, in-memory
+      data flow components backed by TPL Dataflow.
       Support for RabbitMq target in dataflow.
     </Description>
   </PropertyGroup>

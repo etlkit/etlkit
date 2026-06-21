@@ -12,19 +12,19 @@ namespace EtlKit.ControlFlow
         internal override string GetSql()
         {
             if (!DbConnectionManager.SupportDatabases)
-                throw new ETLBoxNotSupportedException("This task is not supported!");
+                throw new EtlKitNotSupportedException("This task is not supported!");
 
             return ConnectionType switch
             {
-                ConnectionManagerType.SqlServer
-                    => $@"SELECT COUNT(*) FROM sys.databases WHERE [NAME] = '{ON.UnquotedObjectName}'",
-                ConnectionManagerType.MySql
-                    => $@"SELECT COUNT(*)  FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '{ON.UnquotedObjectName}'",
-                ConnectionManagerType.Postgres
-                    => $@"SELECT COUNT(*) FROM pg_database WHERE datname = '{ON.UnquotedObjectName}'",
-                ConnectionManagerType.ClickHouse
-                    => $@"SELECT COUNT(*) FROM system.databases WHERE name = '{ON.UnquotedObjectName}'",
-                _ => string.Empty
+                ConnectionManagerType.SqlServer =>
+                    $@"SELECT COUNT(*) FROM sys.databases WHERE [NAME] = '{ON.UnquotedObjectName}'",
+                ConnectionManagerType.MySql =>
+                    $@"SELECT COUNT(*)  FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = '{ON.UnquotedObjectName}'",
+                ConnectionManagerType.Postgres =>
+                    $@"SELECT COUNT(*) FROM pg_database WHERE datname = '{ON.UnquotedObjectName}'",
+                ConnectionManagerType.ClickHouse =>
+                    $@"SELECT COUNT(*) FROM system.databases WHERE name = '{ON.UnquotedObjectName}'",
+                _ => string.Empty,
             };
         }
 
@@ -44,7 +44,7 @@ namespace EtlKit.ControlFlow
         public static bool IsExisting(IConnectionManager connectionManager, string databaseName) =>
             new IfDatabaseExistsTask(databaseName)
             {
-                ConnectionManager = connectionManager
+                ConnectionManager = connectionManager,
             }.Exists();
     }
 }

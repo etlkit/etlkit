@@ -47,7 +47,7 @@ namespace EtlKit.TestHelper
             //Assert
             Assert.Equal("", withoutDbName);
             Assert.Equal("Data Source=test", newDbName);
-            Assert.Throws<ETLBoxNotSupportedException>(
+            Assert.Throws<EtlKitNotSupportedException>(
                 () => connString.CloneWithMasterDbName().Value
             );
         }
@@ -60,7 +60,7 @@ namespace EtlKit.TestHelper
             {
                 //Act
                 Value =
-                    "Server=10.211.55.2;Database=TestDb;User Id=postgres;Password=etlboxpassword;",
+                    "Server=10.211.55.2;Database=TestDb;User Id=postgres;Password=etlkitpassword;",
             };
 
             var withoutDbName = connString.CloneWithoutDbName().Value;
@@ -69,15 +69,15 @@ namespace EtlKit.TestHelper
 
             //Assert
             Assert.Equal(
-                "Host=10.211.55.2;Username=postgres;Password=etlboxpassword",
+                "Host=10.211.55.2;Username=postgres;Password=etlkitpassword",
                 withoutDbName
             );
             Assert.Equal(
-                "Host=10.211.55.2;Database=postgres;Username=postgres;Password=etlboxpassword",
+                "Host=10.211.55.2;Database=postgres;Username=postgres;Password=etlkitpassword",
                 withMaster
             );
             Assert.Equal(
-                "Host=10.211.55.2;Database=test;Username=postgres;Password=etlboxpassword",
+                "Host=10.211.55.2;Database=test;Username=postgres;Password=etlkitpassword",
                 newDbName
             );
         }
@@ -89,7 +89,7 @@ namespace EtlKit.TestHelper
             var connString = new MySqlConnectionString
             {
                 //Act
-                Value = "Server=10.211.55.2;Database=TestDb;Uid=root;Pwd=etlboxpassword;",
+                Value = "Server=10.211.55.2;Database=TestDb;Uid=root;Pwd=etlkitpassword;",
             };
 
             var withoutDbName = connString.CloneWithoutDbName().Value;
@@ -97,13 +97,13 @@ namespace EtlKit.TestHelper
             var newDbName = connString.CloneWithNewDbName("test").Value;
 
             //Assert
-            Assert.Equal("server=10.211.55.2;user id=root;password=etlboxpassword", withoutDbName);
+            Assert.Equal("server=10.211.55.2;user id=root;password=etlkitpassword", withoutDbName);
             Assert.Equal(
-                "server=10.211.55.2;database=mysql;user id=root;password=etlboxpassword",
+                "server=10.211.55.2;database=mysql;user id=root;password=etlkitpassword",
                 withMaster
             );
             Assert.Equal(
-                "server=10.211.55.2;database=test;user id=root;password=etlboxpassword",
+                "server=10.211.55.2;database=test;user id=root;password=etlkitpassword",
                 newDbName
             );
         }

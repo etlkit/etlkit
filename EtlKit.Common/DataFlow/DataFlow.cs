@@ -1,7 +1,7 @@
 namespace EtlKit.Common.DataFlow
 {
     /// <summary>
-    /// Contains static information which affects all Dataflow tasks in ETLBox.
+    /// Contains static information which affects all Dataflow tasks in EtlKit.
     /// Here you can set the threshold value when information about processed records should appear.
     /// </summary>
     public static class DataFlow

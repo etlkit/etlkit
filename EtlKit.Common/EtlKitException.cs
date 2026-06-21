@@ -4,7 +4,7 @@ using System.Runtime.Serialization;
 namespace EtlKit.Common
 {
     /// <summary>
-    /// The generic ETLBox Exception. See inner exception for more details.
+    /// The generic EtlKit Exception. See inner exception for more details.
     /// </summary>
     [Serializable]
     public sealed class EtlKitException : Exception

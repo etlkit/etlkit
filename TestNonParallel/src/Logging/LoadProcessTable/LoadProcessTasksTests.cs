@@ -24,18 +24,18 @@ namespace EtlKit.TestNonParallel.Logging.LoadProcessTable
         {
             //Arrange
             //Act
-            CreateLoadProcessTableTask.Create(connection, "etlbox_testloadprocess");
+            CreateLoadProcessTableTask.Create(connection, "etlkit_testloadprocess");
 
             //Assert
-            IfTableOrViewExistsTask.IsExisting(connection, "etlbox_testloadprocess");
+            IfTableOrViewExistsTask.IsExisting(connection, "etlkit_testloadprocess");
             var td = TableDefinition.GetDefinitionFromTableName(
                 connection,
-                "etlbox_testloadprocess"
+                "etlkit_testloadprocess"
             );
             Assert.True(td.Columns.Count == 11);
 
             //Cleanup
-            DropTableTask.Drop(connection, "etlbox_testloadprocess");
+            DropTableTask.Drop(connection, "etlkit_testloadprocess");
         }
 
         [Theory, MemberData(nameof(AllSqlConnectionsWithoutClickHouse))]

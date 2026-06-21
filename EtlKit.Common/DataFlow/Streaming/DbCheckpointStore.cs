@@ -11,7 +11,7 @@ namespace EtlKit.Common.DataFlow.Streaming;
 
 /// <summary>
 /// Database-backed <see cref="ICheckpointStore{TPosition}"/>. Stores one row per
-/// <c>checkpointId</c> in a table of your choosing via an ETLBox <see cref="IConnectionManager"/>.
+/// <c>checkpointId</c> in a table of your choosing via an EtlKit <see cref="IConnectionManager"/>.
 /// </summary>
 /// <remarks>
 /// <para>
@@ -29,7 +29,7 @@ namespace EtlKit.Common.DataFlow.Streaming;
 /// <c>CheckpointWriter</c> per checkpoint).
 /// </para>
 /// <para>
-/// Calls execute synchronously on the supplied connection manager (ETLBox is sync-first) and are
+/// Calls execute synchronously on the supplied connection manager (EtlKit is sync-first) and are
 /// returned as completed tasks; each call opens and closes the connection.
 /// </para>
 /// </remarks>

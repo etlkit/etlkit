@@ -6,15 +6,15 @@ using Microsoft.Extensions.DependencyInjection;
 namespace EtlKit.Rest.Extensions;
 
 /// <summary>
-/// Extension methods for registering ETLBox.Rest components with <see cref="IServiceCollection"/>.
+/// Extension methods for registering EtlKit.Rest components with <see cref="IServiceCollection"/>.
 /// </summary>
 [PublicAPI]
 public static class EtlKitRestServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers ETLBox.Rest data flow components as transient services.
+    /// Registers EtlKit.Rest data flow components as transient services.
     /// </summary>
-    public static IServiceCollection AddEtlBoxRest(this IServiceCollection services)
+    public static IServiceCollection AddEtlKitRest(this IServiceCollection services)
     {
         services.AddTransient<RestTransformation>();
         return services;

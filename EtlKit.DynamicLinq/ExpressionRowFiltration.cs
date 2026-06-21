@@ -6,9 +6,7 @@ using System.Linq.Dynamic.Core;
 using System.Linq.Dynamic.Core.CustomTypeProviders;
 using System.Linq.Expressions;
 using System.Reflection;
-
 using EtlKit.DataFlow;
-
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 
@@ -50,7 +48,7 @@ namespace EtlKit.DynamicLinq;
 /// Thread safety: not thread-safe. Configure (<see cref="FilterExpression"/>,
 /// <see cref="AdditionalAssemblyNames"/>, <see cref="AdditionalImports"/>,
 /// <see cref="RegisterCustomTypes"/>, <see cref="ParsingConfig"/>) once before the
-/// dataflow starts. ETLBox runs each dataflow step on a single thread, so
+/// dataflow starts. EtlKit runs each dataflow step on a single thread, so
 /// concurrent calls to <c>EvaluateExpression</c> from the same instance are not
 /// expected. Sharing one instance across multiple parallel pipelines is unsupported.
 /// </para>
@@ -107,9 +105,8 @@ public class ExpressionRowFiltration<TInput> : RowFiltration<TInput>
     /// <summary>
     /// Names (or file paths) of assemblies to load and register so all their public
     /// types become resolvable from <see cref="FilterExpression"/>. Symmetric with
-    /// <c>ScriptedRowTransformation.AdditionalAssemblyNames</c> (open-source/etlbox
-    /// MR !115, MLRSSL-1510); lets users reference types from named assemblies in
-    /// expression text without per-type registration.
+    /// <c>ScriptedRowTransformation.AdditionalAssemblyNames</c>; lets users reference
+    /// types from named assemblies in expression text without per-type registration.
     /// </summary>
     /// <remarks>
     /// <para>
@@ -117,8 +114,8 @@ public class ExpressionRowFiltration<TInput> : RowFiltration<TInput>
     /// short or full name, (2) <c>Assembly.Load(AssemblyName)</c>, (3)
     /// <c>Assembly.LoadFrom(path)</c> as a fallback for paths. Assemblies that fail
     /// all three throw <see cref="InvalidOperationException"/>. The AppDomain
-    /// pre-check (step 1) extends the two-step strategy used on the Roslyn side
-    /// (MR !115) - long-running processes avoid double-loading already-resident
+    /// pre-check (step 1) extends the two-step strategy used on the Roslyn side -
+    /// long-running processes avoid double-loading already-resident
     /// assemblies.
     /// </para>
     /// <para>
@@ -153,7 +150,7 @@ public class ExpressionRowFiltration<TInput> : RowFiltration<TInput>
     /// <summary>
     /// Namespace prefixes used as imports when resolving short type names in
     /// <see cref="FilterExpression"/>. Symmetric with
-    /// <c>ScriptedRowTransformation.AdditionalImports</c> (open-source/etlbox
+    /// <c>ScriptedRowTransformation.AdditionalImports</c> (open-source/etlkit
     /// MR !115, MLRSSL-1510); lets users write <c>"MyType.Method()"</c> instead of
     /// <c>"MyCompany.Domain.MyType.Method()"</c> when <c>MyCompany.Domain</c> is in
     /// the imports list.

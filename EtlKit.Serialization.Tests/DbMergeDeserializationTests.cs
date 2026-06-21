@@ -83,7 +83,7 @@ public class DbMergeDeserializationTests
         // and create DbMerge via the ILogger constructor, as in a real application
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddEtlBoxCore();
+        services.AddEtlKitCore();
         var provider = services.BuildServiceProvider();
 
         // TableName comes BEFORE BatchSize — this ordering was what caused the crash
@@ -113,7 +113,7 @@ public class DbMergeDeserializationTests
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddEtlBoxCore();
+        services.AddEtlKitCore();
         var provider = services.BuildServiceProvider();
 
         // BatchSize is not specified in XML

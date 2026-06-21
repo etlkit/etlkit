@@ -8,13 +8,13 @@ using Microsoft.Extensions.DependencyInjection;
 namespace EtlKit.Extensions;
 
 /// <summary>
-/// Extension methods for registering core ETLBox data flow components with <see cref="IServiceCollection"/>.
+/// Extension methods for registering core EtlKit data flow components with <see cref="IServiceCollection"/>.
 /// </summary>
 [PublicAPI]
-public static class EtlBoxCoreServiceCollectionExtensions
+public static class EtlKitCoreServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers all core ETLBox data flow components as transient services using open generic registrations.
+    /// Registers all core EtlKit data flow components as transient services using open generic registrations.
     /// Components can be resolved for any type argument without explicit per-type registration.
     /// Also registers non-generic shorthand types (e.g. <see cref="DbSource"/>).
     /// </summary>
@@ -23,7 +23,7 @@ public static class EtlBoxCoreServiceCollectionExtensions
     /// The culture info used for <see cref="CsvConfiguration"/> instances resolved from the container.
     /// Defaults to <see cref="CultureInfo.InvariantCulture"/> when not specified.
     /// </param>
-    public static IServiceCollection AddEtlBoxCore(
+    public static IServiceCollection AddEtlKitCore(
         this IServiceCollection services,
         [CanBeNull] CultureInfo csvCultureInfo = null
     )

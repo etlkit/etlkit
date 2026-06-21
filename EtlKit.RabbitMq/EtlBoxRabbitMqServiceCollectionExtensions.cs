@@ -1,5 +1,4 @@
 using EtlKit.DataFlow;
-
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -7,15 +6,15 @@ using Microsoft.Extensions.DependencyInjection;
 namespace EtlKit.RabbitMq.Extensions;
 
 /// <summary>
-/// Extension methods for registering ETLBox.RabbitMq components with <see cref="IServiceCollection"/>.
+/// Extension methods for registering EtlKit.RabbitMq components with <see cref="IServiceCollection"/>.
 /// </summary>
 [PublicAPI]
-public static class EtlBoxRabbitMqServiceCollectionExtensions
+public static class EtlKitRabbitMqServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers ETLBox.RabbitMq data flow components as transient services using open generic registrations.
+    /// Registers EtlKit.RabbitMq data flow components as transient services using open generic registrations.
     /// </summary>
-    public static IServiceCollection AddEtlBoxRabbitMq(this IServiceCollection services)
+    public static IServiceCollection AddEtlKitRabbitMq(this IServiceCollection services)
     {
         services.AddTransient(typeof(RabbitMqTransformation<,>));
         services.AddTransient<RabbitMqTransformation>();

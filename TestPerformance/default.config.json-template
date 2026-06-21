@@ -1,10 +1,10 @@
 {
     "Performance": {
-        "SqlConnectionString": "Data Source=${CFG_MSSQL_IP};TrustServerCertificate=true;User Id=sa;Password=YourStrong@Passw0rd;Initial Catalog=ETLBox_Performance",
-        "SqlOdbcConnectionString": "Driver={SQL Server};Server=${CFG_MSSQL_IP};Database=ETLBox_Performance;Trusted_Connection=Yes",
+        "SqlConnectionString": "Data Source=${CFG_MSSQL_IP};TrustServerCertificate=true;User Id=sa;Password=YourStrong@Passw0rd;Initial Catalog=EtlKit_Performance",
+        "SqlOdbcConnectionString": "Driver={SQL Server};Server=${CFG_MSSQL_IP};Database=EtlKit_Performance;Trusted_Connection=Yes",
         "AccessOdbcConnectionString": "Driver={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=.${CFG_PD}db${CFG_PD}AccessPerformance.mdb",
-        "MySqlConnectionString": "Server=${CFG_MYSQL_IP};Database=ETLBox_Performance;Uid=root;Pwd=etlboxpassword;",
-        "PostgresConnectionString": "Server=${CFG_POSTGRES_IP};Database=ETLBox_Performance;User Id=postgres;Password=etlboxpassword;",
+        "MySqlConnectionString": "Server=${CFG_MYSQL_IP};Database=EtlKit_Performance;Uid=root;Pwd=etlkitpassword;",
+        "PostgresConnectionString": "Server=${CFG_POSTGRES_IP};Database=EtlKit_Performance;User Id=postgres;Password=etlkitpassword;",
         "SQLiteConnectionString": "Data Source=.${CFG_PD}db${CFG_PD}SQLitePerformance.db;",
 		"ClickHouseConnectionString": "Host=${CFG_CLICKHOUSE_IP};Port=9000;Database=default;User=clickhouse;Password=Qwe123456;"
     }

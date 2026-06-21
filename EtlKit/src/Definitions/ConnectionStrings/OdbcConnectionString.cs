@@ -17,17 +17,17 @@ namespace EtlKit
         public override string DbName
         {
             get =>
-                throw new ETLBoxNotSupportedException(
+                throw new EtlKitNotSupportedException(
                     "Odbc connection string are not fully supported yet."
                 );
             set =>
-                throw new ETLBoxNotSupportedException(
+                throw new EtlKitNotSupportedException(
                     "Odbc connection string are not fully supported yet."
                 );
         }
 
         public override string MasterDbName =>
-            throw new ETLBoxNotSupportedException(
+            throw new EtlKitNotSupportedException(
                 "Odbc connection string are not fully supported yet."
             );
         protected override string DbNameKeyword => "Database";

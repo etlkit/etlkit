@@ -1,6 +1,5 @@
-﻿using EtlKit.Primitives;
-
-using EtlKit.Common;
+﻿using EtlKit.Common;
+using EtlKit.Primitives;
 
 namespace EtlKit.ConnectionManager
 {
@@ -63,7 +62,7 @@ namespace EtlKit.ConnectionManager
         /// Helper table that needs to be created in order to simulate bulk inserts.
         /// Contains only 1 record and is only temporarily created.
         /// </summary>
-        public string DummyTableName { get; set; } = "etlboxdummydeleteme";
+        public string DummyTableName { get; set; } = "etlkitdummydeleteme";
         protected bool PreparationDone { get; set; }
 
         public override void BulkInsert(ITableData data, string tableName)
@@ -74,7 +73,7 @@ namespace EtlKit.ConnectionManager
                 QB = QB,
                 QE = QE,
                 UseParameterQuery = true,
-                AccessDummyTableName = DummyTableName
+                AccessDummyTableName = DummyTableName,
             };
             OdbcBulkInsert(data, tableName, bulkInsert);
         }
@@ -118,7 +117,7 @@ namespace EtlKit.ConnectionManager
                 {
                     Name = dataRow![schemaTable.Columns["COLUMN_NAME"]].ToString(),
                     DataType = dataRow[schemaTable.Columns["TYPE_NAME"]].ToString(),
-                    AllowNulls = dataRow[schemaTable.Columns["IS_NULLABLE"]].ToString() == "YES"
+                    AllowNulls = dataRow[schemaTable.Columns["IS_NULLABLE"]].ToString() == "YES",
                 };
                 result.Columns.Add(col);
             }
@@ -175,11 +174,9 @@ namespace EtlKit.ConnectionManager
 
         public override IConnectionManager Clone()
         {
-            var clone = new AccessOdbcConnectionManager(
-                (OdbcConnectionString)ConnectionString
-            )
+            var clone = new AccessOdbcConnectionManager((OdbcConnectionString)ConnectionString)
             {
-                MaxLoginAttempts = MaxLoginAttempts
+                MaxLoginAttempts = MaxLoginAttempts,
             };
             return clone;
         }

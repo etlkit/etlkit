@@ -1,6 +1,5 @@
-using EtlKit.Primitives;
-
 using EtlKit.Common.ControlFlow;
+using EtlKit.Primitives;
 
 namespace EtlKit.ControlFlow
 {
@@ -22,7 +21,7 @@ namespace EtlKit.ControlFlow
         public void Execute()
         {
             if (!DbConnectionManager.SupportDatabases)
-                throw new ETLBoxNotSupportedException("This task is not supported!");
+                throw new EtlKitNotSupportedException("This task is not supported!");
 
             DatabaseNames = [];
             new SqlTask(this, GetSql())
@@ -54,7 +53,7 @@ namespace EtlKit.ControlFlow
                 ConnectionManagerType.Postgres =>
                     "SELECT datname FROM pg_database WHERE datistemplate=false",
                 ConnectionManagerType.ClickHouse => "SHOW DATABASES",
-                _ => throw new ETLBoxNotSupportedException("This database is not supported!"),
+                _ => throw new EtlKitNotSupportedException("This database is not supported!"),
             };
         }
 

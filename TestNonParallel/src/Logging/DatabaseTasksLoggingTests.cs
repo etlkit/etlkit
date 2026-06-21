@@ -27,7 +27,7 @@ namespace EtlKit.TestNonParallel.Logging
             return new SqlTask(
                 "Find log entry",
                 $@"
-SELECT COUNT(*) FROM etlbox_log
+SELECT COUNT(*) FROM etlkit_log
 WHERE task_type='{taskName}'
 GROUP BY task_hash"
             )
@@ -81,7 +81,7 @@ SELECT * FROM
                 new SqlTask(
                     "Find log entry",
                     @"
-SELECT COUNT(*) FROM etlbox_log
+SELECT COUNT(*) FROM etlkit_log
 WHERE task_type='RowCountTask' 
 AND message LIKE '%with condition%' 
 GROUP BY task_hash"
@@ -219,7 +219,7 @@ GROUP BY task_hash"
                 4,
                 new SqlTask(
                     "Check if hash are equal",
-                    @"SELECT COUNT(*) from etlbox_log GROUP BY task_hash"
+                    @"SELECT COUNT(*) from etlkit_log GROUP BY task_hash"
                 )
                 {
                     DisableLogging = true,

@@ -16,7 +16,7 @@ namespace EtlKit.TestControlFlowTasks
         {
             //Arrange
             using var connection = CreateConnectionManager(dbType);
-            string dbName = "ETLBox_" + HashHelper.RandomString(10);
+            string dbName = "EtlKit_" + HashHelper.RandomString(10);
             CreateDatabaseTask.Create(connection, dbName);
             bool existsBefore = IfDatabaseExistsTask.IsExisting(connection, dbName);
 
@@ -34,7 +34,7 @@ namespace EtlKit.TestControlFlowTasks
         {
             //Arrange
             using var connection = CreateConnectionManager(dbType);
-            string dbName = "ETLBox_" + HashHelper.RandomString(10);
+            string dbName = "EtlKit_" + HashHelper.RandomString(10);
             DropDatabaseTask.DropIfExists(connection, dbName);
             CreateDatabaseTask.Create(connection, dbName);
             bool existsBefore = IfDatabaseExistsTask.IsExisting(connection, dbName);
@@ -51,7 +51,7 @@ namespace EtlKit.TestControlFlowTasks
         [Fact]
         public void NotSupportedWithSQLite()
         {
-            Assert.Throws<ETLBoxNotSupportedException>(
+            Assert.Throws<EtlKitNotSupportedException>(
                 () => DropDatabaseTask.Drop(SqliteConnection, "Test")
             );
         }

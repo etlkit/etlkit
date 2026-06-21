@@ -11,7 +11,7 @@ namespace EtlKit.ControlFlow
         internal override string GetSql()
         {
             if (!DbConnectionManager.SupportSchemas)
-                throw new ETLBoxNotSupportedException("This task is not supported!");
+                throw new EtlKitNotSupportedException("This task is not supported!");
 
             var sql = $@"DROP SCHEMA {ON.QuotedFullName}";
             return sql;

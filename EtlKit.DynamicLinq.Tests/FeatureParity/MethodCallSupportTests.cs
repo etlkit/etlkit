@@ -2,13 +2,13 @@ using System.Dynamic;
 using System.Linq.Dynamic.Core;
 using EtlKit.DataFlow;
 using EtlKit.DynamicLinq;
-using EtlKit.Scripting;
 using EtlKit.Primitives;
+using EtlKit.Scripting;
 
 namespace EtlKit.DynamicLinq.Tests.FeatureParity;
 
 /// <summary>
-/// Feature-parity tests for the two expression engines used by ETLBox.Scripting:
+/// Feature-parity tests for the two expression engines used by EtlKit.Scripting:
 /// Roslyn (via <see cref="ScriptBuilder"/>) and System.Linq.Dynamic.Core (via
 /// <c>AsQueryable().Where/Any</c>).
 ///
@@ -216,7 +216,7 @@ public class MethodCallSupportTests
     [Fact]
     public void DynamicLinq_AdditionalImports_ResolvesShortNameInNamespace()
     {
-        // With AdditionalImports = ["ETLBox.DynamicLinq.Tests.FeatureParity"], the
+        // With AdditionalImports = ["EtlKit.DynamicLinq.Tests.FeatureParity"], the
         // parser can resolve a short type name "SimpleBox" against that namespace
         // even though it would otherwise need the fully qualified name.
         var filtration = new ExpressionRowFiltration<RowWithBox>("Box.ToText() == \"box(13)\"");

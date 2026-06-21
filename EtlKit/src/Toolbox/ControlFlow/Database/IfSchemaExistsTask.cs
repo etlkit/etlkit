@@ -12,18 +12,18 @@ namespace EtlKit.ControlFlow
         internal override string GetSql()
         {
             if (!DbConnectionManager.SupportSchemas)
-                throw new ETLBoxNotSupportedException("This task is not supported!");
+                throw new EtlKitNotSupportedException("This task is not supported!");
 
             return ConnectionType switch
             {
-                ConnectionManagerType.SqlServer
-                    => $@"IF EXISTS (SELECT schema_name(schema_id) FROM sys.schemas WHERE schema_name(schema_id) = '{ON.UnquotedObjectName}')
+                ConnectionManagerType.SqlServer =>
+                    $@"IF EXISTS (SELECT schema_name(schema_id) FROM sys.schemas WHERE schema_name(schema_id) = '{ON.UnquotedObjectName}')
                             SELECT 1
 ",
-                ConnectionManagerType.Postgres
-                    => $@"SELECT 1 FROM information_schema.schemata WHERE schema_name = '{ON.UnquotedObjectName}';
+                ConnectionManagerType.Postgres =>
+                    $@"SELECT 1 FROM information_schema.schemata WHERE schema_name = '{ON.UnquotedObjectName}';
 ",
-                _ => string.Empty
+                _ => string.Empty,
             };
         }
 

@@ -1,7 +1,6 @@
-using EtlKit.Primitives;
-
 using EtlKit.Common;
 using EtlKit.Common.ControlFlow;
+using EtlKit.Primitives;
 
 namespace EtlKit.ControlFlow
 {
@@ -22,12 +21,12 @@ namespace EtlKit.ControlFlow
         public void Execute()
         {
             if (!DbConnectionManager.SupportSchemas)
-                throw new ETLBoxNotSupportedException("This task is not supported!");
+                throw new EtlKitNotSupportedException("This task is not supported!");
 
             var schemaExists = new IfSchemaExistsTask(SchemaName)
             {
                 ConnectionManager = ConnectionManager,
-                DisableLogging = true
+                DisableLogging = true,
             }.Exists();
             if (!schemaExists)
                 new SqlTask(this, Sql).ExecuteNonQuery();

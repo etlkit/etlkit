@@ -4,8 +4,8 @@ using System.Text;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
-using EtlKit.Serialization.DataFlow;
 using EtlKit.Primitives;
+using EtlKit.Serialization.DataFlow;
 using Microsoft.Extensions.DependencyInjection;
 
 // ReSharper disable UnusedAutoPropertyAccessor.Global
@@ -266,7 +266,7 @@ public sealed class DataFlowDisposableResourceTests
     [Fact]
     public void XmlReader_LegacyDataFlowWithoutResourceOwner_FallsBackWithoutThrowing()
     {
-        // RSSL-11719: an external IDataFlow implementation compiled against an earlier ETLBox version
+        // RSSL-11719: an external IDataFlow implementation compiled against an earlier EtlKit version
         // does NOT implement IDataFlowResourceOwner. The reader must gracefully fall back to plain
         // creation (no dedup/ownership) instead of invoking the missing capability and throwing.
         var xml =

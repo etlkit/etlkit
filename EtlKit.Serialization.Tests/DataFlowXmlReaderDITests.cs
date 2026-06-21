@@ -160,11 +160,11 @@ public class DataFlowXmlReaderDITests
     public void Deserialize_WithServiceProvider_CsvSourceWithConfiguration_ShouldDeserializeCorrectly()
     {
         // Arrange — CsvConfiguration has no parameterless constructor (requires CultureInfo).
-        // AddEtlBoxCore registers a factory for CsvConfiguration so that
+        // AddEtlKitCore registers a factory for CsvConfiguration so that
         // ServiceProviderActivator can resolve it during XML deserialization.
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddEtlBoxCore(CultureInfo.InvariantCulture);
+        services.AddEtlKitCore(CultureInfo.InvariantCulture);
         var provider = services.BuildServiceProvider();
         var errorDest = new ErrorLogDestination();
 

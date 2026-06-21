@@ -5,8 +5,8 @@ using System.Xml.Linq;
 using System.Xml.Serialization;
 using EtlKit.Common.DataFlow;
 using EtlKit.DataFlow;
-using EtlKit.Serialization.DataFlow;
 using EtlKit.Primitives;
+using EtlKit.Serialization.DataFlow;
 using JetBrains.Annotations;
 
 namespace EtlKit.Serialization.Tests;
@@ -465,7 +465,7 @@ public class DataFlowPipelineTests
         source.Data = [Row("v", 1), Row("v", 2), Row("v", 3)];
 
         // ExecuteAsync fires the source; it does not wait for destination drain,
-        // matching the standard ETLBox contract (same as DataFlowLinker.LinkTo).
+        // matching the standard EtlKit contract (same as DataFlowLinker.LinkTo).
         // Callers that need full pipeline completion explicitly await Pipeline.Completion,
         // which covers the auto-wired VoidDestination.
         await pipeline.ExecuteAsync(CancellationToken.None).ConfigureAwait(true);

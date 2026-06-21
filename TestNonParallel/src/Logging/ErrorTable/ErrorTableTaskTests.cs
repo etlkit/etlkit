@@ -21,14 +21,14 @@ namespace EtlKit.TestNonParallel.Logging.ErrorTable
         {
             //Arrange
             //Act
-            CreateErrorTableTask.Create(connection, "etlbox_error");
+            CreateErrorTableTask.Create(connection, "etlkit_error");
 
             //Assert
-            IfTableOrViewExistsTask.IsExisting(connection, "etlbox_error");
-            var td = TableDefinition.GetDefinitionFromTableName(connection, "etlbox_error");
+            IfTableOrViewExistsTask.IsExisting(connection, "etlkit_error");
+            var td = TableDefinition.GetDefinitionFromTableName(connection, "etlkit_error");
             Assert.True(td.Columns.Count == 3);
             //Cleanup
-            DropTableTask.Drop(connection, "etlbox_error");
+            DropTableTask.Drop(connection, "etlkit_error");
         }
 
         [Theory, MemberData(nameof(AllSqlConnections))]
@@ -38,15 +38,15 @@ namespace EtlKit.TestNonParallel.Logging.ErrorTable
             //Act
             CreateTableTask.Create(
                 connection,
-                "etlbox_error",
+                "etlkit_error",
                 new List<TableColumn> { new("Col1", "INT") }
             );
-            CreateErrorTableTask.DropAndCreate(connection, "etlbox_error");
+            CreateErrorTableTask.DropAndCreate(connection, "etlkit_error");
             //Assert
-            var td = TableDefinition.GetDefinitionFromTableName(connection, "etlbox_error");
+            var td = TableDefinition.GetDefinitionFromTableName(connection, "etlkit_error");
             Assert.True(td.Columns.Count == 3);
             //Cleanup
-            DropTableTask.Drop(connection, "etlbox_error");
+            DropTableTask.Drop(connection, "etlkit_error");
         }
     }
 }

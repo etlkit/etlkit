@@ -1,7 +1,6 @@
-using EtlKit.Primitives;
-
 using EtlKit.Common.ControlFlow;
 using EtlKit.ControlFlow;
+using EtlKit.Primitives;
 
 namespace EtlKit.Logging
 {
@@ -17,7 +16,7 @@ namespace EtlKit.Logging
     public sealed class CreateLoadProcessTableTask : GenericTask
     {
         /* ITask Interface */
-        public override string TaskName => "Create default etlbox load process table";
+        public override string TaskName => "Create default EtlKit load process table";
         public string LoadProcessTableName { get; set; }
         public string Sql => LoadProcessTable.Sql;
         public CreateTableTask LoadProcessTable { get; private set; }
@@ -26,7 +25,9 @@ namespace EtlKit.Logging
         {
             if (DbConnectionManager.ConnectionManagerType == ConnectionManagerType.ClickHouse)
             {
-                throw new NotSupportedException($"'{ConnectionManager.ConnectionManagerType}' is not supported");
+                throw new NotSupportedException(
+                    $"'{ConnectionManager.ConnectionManagerType}' is not supported"
+                );
             }
             LoadProcessTable.CopyTaskProperties(this);
             LoadProcessTable.DisableLogging = true;
@@ -63,11 +64,11 @@ namespace EtlKit.Logging
                 new("end_message", "NVARCHAR(4000)", allowNulls: true),
                 new("was_successful", "SMALLINT", allowNulls: false) { DefaultValue = "0" },
                 new("abort_message", "NVARCHAR(4000)", allowNulls: true),
-                new("was_aborted", "SMALLINT", allowNulls: false) { DefaultValue = "0" }
+                new("was_aborted", "SMALLINT", allowNulls: false) { DefaultValue = "0" },
             };
             LoadProcessTable = new CreateTableTask(LoadProcessTableName, lpColumns)
             {
-                DisableLogging = true
+                DisableLogging = true,
             };
         }
 

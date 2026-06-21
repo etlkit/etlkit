@@ -29,14 +29,14 @@ namespace EtlKit.TestNonParallel.Logging.LogTable
         {
             //Arrange
             //Act
-            CreateLogTableTask.Create(connection, "etlbox_testlog");
+            CreateLogTableTask.Create(connection, "etlkit_testlog");
 
             //Assert
-            Assert.True(IfTableOrViewExistsTask.IsExisting(connection, "etlbox_testlog"));
-            var td = TableDefinition.GetDefinitionFromTableName(connection, "etlbox_testlog");
+            Assert.True(IfTableOrViewExistsTask.IsExisting(connection, "etlkit_testlog"));
+            var td = TableDefinition.GetDefinitionFromTableName(connection, "etlkit_testlog");
             Assert.True(td.Columns.Count == 10);
             //Cleanup
-            DropTableTask.Drop(connection, "etlbox_testlog");
+            DropTableTask.Drop(connection, "etlkit_testlog");
         }
 
         [Theory, MemberData(nameof(ConnectionsWithoutClickHouse))]

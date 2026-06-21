@@ -11,7 +11,7 @@ namespace EtlKit.ControlFlow
         internal override string GetSql()
         {
             if (!DbConnectionManager.SupportProcedures)
-                throw new ETLBoxNotSupportedException("This task is not supported!");
+                throw new EtlKitNotSupportedException("This task is not supported!");
 
             return $@"DROP PROCEDURE {ON.QuotedFullName}";
         }
@@ -39,7 +39,7 @@ namespace EtlKit.ControlFlow
         ) =>
             new DropProcedureTask(procedureName)
             {
-                ConnectionManager = connectionManager
+                ConnectionManager = connectionManager,
             }.DropIfExists();
     }
 }

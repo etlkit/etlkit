@@ -4,11 +4,9 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>EtlKit</PackageId>
     <Description>
-      EtlKit is a fully open-source 1.x version fork from original etlbox (etlbox.net).
-      A lightweight ETL (extract, transform, load) library and data integration
-      toolbox for .NET. Source and destination components let you read and write data from
-      the most common databases and file types. Transformations allow you to you harmonize,
-      filter, aggregate, validate and clean your data
+      EtlKit is a fully open-source (MIT) ETL library and data integration toolbox for .NET.
+      Build extract-transform-load pipelines programmatically in C# with async, in-memory
+      data flow components backed by TPL Dataflow.
     </Description>
     <RootNamespace>EtlKit</RootNamespace>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -21,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="ETLBox.Kafka" />
+    <InternalsVisibleTo Include="EtlKit.Kafka" />
   </ItemGroup>
 
   <ItemGroup>

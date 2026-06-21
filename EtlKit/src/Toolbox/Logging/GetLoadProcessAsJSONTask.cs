@@ -1,8 +1,6 @@
-﻿using EtlKit.Primitives;
-
-using EtlKit.Common.ControlFlow;
+﻿using EtlKit.Common.ControlFlow;
 using EtlKit.Common.Logging;
-
+using EtlKit.Primitives;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
@@ -10,7 +8,7 @@ namespace EtlKit.Logging
 {
     /// <summary>
     /// Returns the content of the LoadProcess table as JSON.
-    /// The table name is read from `ControlFlow.LoadProcessTable`. The default table name is etlbox_log.
+    /// The table name is read from `ControlFlow.LoadProcessTable`. The default table name is `etlkit_log`.
     /// </summary>
     [PublicAPI]
     public class GetLoadProcessAsJSONTask : GenericTask
@@ -23,7 +21,7 @@ namespace EtlKit.Logging
             var read = new ReadLoadProcessTableTask
             {
                 ReadOption = ReadOptions.ReadAllProcesses,
-                ConnectionManager = ConnectionManager
+                ConnectionManager = ConnectionManager,
             };
             read.Execute();
             List<LoadProcess> logEntries = read.AllLoadProcesses;
@@ -33,7 +31,7 @@ namespace EtlKit.Logging
                 {
                     Formatting = Formatting.Indented,
                     ContractResolver = new CamelCasePropertyNamesContractResolver(),
-                    NullValueHandling = NullValueHandling.Ignore
+                    NullValueHandling = NullValueHandling.Ignore,
                 }
             );
         }

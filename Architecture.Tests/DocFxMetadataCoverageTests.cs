@@ -7,7 +7,7 @@ namespace EtlKit.Architecture.Tests;
 
 /// <summary>
 /// Regression tests for <c>docfx/docfx.json</c> and the GitHub Actions workflow
-/// that publishes the API reference to <c>https://rpsft.github.io/etlbox/</c>.
+/// that publishes the API reference to <c>https://upbonus-io.github.io/etlkit/</c>.
 ///
 /// These tests would have caught the 1.19.0 release gap where
 /// <c>EtlKit.MongoDB</c>, <c>EtlKit.DynamicLinq</c>, and

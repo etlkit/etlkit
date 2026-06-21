@@ -1,6 +1,5 @@
-using EtlKit.Primitives;
-
 using EtlKit.Common.ControlFlow;
+using EtlKit.Primitives;
 
 namespace EtlKit.ControlFlow
 {
@@ -21,12 +20,12 @@ namespace EtlKit.ControlFlow
         public void Execute()
         {
             if (!DbConnectionManager.SupportDatabases)
-                throw new ETLBoxNotSupportedException("This task is not supported!");
+                throw new EtlKitNotSupportedException("This task is not supported!");
 
             var doesExist = new IfDatabaseExistsTask(DatabaseName)
             {
                 DisableLogging = true,
-                ConnectionManager = ConnectionManager
+                ConnectionManager = ConnectionManager,
             }.DoesExist;
             if (!doesExist)
                 new SqlTask(this, Sql).ExecuteNonQuery();
@@ -93,7 +92,7 @@ END
         public static void Create(IConnectionManager connectionManager, string databaseName) =>
             new CreateDatabaseTask(databaseName)
             {
-                ConnectionManager = connectionManager
+                ConnectionManager = connectionManager,
             }.Execute();
 
         public static void Create(
@@ -103,7 +102,7 @@ END
         ) =>
             new CreateDatabaseTask(databaseName, collation)
             {
-                ConnectionManager = connectionManager
+                ConnectionManager = connectionManager,
             }.Execute();
 
         /* Implementation & stuff */
@@ -115,7 +114,7 @@ END
                     RecoveryModel.Simple => "SIMPLE",
                     RecoveryModel.BulkLogged => "BULK",
                     RecoveryModel.Full => "FULL",
-                    _ => string.Empty
+                    _ => string.Empty,
                 };
         }
 
@@ -144,6 +143,6 @@ END
         Default,
         Simple,
         BulkLogged,
-        Full
+        Full,
     }
 }

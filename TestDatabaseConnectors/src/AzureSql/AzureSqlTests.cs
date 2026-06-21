@@ -16,7 +16,7 @@ namespace EtlKit.TestDatabaseConnectors.AzureSql
         }
 
         private static bool IsInAzure() =>
-            Environment.GetEnvironmentVariable("ETLBoxAzure") != null;
+            Environment.GetEnvironmentVariable("EtlKitAzure") != null;
     }
 
     public sealed class AzureSqlTests : DatabaseConnectorsTestBase
@@ -53,7 +53,7 @@ namespace EtlKit.TestDatabaseConnectors.AzureSql
         [IgnoreOnNonAzureEnvironmentFact]
         public void ReadAndWriteToAzure()
         {
-            var envvar = Environment.GetEnvironmentVariable("ETLBoxAzure");
+            var envvar = Environment.GetEnvironmentVariable("EtlKitAzure");
             if (envvar != "true")
                 return;
             //Arrange
@@ -87,7 +87,7 @@ namespace EtlKit.TestDatabaseConnectors.AzureSql
         [IgnoreOnNonAzureEnvironmentFact]
         public void MergeIntoAzure()
         {
-            var envvar = Environment.GetEnvironmentVariable("ETLBoxAzure");
+            var envvar = Environment.GetEnvironmentVariable("EtlKitAzure");
             if (envvar != "true")
                 return;
             //Arrange

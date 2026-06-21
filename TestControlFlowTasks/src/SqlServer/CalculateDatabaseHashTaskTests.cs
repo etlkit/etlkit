@@ -37,7 +37,7 @@ namespace EtlKit.TestControlFlowTasks.SqlServer
         [Fact]
         public void NotSupportedWithSQLite()
         {
-            Assert.Throws<ETLBoxNotSupportedException>(
+            Assert.Throws<EtlKitNotSupportedException>(
                 () =>
                     CalculateDatabaseHashTask.Calculate(
                         SqliteConnection,

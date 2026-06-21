@@ -136,7 +136,7 @@ public abstract class RowBatchTransformation<TInput, TOutput>
             CleanUp();
         });
 
-        // Encapsulate into a single propagator for compatibility with the ETLBox infrastructure
+        // Encapsulate into a single propagator for compatibility with the EtlKit infrastructure
         TransformBlock = DataflowBlock.Encapsulate<TInput, TOutput>(buffer, _output);
     }
 

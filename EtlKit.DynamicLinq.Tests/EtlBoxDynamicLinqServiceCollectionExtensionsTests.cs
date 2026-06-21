@@ -4,14 +4,14 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace EtlKit.DynamicLinq.Tests;
 
-public class EtlBoxDynamicLinqServiceCollectionExtensionsTests
+public class EtlKitDynamicLinqServiceCollectionExtensionsTests
 {
     [Fact]
-    public void AddEtlBoxDynamicLinq_RegistersNonGeneric_AsTransient()
+    public void AddEtlKitDynamicLinq_RegistersNonGeneric_AsTransient()
     {
         var services = new ServiceCollection();
 
-        services.AddEtlBoxDynamicLinq();
+        services.AddEtlKitDynamicLinq();
 
         var descriptor = services.Single(d => d.ServiceType == typeof(ExpressionRowFiltration));
         Assert.Equal(ServiceLifetime.Transient, descriptor.Lifetime);
@@ -19,11 +19,11 @@ public class EtlBoxDynamicLinqServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddEtlBoxDynamicLinq_RegistersOpenGeneric_AsTransient()
+    public void AddEtlKitDynamicLinq_RegistersOpenGeneric_AsTransient()
     {
         var services = new ServiceCollection();
 
-        services.AddEtlBoxDynamicLinq();
+        services.AddEtlKitDynamicLinq();
 
         var descriptor = services.Single(d => d.ServiceType == typeof(ExpressionRowFiltration<>));
         Assert.Equal(ServiceLifetime.Transient, descriptor.Lifetime);
@@ -31,11 +31,11 @@ public class EtlBoxDynamicLinqServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddEtlBoxDynamicLinq_ReturnsSameServiceCollection_ForChaining()
+    public void AddEtlKitDynamicLinq_ReturnsSameServiceCollection_ForChaining()
     {
         var services = new ServiceCollection();
 
-        var returned = services.AddEtlBoxDynamicLinq();
+        var returned = services.AddEtlKitDynamicLinq();
 
         Assert.Same(services, returned);
     }

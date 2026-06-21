@@ -16,12 +16,11 @@ namespace EtlKit.ControlFlow
         internal override string GetSql()
         {
             if (!DbConnectionManager.SupportDatabases)
-                throw new ETLBoxNotSupportedException("This task is not supported!");
+                throw new EtlKitNotSupportedException("This task is not supported!");
 
             return ConnectionType switch
             {
-                ConnectionManagerType.SqlServer
-                    => $@"
+                ConnectionManagerType.SqlServer => $@"
 USE [master]
 ALTER DATABASE [{ObjectName}]
 SET SINGLE_USER WITH ROLLBACK IMMEDIATE
@@ -29,11 +28,10 @@ ALTER DATABASE [{ObjectName}]
 SET MULTI_USER
 DROP DATABASE [{ObjectName}]  
 ",
-                ConnectionManagerType.Postgres
-                    => $@"
+                ConnectionManagerType.Postgres => $@"
 DROP DATABASE {ON.QuotedObjectName} WITH (force)
 ",
-                _ => $@"DROP DATABASE {ON.QuotedObjectName}"
+                _ => $@"DROP DATABASE {ON.QuotedObjectName}",
             };
         }
 
@@ -59,7 +57,7 @@ DROP DATABASE {ON.QuotedObjectName} WITH (force)
         ) =>
             new DropDatabaseTask(databaseName)
             {
-                ConnectionManager = connectionManager
+                ConnectionManager = connectionManager,
             }.DropIfExists();
     }
 }

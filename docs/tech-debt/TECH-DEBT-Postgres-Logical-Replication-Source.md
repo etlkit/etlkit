@@ -2,7 +2,7 @@
 
 ## Context
 
-`ETLBox.PostgresStreaming.PostgresXminTailSource<T>` reads the tail of a table by **polling**
+`EtlKit.PostgresStreaming.PostgresXminTailSource<T>` reads the tail of a table by **polling**
 with an `xmin`-frontier (to fence in-flight transactions) plus a tuple cursor over caller-supplied
 `OrderByColumns`. This is correct and cheap, but it is fundamentally a **snapshot-on-poll** model:
 it emits the *current* visible version of each row whose cursor value advanced past the checkpoint.

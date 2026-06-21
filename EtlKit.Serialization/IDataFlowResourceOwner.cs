@@ -15,7 +15,7 @@ namespace EtlKit.Serialization
     /// <remarks>
     /// This is a <b>separate, optional</b> capability interface — exposing <see cref="GetOrAddResource"/>
     /// here rather than directly on <see cref="IDataFlow"/> avoids binary-breaking existing external
-    /// <see cref="IDataFlow"/> implementations compiled against earlier ETLBox versions. The XML reader
+    /// <see cref="IDataFlow"/> implementations compiled against earlier EtlKit versions. The XML reader
     /// probes for this capability via a type check and falls back to plain instance creation (without
     /// dedup/ownership) when the data flow does not implement it.
     /// <para>

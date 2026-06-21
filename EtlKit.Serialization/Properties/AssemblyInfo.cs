@@ -1,3 +1,3 @@
 using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("ETLBox.Serialization.Tests")]
+[assembly: InternalsVisibleTo("EtlKit.Serialization.Tests")]

@@ -1,6 +1,5 @@
-using EtlKit.Primitives;
-
 using EtlKit.Common.ControlFlow;
+using EtlKit.Primitives;
 
 namespace EtlKit.ControlFlow.SqlServer
 {
@@ -21,7 +20,7 @@ namespace EtlKit.ControlFlow.SqlServer
         public void Execute()
         {
             if (ConnectionType != ConnectionManagerType.SqlServer)
-                throw new ETLBoxNotSupportedException(
+                throw new EtlKitNotSupportedException(
                     "This task is only supported with SqlServer!"
                 );
             new SqlTask(this, Sql).ExecuteNonQuery();

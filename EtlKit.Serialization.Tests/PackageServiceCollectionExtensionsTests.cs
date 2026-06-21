@@ -1,15 +1,14 @@
+using EtlKit.AI;
 using EtlKit.AI.Extensions;
 using EtlKit.Common.DataFlow;
 using EtlKit.DataFlow;
 using EtlKit.Json.Extensions;
 using EtlKit.Kafka.Extensions;
 using EtlKit.RabbitMq.Extensions;
+using EtlKit.Rest;
 using EtlKit.Rest.Extensions;
 using EtlKit.Scripting;
 using EtlKit.Scripting.Extensions;
-using EtlKit.AI;
-using EtlKit.Rest;
-
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EtlKit.Serialization.Tests;
@@ -20,11 +19,11 @@ namespace EtlKit.Serialization.Tests;
 public class PackageServiceCollectionExtensionsTests
 {
     [Fact]
-    public void AddEtlBoxAI_ShouldRegisterAIBatchTransformation()
+    public void AddEtlKitAI_ShouldRegisterAIBatchTransformation()
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddEtlBoxAI();
+        services.AddEtlKitAI();
 
         var descriptor = services.FirstOrDefault(d =>
             d.ServiceType == typeof(AIBatchTransformation)
@@ -34,19 +33,19 @@ public class PackageServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddEtlBoxAI_ShouldReturnSameServiceCollection()
+    public void AddEtlKitAI_ShouldReturnSameServiceCollection()
     {
         var services = new ServiceCollection();
-        var result = services.AddEtlBoxAI();
+        var result = services.AddEtlKitAI();
         Assert.Same(services, result);
     }
 
     [Fact]
-    public void AddEtlBoxAI_ShouldResolveWithLogger()
+    public void AddEtlKitAI_ShouldResolveWithLogger()
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddEtlBoxAI();
+        services.AddEtlKitAI();
         var provider = services.BuildServiceProvider();
 
         var component = provider.GetRequiredService<AIBatchTransformation>();
@@ -56,11 +55,11 @@ public class PackageServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddEtlBoxJson_ShouldRegisterJsonTransformation()
+    public void AddEtlKitJson_ShouldRegisterJsonTransformation()
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddEtlBoxJson();
+        services.AddEtlKitJson();
 
         var descriptor = services.FirstOrDefault(d => d.ServiceType == typeof(JsonTransformation));
         Assert.NotNull(descriptor);
@@ -68,19 +67,19 @@ public class PackageServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddEtlBoxJson_ShouldReturnSameServiceCollection()
+    public void AddEtlKitJson_ShouldReturnSameServiceCollection()
     {
         var services = new ServiceCollection();
-        var result = services.AddEtlBoxJson();
+        var result = services.AddEtlKitJson();
         Assert.Same(services, result);
     }
 
     [Fact]
-    public void AddEtlBoxJson_ShouldResolveWithLogger()
+    public void AddEtlKitJson_ShouldResolveWithLogger()
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddEtlBoxJson();
+        services.AddEtlKitJson();
         var provider = services.BuildServiceProvider();
 
         var component = provider.GetRequiredService<JsonTransformation>();
@@ -90,11 +89,11 @@ public class PackageServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddEtlBoxKafka_ShouldRegisterOpenGenericKafkaJsonSource()
+    public void AddEtlKitKafka_ShouldRegisterOpenGenericKafkaJsonSource()
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddEtlBoxKafka();
+        services.AddEtlKitKafka();
 
         Assert.True(
             services.Any(d =>
@@ -106,11 +105,11 @@ public class PackageServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddEtlBoxKafka_ShouldRegisterOpenGenericKafkaStringTransformation()
+    public void AddEtlKitKafka_ShouldRegisterOpenGenericKafkaStringTransformation()
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddEtlBoxKafka();
+        services.AddEtlKitKafka();
 
         Assert.True(
             services.Any(d =>
@@ -122,11 +121,11 @@ public class PackageServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddEtlBoxKafka_ShouldRegisterNonGenericKafkaTransformation()
+    public void AddEtlKitKafka_ShouldRegisterNonGenericKafkaTransformation()
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddEtlBoxKafka();
+        services.AddEtlKitKafka();
 
         var descriptor = services.FirstOrDefault(d => d.ServiceType == typeof(KafkaTransformation));
         Assert.NotNull(descriptor);
@@ -134,19 +133,19 @@ public class PackageServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddEtlBoxKafka_ShouldReturnSameServiceCollection()
+    public void AddEtlKitKafka_ShouldReturnSameServiceCollection()
     {
         var services = new ServiceCollection();
-        var result = services.AddEtlBoxKafka();
+        var result = services.AddEtlKitKafka();
         Assert.Same(services, result);
     }
 
     [Fact]
-    public void AddEtlBoxKafka_ShouldResolveKafkaTransformationWithLogger()
+    public void AddEtlKitKafka_ShouldResolveKafkaTransformationWithLogger()
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddEtlBoxKafka();
+        services.AddEtlKitKafka();
         var provider = services.BuildServiceProvider();
 
         var component = provider.GetRequiredService<KafkaTransformation>();
@@ -156,11 +155,11 @@ public class PackageServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddEtlBoxRabbitMq_ShouldRegisterOpenGenericRabbitMqTransformation()
+    public void AddEtlKitRabbitMq_ShouldRegisterOpenGenericRabbitMqTransformation()
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddEtlBoxRabbitMq();
+        services.AddEtlKitRabbitMq();
 
         Assert.True(
             services.Any(d =>
@@ -172,11 +171,11 @@ public class PackageServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddEtlBoxRabbitMq_ShouldRegisterNonGenericRabbitMqTransformation()
+    public void AddEtlKitRabbitMq_ShouldRegisterNonGenericRabbitMqTransformation()
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddEtlBoxRabbitMq();
+        services.AddEtlKitRabbitMq();
 
         var descriptor = services.FirstOrDefault(d =>
             d.ServiceType == typeof(RabbitMqTransformation)
@@ -186,19 +185,19 @@ public class PackageServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddEtlBoxRabbitMq_ShouldReturnSameServiceCollection()
+    public void AddEtlKitRabbitMq_ShouldReturnSameServiceCollection()
     {
         var services = new ServiceCollection();
-        var result = services.AddEtlBoxRabbitMq();
+        var result = services.AddEtlKitRabbitMq();
         Assert.Same(services, result);
     }
 
     [Fact]
-    public void AddEtlBoxRabbitMq_ShouldResolveWithLogger()
+    public void AddEtlKitRabbitMq_ShouldResolveWithLogger()
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddEtlBoxRabbitMq();
+        services.AddEtlKitRabbitMq();
         var provider = services.BuildServiceProvider();
 
         var component = provider.GetRequiredService<RabbitMqTransformation>();
@@ -208,11 +207,11 @@ public class PackageServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddEtlBoxRest_ShouldRegisterRestTransformation()
+    public void AddEtlKitRest_ShouldRegisterRestTransformation()
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddEtlBoxRest();
+        services.AddEtlKitRest();
 
         var descriptor = services.FirstOrDefault(d => d.ServiceType == typeof(RestTransformation));
         Assert.NotNull(descriptor);
@@ -220,19 +219,19 @@ public class PackageServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddEtlBoxRest_ShouldReturnSameServiceCollection()
+    public void AddEtlKitRest_ShouldReturnSameServiceCollection()
     {
         var services = new ServiceCollection();
-        var result = services.AddEtlBoxRest();
+        var result = services.AddEtlKitRest();
         Assert.Same(services, result);
     }
 
     [Fact]
-    public void AddEtlBoxRest_ShouldResolveWithLogger()
+    public void AddEtlKitRest_ShouldResolveWithLogger()
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddEtlBoxRest();
+        services.AddEtlKitRest();
         var provider = services.BuildServiceProvider();
 
         var component = provider.GetRequiredService<RestTransformation>();
@@ -242,11 +241,11 @@ public class PackageServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddEtlBoxScripting_ShouldRegisterScriptedTransformation()
+    public void AddEtlKitScripting_ShouldRegisterScriptedTransformation()
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddEtlBoxScripting();
+        services.AddEtlKitScripting();
 
         var descriptor = services.FirstOrDefault(d =>
             d.ServiceType == typeof(ScriptedTransformation)
@@ -256,19 +255,19 @@ public class PackageServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddEtlBoxScripting_ShouldReturnSameServiceCollection()
+    public void AddEtlKitScripting_ShouldReturnSameServiceCollection()
     {
         var services = new ServiceCollection();
-        var result = services.AddEtlBoxScripting();
+        var result = services.AddEtlKitScripting();
         Assert.Same(services, result);
     }
 
     [Fact]
-    public void AddEtlBoxScripting_ShouldResolveWithLogger()
+    public void AddEtlKitScripting_ShouldResolveWithLogger()
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddEtlBoxScripting();
+        services.AddEtlKitScripting();
         var provider = services.BuildServiceProvider();
 
         var component = provider.GetRequiredService<ScriptedTransformation>();
@@ -282,12 +281,12 @@ public class PackageServiceCollectionExtensionsTests
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddEtlBoxAI();
-        services.AddEtlBoxJson();
-        services.AddEtlBoxKafka();
-        services.AddEtlBoxRabbitMq();
-        services.AddEtlBoxRest();
-        services.AddEtlBoxScripting();
+        services.AddEtlKitAI();
+        services.AddEtlKitJson();
+        services.AddEtlKitKafka();
+        services.AddEtlKitRabbitMq();
+        services.AddEtlKitRest();
+        services.AddEtlKitScripting();
         var provider = services.BuildServiceProvider();
 
         Assert.NotNull(provider.GetRequiredService<AIBatchTransformation>());

@@ -5,15 +5,15 @@ using Microsoft.Extensions.DependencyInjection;
 namespace EtlKit.Scripting.Extensions;
 
 /// <summary>
-/// Extension methods for registering ETLBox.Scripting components with <see cref="IServiceCollection"/>.
+/// Extension methods for registering EtlKit.Scripting components with <see cref="IServiceCollection"/>.
 /// </summary>
 [PublicAPI]
 public static class EtlKitScriptingServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers ETLBox.Scripting data flow components as transient services.
+    /// Registers EtlKit.Scripting data flow components as transient services.
     /// </summary>
-    public static IServiceCollection AddEtlBoxScripting(this IServiceCollection services)
+    public static IServiceCollection AddEtlKitScripting(this IServiceCollection services)
     {
         services.AddTransient<ScriptedTransformation>();
         return services;

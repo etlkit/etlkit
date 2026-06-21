@@ -45,7 +45,7 @@ namespace EtlKit.TestControlFlowTasks
         [Fact]
         public void NotSupportedWithSQLite()
         {
-            Assert.Throws<ETLBoxNotSupportedException>(
+            Assert.Throws<EtlKitNotSupportedException>(
                 () => DropProcedureTask.Drop(SqliteConnection, "Test")
             );
         }

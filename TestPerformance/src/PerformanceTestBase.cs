@@ -1,8 +1,8 @@
 ﻿using EtlKit.ConnectionManager;
-using EtlKit.TestPerformance.ETLBoxTests.Performance.Fixtures;
+using EtlKit.TestPerformance.Fixtures;
 using EtlKit.TestShared.Helper;
 
-namespace EtlKit.TestPerformance.ETLBoxTests.Performance
+namespace EtlKit.TestPerformance
 {
     [CollectionDefinition("Performance")]
     public class PerformanceCollectionClass : ICollectionFixture<PerformanceDatabaseFixture> { }

@@ -1,14 +1,11 @@
 using System.Linq;
 using System.Text;
 using System.Threading;
-
-using EtlKit.Helper;
-using EtlKit.Primitives;
-
 using EtlKit.Common;
 using EtlKit.Common.DataFlow;
 using EtlKit.ControlFlow;
-
+using EtlKit.Helper;
+using EtlKit.Primitives;
 using Microsoft.Extensions.Logging;
 
 namespace EtlKit.DataFlow
@@ -150,7 +147,7 @@ namespace EtlKit.DataFlow
                 return TypeInfo.ChangeActionProperty.GetValue(row) as ChangeAction?;
             }
 
-            throw new ETLBoxNotSupportedException(
+            throw new EtlKitNotSupportedException(
                 "Objects used for merge must inherit from MergeableRow or"
                     + "contain a property ChangeAction (public ChangeAction? ChangeAction {get;set;}"
             );
@@ -168,7 +165,7 @@ namespace EtlKit.DataFlow
                 TypeInfo.ChangeActionProperty.SetValueOrThrow(row, changeAction);
             }
             else
-                throw new ETLBoxNotSupportedException(
+                throw new EtlKitNotSupportedException(
                     "Objects used for merge must inherit from MergeableRow or"
                         + "contain a property ChangeAction (public ChangeAction? ChangeAction {get;set;}"
                 );
@@ -191,7 +188,7 @@ namespace EtlKit.DataFlow
 
             if (TypeInfo.IdAttributeProps.Count <= 0)
             {
-                throw new ETLBoxNotSupportedException(
+                throw new EtlKitNotSupportedException(
                     "Objects used for merge must at least define a id column"
                         + "to identify matching rows - please use the IdColumn attribute or add a property name in the MergeProperties.IdProperyNames list."
                 );
@@ -245,7 +242,7 @@ namespace EtlKit.DataFlow
                 TypeInfo.ChangeDateProperty.SetValueOrThrow(row, changeDate);
             }
             else
-                throw new ETLBoxNotSupportedException(
+                throw new EtlKitNotSupportedException(
                     "Objects used for merge must inherit from MergeableRow or "
                         + "contain a property ChangeDate (public DateTime ChangeDate {get;set;}"
                 );
@@ -311,7 +308,7 @@ namespace EtlKit.DataFlow
                 }
 
                 if (DeltaMode == DeltaMode.Delta)
-                    throw new ETLBoxNotSupportedException(
+                    throw new EtlKitNotSupportedException(
                         "If you provide a delta load, you must define at least one compare column."
                             + "Using the truncate method is not allowed. "
                     );

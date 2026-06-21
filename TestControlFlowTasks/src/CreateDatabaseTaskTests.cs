@@ -18,7 +18,7 @@ namespace EtlKit.TestControlFlowTasks
         {
             //Arrange
             using var connection = CreateConnectionManager(dbType);
-            var dbName = "ETLBox_" + HashHelper.RandomString(10);
+            var dbName = "EtlKit_" + HashHelper.RandomString(10);
             var dbListBefore = GetDatabaseListTask.List(connection);
             Assert.DoesNotContain(dbName, dbListBefore);
 
@@ -39,7 +39,7 @@ namespace EtlKit.TestControlFlowTasks
             //Arrange
             using var save = SetCurrentCulture(CultureInfo.GetCultureInfo("en-US"));
             using var connection = CreateConnectionManager(dbType);
-            var dbName = "ETLBox_" + HashHelper.RandomString(10);
+            var dbName = "EtlKit_" + HashHelper.RandomString(10);
             var collation = "Latin1_General_CS_AS";
             if (connection.GetType() == typeof(PostgresConnectionManager))
                 collation = "en_US.utf8";
@@ -59,7 +59,7 @@ namespace EtlKit.TestControlFlowTasks
         [Fact]
         public void NotSupportedWithSQLite()
         {
-            Assert.Throws<ETLBoxNotSupportedException>(
+            Assert.Throws<EtlKitNotSupportedException>(
                 () => CreateDatabaseTask.Create(SqliteConnection, "Test")
             );
         }

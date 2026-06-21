@@ -1,7 +1,7 @@
 {
     "ConnectionManager": {
-        "SqlConnectionString": "Data Source=${CFG_MSSQL_IP};TrustServerCertificate=true;User Id=sa;Password=YourStrong@Passw0rd;Initial Catalog=ETLBox_ConnectionManager",
-        "PostgresConnectionString": "Server=${CFG_POSTGRES_IP};Database=ETLBox_ConnectionManager;User Id=postgres;Password=etlboxpassword;",
+        "SqlConnectionString": "Data Source=${CFG_MSSQL_IP};TrustServerCertificate=true;User Id=sa;Password=YourStrong@Passw0rd;Initial Catalog=EtlKit_ConnectionManager",
+        "PostgresConnectionString": "Server=${CFG_POSTGRES_IP};Database=EtlKit_ConnectionManager;User Id=postgres;Password=etlkitpassword;",
         "ClickHouseConnectionString": "Host=${CFG_CLICKHOUSE_IP};Port=9000;Database=default;User=clickhouse;Password=Qwe123456;"
     }
 }

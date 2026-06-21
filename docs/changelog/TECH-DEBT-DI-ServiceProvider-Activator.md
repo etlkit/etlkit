@@ -3,8 +3,8 @@
 > **Status: COMPLETED** (2026-04-07) — shipped in 1.16.0. `IDataFlowActivator` plus
 > `DefaultDataFlowActivator` and `ServiceProviderActivator` are in
 > `ETLBox.Serialization/DataFlow/`. `IServiceCollection` registration extensions
-> (`AddEtlBoxCore`, `AddEtlBoxJson`, `AddEtlBoxKafka`, `AddEtlBoxRabbitMq`,
-> `AddEtlBoxRest`, `AddEtlBoxScripting`, `AddEtlBoxAI`, `AddEtlBoxSerialization`) are
+> (`AddEtlKitCore`, `AddEtlKitJson`, `AddEtlKitKafka`, `AddEtlKitRabbitMq`,
+> `AddEtlKitRest`, `AddEtlKitScripting`, `AddEtlKitAI`, `AddEtlKitSerialization`) are
 > registered per library, and `ILogger<T>` constructor overloads were added to every
 > data flow step. See [CHANGELOG.md](../../CHANGELOG.md) entry for 1.16.0.
 
@@ -47,7 +47,7 @@ Add an optional `IServiceProvider` parameter to `DataFlowXmlReader` that enables
    public DataFlowXmlReader(
        IDataFlow dataFlow,
        CultureInfo? currentCulture = null,
-       IDataFlowDestination<ETLBoxError>? linkAllErrorsTo = null,
+       IDataFlowDestination<EtlKitError>? linkAllErrorsTo = null,
        IServiceProvider? serviceProvider = null  // NEW
    )
    ```
@@ -129,16 +129,16 @@ public class MyCustomSource : DataFlowSource<ExpandoObject>
 
 ## Part 2: Service Collection Registration Extensions
 
-Each ETLBox library should provide extension methods for `IServiceCollection` to register all data flow steps.
+Each EtlKit library should provide extension methods for `IServiceCollection` to register all data flow steps.
 
 ### Implementation Plan
 
 1. **Create extension class per library**:
    ```csharp
-   // In ETLBox.Core or ETLBox
-   public static class EtlBoxServiceCollectionExtensions
-   {
-       public static IServiceCollection AddEtlBoxCore(this IServiceCollection services)
+    // In EtlKit.Core or EtlKit
+    public static class EtlKitCoreServiceCollectionExtensions
+    {
+        public static IServiceCollection AddEtlKitCore(this IServiceCollection services)
        {
            // Register all core data flow components
            services.AddTransient<DbSource<ExpandoObject>>();
@@ -152,10 +152,10 @@ Each ETLBox library should provide extension methods for `IServiceCollection` to
 
 2. **Library-specific extensions**:
    ```csharp
-   // ETLBox.Csv
-   public static class EtlBoxCsvServiceCollectionExtensions
-   {
-       public static IServiceCollection AddEtlBoxCsv(this IServiceCollection services)
+    // EtlKit.Csv
+    public static class EtlKitCsvServiceCollectionExtensions
+    {
+        public static IServiceCollection AddEtlKitCsv(this IServiceCollection services)
        {
            services.AddTransient<CsvSource<ExpandoObject>>();
            services.AddTransient<CsvDestination<ExpandoObject>>();
@@ -163,10 +163,10 @@ Each ETLBox library should provide extension methods for `IServiceCollection` to
        }
    }
 
-   // ETLBox.Json
-   public static class EtlBoxJsonServiceCollectionExtensions
-   {
-       public static IServiceCollection AddEtlBoxJson(this IServiceCollection services)
+    // EtlKit.Json
+    public static class EtlKitJsonServiceCollectionExtensions
+    {
+        public static IServiceCollection AddEtlKitJson(this IServiceCollection services)
        {
            services.AddTransient<JsonSource<ExpandoObject>>();
            services.AddTransient<JsonDestination<ExpandoObject>>();
@@ -174,10 +174,10 @@ Each ETLBox library should provide extension methods for `IServiceCollection` to
        }
    }
 
-   // ETLBox.Xml
-   public static class EtlBoxXmlServiceCollectionExtensions
-   {
-       public static IServiceCollection AddEtlBoxXml(this IServiceCollection services)
+    // EtlKit.Xml
+    public static class EtlKitXmlServiceCollectionExtensions
+    {
+        public static IServiceCollection AddEtlKitXml(this IServiceCollection services)
        {
            services.AddTransient<XmlSource<ExpandoObject>>();
            services.AddTransient<XmlDestination<ExpandoObject>>();
@@ -185,10 +185,10 @@ Each ETLBox library should provide extension methods for `IServiceCollection` to
        }
    }
 
-   // ETLBox.Serialization
-   public static class EtlBoxSerializationServiceCollectionExtensions
-   {
-       public static IServiceCollection AddEtlBoxSerialization(this IServiceCollection services)
+    // EtlKit.Serialization
+    public static class EtlKitSerializationServiceCollectionExtensions
+    {
+        public static IServiceCollection AddEtlKitSerialization(this IServiceCollection services)
        {
            services.AddTransient<DataFlowXmlReader>();
            return services;
@@ -196,21 +196,21 @@ Each ETLBox library should provide extension methods for `IServiceCollection` to
    }
    ```
 
-3. **Aggregate registration method** *(example for consuming applications, not part of ETLBox packages)*:
+3. **Aggregate registration method** *(example for consuming applications, not part of EtlKit packages)*:
 
-   > **Note:** This extension is shown as a reference for third-party consumers who want a single registration call across multiple ETLBox packages. It should NOT be shipped inside any individual ETLBox NuGet package, as it would introduce dependencies on all other ETLBox packages, defeating the purpose of the modular package structure.
+   > **Note:** This extension is shown as a reference for third-party consumers who want a single registration call across multiple EtlKit packages. It should NOT be shipped inside any individual EtlKit NuGet package, as it would introduce dependencies on all other EtlKit packages, defeating the purpose of the modular package structure.
 
    ```csharp
    // Example: consumers can create this in their own project
-   public static class EtlBoxServiceCollectionExtensions
-   {
-       public static IServiceCollection AddEtlBox(this IServiceCollection services)
-       {
-           services.AddEtlBoxCore();
-           services.AddEtlBoxCsv();
-           services.AddEtlBoxJson();
-           services.AddEtlBoxXml();
-           services.AddEtlBoxSerialization();
+    public static class EtlKitServiceCollectionExtensions
+    {
+        public static IServiceCollection AddEtlKit(this IServiceCollection services)
+        {
+            services.AddEtlKitCore();
+            services.AddEtlKitCsv();
+            services.AddEtlKitJson();
+            services.AddEtlKitXml();
+            services.AddEtlKitSerialization();
            // ... other libraries as needed
            return services;
        }
@@ -219,15 +219,15 @@ Each ETLBox library should provide extension methods for `IServiceCollection` to
 
 ### Libraries Requiring Registration Extensions
 
-- ETLBox (core)
-- ETLBox.Csv
-- ETLBox.Json
-- ETLBox.Xml
-- ETLBox.Excel
-- ETLBox.Parquet
-- ETLBox.Serialization
-- ETLBox.Azure.* (if applicable)
-- ETLBox.* (all provider-specific libraries)
+- EtlKit (core)
+- EtlKit.Csv
+- EtlKit.Json
+- EtlKit.Xml
+- EtlKit.Excel
+- EtlKit.Parquet
+- EtlKit.Serialization
+- EtlKit.Azure.* (if applicable)
+- EtlKit.* (all provider-specific libraries)
 
 ## Part 3: ILogger Constructor Support for All Steps
 
@@ -275,7 +275,7 @@ Add an optional `ILogger` parameter to constructors of all data flow steps to en
 
 2. **Concrete classes accept `ILogger<T>` (generic) for DI resolution**:
 
-   The generic `ILogger<T>` preserves the concrete class name as the log category (e.g., `"ETLBox.DbSource<MyRow>"` appears in log output). Since `ILogger<T> : ILogger`, it flows up to the base naturally.
+   The generic `ILogger<T>` preserves the concrete class name as the log category (e.g., `"EtlKit.DbSource<MyRow>"` appears in log output). Since `ILogger<T> : ILogger`, it flows up to the base naturally.
 
    ```csharp
    public class DbSource<TOutput> : DataFlowSource<TOutput>
@@ -364,7 +364,7 @@ Medium - This is an enhancement that improves extensibility but doesn't block cu
 
 - `ETLBox.Serialization/DataFlow/DataFlowXmlReader.cs`
 - `ETLBox.Serialization/DataFlow/DataFlowActivator.cs`
-- All source, transformation, and destination classes across ETLBox libraries
+- All source, transformation, and destination classes across EtlKit libraries
 
 ## Dependencies
 

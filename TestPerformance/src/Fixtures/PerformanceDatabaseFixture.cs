@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using EtlKit.TestShared.Helper;
 
-namespace EtlKit.TestPerformance.ETLBoxTests.Performance.Fixtures
+namespace EtlKit.TestPerformance.Fixtures
 {
     [SuppressMessage("ReSharper", "ClassNeverInstantiated.Global")]
     public sealed class PerformanceDatabaseFixture : IDisposable

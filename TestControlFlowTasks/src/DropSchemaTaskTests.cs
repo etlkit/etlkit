@@ -56,7 +56,7 @@ namespace EtlKit.TestControlFlowTasks
         [Fact]
         public void NotSupportedWithSQLite()
         {
-            Assert.Throws<ETLBoxNotSupportedException>(
+            Assert.Throws<EtlKitNotSupportedException>(
                 () => DropSchemaTask.Drop(SqliteConnection, "Test")
             );
         }
@@ -64,7 +64,7 @@ namespace EtlKit.TestControlFlowTasks
         [Fact]
         public void NotSupportedWithMySql()
         {
-            Assert.Throws<ETLBoxNotSupportedException>(
+            Assert.Throws<EtlKitNotSupportedException>(
                 () => DropSchemaTask.Drop(SqliteConnection, "Test")
             );
         }

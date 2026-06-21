@@ -40,7 +40,7 @@ namespace EtlKit.TestControlFlowTasks.SqlServer
         [Fact(Skip = "Adjust to work with tabular model")]
         public void TestCreateAndDelete()
         {
-            const string dbName = "ETLBox_TestXMLA";
+            const string dbName = "EtlKit_TestXMLA";
             try
             {
                 XmlaTask.ExecuteNonQuery(AdomdConnection, "Drop cube", DeleteCubeXmla(dbName));

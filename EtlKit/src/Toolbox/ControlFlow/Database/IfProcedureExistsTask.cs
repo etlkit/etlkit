@@ -11,25 +11,22 @@ namespace EtlKit.ControlFlow
         internal override string GetSql()
         {
             if (!DbConnectionManager.SupportProcedures)
-                throw new ETLBoxNotSupportedException("This task is not supported!");
+                throw new EtlKitNotSupportedException("This task is not supported!");
 
             return ConnectionType switch
             {
-                ConnectionManagerType.SqlServer
-                    => $@"
+                ConnectionManagerType.SqlServer => $@"
                             IF EXISTS (SELECT * FROM sys.objects WHERE type = 'P' AND object_id = object_id('{ON.QuotedFullName}'))
                                 SELECT 1
                             ",
-                ConnectionManagerType.MySql
-                    => $@"
+                ConnectionManagerType.MySql => $@"
                              SELECT 1 
                             FROM information_schema.routines 
                             WHERE routine_schema = DATABASE()
                                AND ( routine_name = '{ON.UnquotedFullName}' OR
                                     CONCAT(routine_catalog, '.', routine_name) = '{ON.UnquotedFullName}' )  
                             ",
-                ConnectionManagerType.Postgres
-                    => $@"
+                ConnectionManagerType.Postgres => $@"
                             SELECT 1
                             FROM pg_catalog.pg_proc
                             JOIN pg_namespace 
@@ -37,7 +34,7 @@ namespace EtlKit.ControlFlow
                             WHERE ( CONCAT(pg_namespace.nspname,'.',proname) = '{ON.UnquotedFullName}'
                                         OR proname = '{ON.UnquotedFullName}' )
                             ",
-                _ => string.Empty
+                _ => string.Empty,
             };
         }
 
@@ -55,7 +52,7 @@ namespace EtlKit.ControlFlow
         public static bool IsExisting(IConnectionManager connectionManager, string procedureName) =>
             new IfProcedureExistsTask(procedureName)
             {
-                ConnectionManager = connectionManager
+                ConnectionManager = connectionManager,
             }.Exists();
     }
 }

@@ -54,7 +54,7 @@ WHERE sch.name = '{schemaName}'"
         [Fact]
         public void NotSupportedWithOtherDBs()
         {
-            Assert.Throws<ETLBoxNotSupportedException>(
+            Assert.Throws<EtlKitNotSupportedException>(
                 () => CleanUpSchemaTask.CleanUp(SqliteConnection, "Test")
             );
         }

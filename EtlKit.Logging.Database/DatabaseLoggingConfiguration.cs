@@ -12,7 +12,7 @@ namespace EtlKit.Logging.Database
     [PublicAPI]
     public static class DatabaseLoggingConfiguration
     {
-        public const string DefaultLogTableName = "etlbox_log";
+        public const string DefaultLogTableName = "etlkit_log";
 
         /// <summary>
         /// TableName of the current log process logging table
@@ -25,7 +25,7 @@ namespace EtlKit.Logging.Database
         /// </summary>
         public static LoadProcess CurrentLoadProcess { get; internal set; }
 
-        public const string DefaultLoadProcessTableName = "etlbox_loadprocess";
+        public const string DefaultLoadProcessTableName = "etlkit_loadprocess";
 
         public static void AddDatabaseLoggingConfiguration(IConnectionManager connection) =>
             AddDatabaseLoggingConfiguration(connection, LogLevel.Information, LogTable);

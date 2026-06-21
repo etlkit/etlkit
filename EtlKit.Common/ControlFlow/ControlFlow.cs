@@ -1,11 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-
-using EtlKit.Primitives;
-
 using EtlKit.Common.Logging;
-
+using EtlKit.Primitives;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -13,7 +10,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 namespace EtlKit.Common.ControlFlow
 {
     /// <summary>
-    /// Contains static information which affects all ETLBox tasks.
+    /// Contains static information which affects all EtlKit tasks.
     /// Here you can set default connections string, disbale the logging for all processes or set the current stage used in your logging configuration.
     /// </summary>
     [PublicAPI]
@@ -51,19 +48,19 @@ namespace EtlKit.Common.ControlFlow
         public static string Stage { get; set; }
 
         /// <summary>
-        /// If you used the logging task StartLoadProces (and created the corresponding load process table before)
+        /// If you used the logging task StartLoadProcess (and created the corresponding load process table before)
         /// then this Property will hold the current load process information.
         /// </summary>
         public static LoadProcess CurrentLoadProcess { get; internal set; }
 
-        public const string DefaultLoadProcessTableName = "etlbox_loadprocess";
+        public const string DefaultLoadProcessTableName = "etlkit_loadprocess";
 
         /// <summary>
         /// TableName of the current load process logging table
         /// </summary>
         public static string LoadProcessTable { get; set; } = DefaultLoadProcessTableName;
 
-        public const string DefaultLogTableName = "etlbox_log";
+        public const string DefaultLogTableName = "etlkit_log";
 
         /// <summary>
         /// TableName of the current log process logging table
@@ -95,8 +92,8 @@ namespace EtlKit.Common.ControlFlow
             string action,
             string hash,
             string stage,
-            long? loadProcessKey)
-            => logger.WriteLog(LogLevel.Trace, message, type, action, hash, stage, loadProcessKey);
+            long? loadProcessKey
+        ) => logger.WriteLog(LogLevel.Trace, message, type, action, hash, stage, loadProcessKey);
 
         public static void Debug(
             this ILogger logger,
@@ -105,8 +102,8 @@ namespace EtlKit.Common.ControlFlow
             string action,
             string hash,
             string stage,
-            long? loadProcessKey)
-            => logger.WriteLog(LogLevel.Debug, message, type, action, hash, stage, loadProcessKey);
+            long? loadProcessKey
+        ) => logger.WriteLog(LogLevel.Debug, message, type, action, hash, stage, loadProcessKey);
 
         public static void Info(
             this ILogger logger,
@@ -115,8 +112,17 @@ namespace EtlKit.Common.ControlFlow
             string action,
             string hash,
             string stage,
-            long? loadProcessKey)
-            => logger.WriteLog(LogLevel.Information, message, type, action, hash, stage, loadProcessKey);
+            long? loadProcessKey
+        ) =>
+            logger.WriteLog(
+                LogLevel.Information,
+                message,
+                type,
+                action,
+                hash,
+                stage,
+                loadProcessKey
+            );
 
         public static void Warn(
             this ILogger logger,
@@ -125,8 +131,8 @@ namespace EtlKit.Common.ControlFlow
             string action,
             string hash,
             string stage,
-            long? loadProcessKey)
-            => logger.WriteLog(LogLevel.Warning, message, type, action, hash, stage, loadProcessKey);
+            long? loadProcessKey
+        ) => logger.WriteLog(LogLevel.Warning, message, type, action, hash, stage, loadProcessKey);
 
         public static void Error(
             this ILogger logger,
@@ -135,8 +141,8 @@ namespace EtlKit.Common.ControlFlow
             string action,
             string hash,
             string stage,
-            long? loadProcessKey)
-            => logger.WriteLog(LogLevel.Error, message, type, action, hash, stage, loadProcessKey);
+            long? loadProcessKey
+        ) => logger.WriteLog(LogLevel.Error, message, type, action, hash, stage, loadProcessKey);
 
         private static void WriteLog(
             this ILogger logger,
@@ -146,9 +152,11 @@ namespace EtlKit.Common.ControlFlow
             string action,
             string hash,
             string stage,
-            long? loadProcessKey)
+            long? loadProcessKey
+        )
         {
-            logger.Log(logLevel,
+            logger.Log(
+                logLevel,
                 new EventId(0, "ETL"),
                 new MyLogEvent(message)
                     .WithProperty("Type", type)
@@ -157,7 +165,8 @@ namespace EtlKit.Common.ControlFlow
                     .WithProperty("Stage", stage)
                     .WithProperty("LoadProcessKey", loadProcessKey),
                 (Exception)null,
-                MyLogEvent.Formatter);
+                MyLogEvent.Formatter
+            );
         }
     }
 
@@ -177,7 +186,10 @@ namespace EtlKit.Common.ControlFlow
             return _properties.GetEnumerator();
         }
 
-        IEnumerator IEnumerable.GetEnumerator() { return GetEnumerator(); }
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
 
         public MyLogEvent WithProperty(string name, object value)
         {
@@ -188,4 +200,3 @@ namespace EtlKit.Common.ControlFlow
         public static Func<MyLogEvent, Exception, string> Formatter { get; } = (l, _) => l.Message;
     }
 }
-

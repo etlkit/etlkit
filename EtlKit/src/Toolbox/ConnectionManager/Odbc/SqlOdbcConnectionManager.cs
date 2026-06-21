@@ -17,7 +17,7 @@ namespace EtlKit.ConnectionManager
     /// <code>
     /// ControlFlow.DefaultDbConnection =
     ///   new OdbcConnectionManager(new ObdcConnectionString(
-    ///     "Driver={SQL Server};Server=.;Database=ETLBox;Trusted_Connection=Yes;"));
+    ///     "Driver={SQL Server};Server=.;Database=EtlKit;Trusted_Connection=Yes;"));
     /// </code>
     /// </example>
     [PublicAPI]
@@ -43,7 +43,7 @@ namespace EtlKit.ConnectionManager
             {
                 UseParameterQuery = true,
                 QB = QB,
-                QE = QE
+                QE = QE,
                 //ConnectionType = ConnectionManagerType.SqlServer
             };
             OdbcBulkInsert(data, tableName, bulkInsert);
@@ -51,11 +51,9 @@ namespace EtlKit.ConnectionManager
 
         public override IConnectionManager Clone()
         {
-            var clone = new SqlOdbcConnectionManager(
-                (OdbcConnectionString)ConnectionString
-            )
+            var clone = new SqlOdbcConnectionManager((OdbcConnectionString)ConnectionString)
             {
-                MaxLoginAttempts = MaxLoginAttempts
+                MaxLoginAttempts = MaxLoginAttempts,
             };
             return clone;
         }

@@ -1,9 +1,7 @@
 using System.Linq;
-
-using EtlKit.Primitives;
-
 using EtlKit.Common;
 using EtlKit.Common.ControlFlow;
+using EtlKit.Primitives;
 
 namespace EtlKit.ControlFlow
 {
@@ -24,18 +22,18 @@ namespace EtlKit.ControlFlow
         public void Execute()
         {
             if (!DbConnectionManager.SupportProcedures)
-                throw new ETLBoxNotSupportedException("This task is not supported!");
+                throw new EtlKitNotSupportedException("This task is not supported!");
 
             IsExisting = new IfProcedureExistsTask(ProcedureName)
             {
                 ConnectionManager = ConnectionManager,
-                DisableLogging = true
+                DisableLogging = true,
             }.Exists();
             if (IsExisting && ConnectionType == ConnectionManagerType.MySql)
                 new DropProcedureTask(ProcedureName)
                 {
                     ConnectionManager = ConnectionManager,
-                    DisableLogging = true
+                    DisableLogging = true,
                 }.Drop();
             new SqlTask(this, Sql).ExecuteNonQuery();
         }
@@ -106,7 +104,7 @@ namespace EtlKit.ControlFlow
         ) =>
             new CreateProcedureTask(procedureName, procedureDefinition)
             {
-                ConnectionManager = connectionManager
+                ConnectionManager = connectionManager,
             }.Execute();
 
         public static void CreateOrAlter(
@@ -117,7 +115,7 @@ namespace EtlKit.ControlFlow
         ) =>
             new CreateProcedureTask(procedureName, procedureDefinition, procedureParameter)
             {
-                ConnectionManager = connectionManager
+                ConnectionManager = connectionManager,
             }.Execute();
 
         public static void CreateOrAlter(
@@ -135,7 +133,7 @@ namespace EtlKit.ControlFlow
                 {
                     ConnectionManagerType.Postgres => "CREATE OR REPLACE",
                     ConnectionManagerType.MySql => "CREATE",
-                    _ => IsExisting ? "ALTER" : "CREATE"
+                    _ => IsExisting ? "ALTER" : "CREATE",
                 };
             }
         }

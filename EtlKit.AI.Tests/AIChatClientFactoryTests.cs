@@ -1,6 +1,5 @@
-using EtlKit.Common;
 using EtlKit.AI.Models;
-
+using EtlKit.Common;
 using Microsoft.Extensions.AI;
 using Moq;
 
@@ -55,7 +54,7 @@ public class AIChatClientFactoryTests
     }
 
     [Fact]
-    public void Create_WithoutApiKeyAnywhere_ShouldThrowETLBoxException()
+    public void Create_WithoutApiKeyAnywhere_ShouldThrowEtlKitException()
     {
         // Arrange
         var settings = new ApiSettings { ApiModel = "gpt-test", ApiKey = null };

@@ -83,11 +83,11 @@ test_job:
       alias: localmysql
       variables:
         MYSQL_ROOT_HOST: '%'
-        MYSQL_ROOT_PASSWORD: 'etlboxpassword'
+        MYSQL_ROOT_PASSWORD: 'etlkitpassword'
     - name: postgres
       alias: localpostgres
       variables:
-        POSTGRES_PASSWORD: 'etlboxpassword'
+        POSTGRES_PASSWORD: 'etlkitpassword'
         LANG: en_US.utf8
     - name: mcr.microsoft.com/azure-sql-edge
       alias: localmssql

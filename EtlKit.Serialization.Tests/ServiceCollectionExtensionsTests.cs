@@ -1,25 +1,25 @@
 using System.Globalization;
+using CsvHelper.Configuration;
 using EtlKit.Common.DataFlow;
 using EtlKit.DataFlow;
 using EtlKit.Extensions;
 using EtlKit.Serialization.DataFlow;
 using EtlKit.Serialization.Extensions;
-using CsvHelper.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EtlKit.Serialization.Tests;
 
 /// <summary>
-/// Tests for IServiceCollection extension methods that register ETLBox components.
+/// Tests for IServiceCollection extension methods that register EtlKit components.
 /// </summary>
 public class ServiceCollectionExtensionsTests
 {
     [Fact]
-    public void AddEtlBoxCore_ShouldRegisterOpenGenericSources()
+    public void AddEtlKitCore_ShouldRegisterOpenGenericSources()
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddEtlBoxCore();
+        services.AddEtlKitCore();
 
         AssertOpenGenericRegistered(services, typeof(DbSource<>));
         AssertOpenGenericRegistered(services, typeof(CsvSource<>));
@@ -32,11 +32,11 @@ public class ServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddEtlBoxCore_ShouldRegisterOpenGenericTransformations()
+    public void AddEtlKitCore_ShouldRegisterOpenGenericTransformations()
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddEtlBoxCore();
+        services.AddEtlKitCore();
 
         AssertOpenGenericRegistered(services, typeof(RowTransformation<,>));
         AssertOpenGenericRegistered(services, typeof(RowTransformation<>));
@@ -52,11 +52,11 @@ public class ServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddEtlBoxCore_ShouldRegisterOpenGenericDestinations()
+    public void AddEtlKitCore_ShouldRegisterOpenGenericDestinations()
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddEtlBoxCore();
+        services.AddEtlKitCore();
 
         AssertOpenGenericRegistered(services, typeof(DbDestination<>));
         AssertOpenGenericRegistered(services, typeof(CsvDestination<>));
@@ -68,11 +68,11 @@ public class ServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddEtlBoxCore_ShouldRegisterNonGenericShorthands()
+    public void AddEtlKitCore_ShouldRegisterNonGenericShorthands()
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddEtlBoxCore();
+        services.AddEtlKitCore();
 
         AssertRegistered<DbSource>(services);
         AssertRegistered<CsvSource>(services);
@@ -101,11 +101,11 @@ public class ServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddEtlBoxCore_ShouldResolveCustomDtoType_WithoutExplicitRegistration()
+    public void AddEtlKitCore_ShouldResolveCustomDtoType_WithoutExplicitRegistration()
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddEtlBoxCore();
+        services.AddEtlKitCore();
         var provider = services.BuildServiceProvider();
 
         // These types were never explicitly registered — open generics resolve them
@@ -120,11 +120,11 @@ public class ServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddEtlBoxCore_ShouldResolveMultiTypeParamTransformation()
+    public void AddEtlKitCore_ShouldResolveMultiTypeParamTransformation()
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddEtlBoxCore();
+        services.AddEtlKitCore();
         var provider = services.BuildServiceProvider();
 
         // RowTransformation<TInput, TOutput> with different input/output types
@@ -133,11 +133,11 @@ public class ServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddEtlBoxCore_ShouldInjectLoggerThroughOpenGenerics()
+    public void AddEtlKitCore_ShouldInjectLoggerThroughOpenGenerics()
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddEtlBoxCore();
+        services.AddEtlKitCore();
         var provider = services.BuildServiceProvider();
 
         var source = provider.GetRequiredService<DbSource<MyCustomRow>>();
@@ -145,22 +145,22 @@ public class ServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddEtlBoxCore_ShouldRegisterAsTransient()
+    public void AddEtlKitCore_ShouldRegisterAsTransient()
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddEtlBoxCore();
+        services.AddEtlKitCore();
 
         var descriptor = services.First(d => d.ServiceType == typeof(DbSource<>));
         Assert.Equal(ServiceLifetime.Transient, descriptor.Lifetime);
     }
 
     [Fact]
-    public void AddEtlBoxSerialization_ShouldRegisterDataFlowXmlReader()
+    public void AddEtlKitSerialization_ShouldRegisterDataFlowXmlReader()
     {
         var services = new ServiceCollection();
         services.AddLogging();
-        services.AddEtlBoxSerialization();
+        services.AddEtlKitSerialization();
 
         var descriptor = services.FirstOrDefault(d => d.ServiceType == typeof(DataFlowXmlReader));
         Assert.NotNull(descriptor);
@@ -168,10 +168,10 @@ public class ServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddEtlBoxCore_ShouldRegisterCsvConfigurationWithInvariantCultureByDefault()
+    public void AddEtlKitCore_ShouldRegisterCsvConfigurationWithInvariantCultureByDefault()
     {
         var services = new ServiceCollection();
-        services.AddEtlBoxCore();
+        services.AddEtlKitCore();
         var provider = services.BuildServiceProvider();
 
         var config = provider.GetRequiredService<CsvConfiguration>();
@@ -180,11 +180,11 @@ public class ServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddEtlBoxCore_ShouldRegisterCsvConfigurationWithCustomCulture()
+    public void AddEtlKitCore_ShouldRegisterCsvConfigurationWithCustomCulture()
     {
         var services = new ServiceCollection();
         var french = CultureInfo.GetCultureInfo("fr-FR");
-        services.AddEtlBoxCore(csvCultureInfo: french);
+        services.AddEtlKitCore(csvCultureInfo: french);
         var provider = services.BuildServiceProvider();
 
         var config = provider.GetRequiredService<CsvConfiguration>();
@@ -193,21 +193,21 @@ public class ServiceCollectionExtensionsTests
     }
 
     [Fact]
-    public void AddEtlBoxCore_ShouldReturnSameServiceCollection()
+    public void AddEtlKitCore_ShouldReturnSameServiceCollection()
     {
         var services = new ServiceCollection();
 
-        var result = services.AddEtlBoxCore();
+        var result = services.AddEtlKitCore();
 
         Assert.Same(services, result);
     }
 
     [Fact]
-    public void AddEtlBoxSerialization_ShouldReturnSameServiceCollection()
+    public void AddEtlKitSerialization_ShouldReturnSameServiceCollection()
     {
         var services = new ServiceCollection();
 
-        var result = services.AddEtlBoxSerialization();
+        var result = services.AddEtlKitSerialization();
 
         Assert.Same(services, result);
     }

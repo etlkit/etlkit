@@ -1,7 +1,7 @@
 # Tech Debt: `<Pipeline>` Flat-Sequence Sugar for DataFlowXmlReader
 
 > **Status: COMPLETED** (2026-05-15) — shipped in 1.18.0 (`feature/MLRSSL-1510-pipeline-xml-sequence`).
-> `Pipeline<TIn, TOut>` and the non-generic `Pipeline` live in `ETLBox.Serialization`, and the
+> `Pipeline<TIn, TOut>` and the non-generic `Pipeline` live in `EtlKit.Serialization`, and the
 > `IDataFlowXmlSerializable` / `IDataFlowXmlContext` extension points let any component own its XML
 > deserialization while still creating child objects through the reader's DI-aware factory. See
 > [CHANGELOG.md](../../CHANGELOG.md) entry for 1.18.0.
@@ -45,7 +45,7 @@ level, with the reader wiring `LinkTo` calls automatically.
 
 ## Design
 
-### Extension-point interfaces (new, in `ETLBox.Serialization`)
+### Extension-point interfaces (new, in `EtlKit.Serialization`)
 
 ```
 IDataFlowXmlContext        — exposes CreateObject (DI-aware only — no method invocation)
@@ -93,7 +93,7 @@ when needed.
 If the first child resolves to `IDataFlowSource<ExpandoObject>`, the Pipeline stores it as
 `_source` and uses the **second** child as `_head`.
 
-**Completion wiring (important):** `_source` must NOT be linked via ETLBox's `LinkTo` —
+**Completion wiring (important):** `_source` must NOT be linked via EtlKit's `LinkTo` —
 doing so would register `_source.SourceBlock.Completion` in `_head.PredecessorCompletions`,
 not in `pipeline.PredecessorCompletions`. If an external upstream is also connected,
 `_head.CheckCompleteAction()` would fire as soon as `_source` alone finishes, closing
@@ -103,7 +103,7 @@ Instead, wire `_source` at the raw TPL Dataflow level and register its completio
 Pipeline's own predecessor list:
 
 ```csharp
-// Raw TPL link — bypasses ETLBox completion registration on _head
+// Raw TPL link — bypasses EtlKit completion registration on _head
 _source.SourceBlock.LinkTo(_head.TargetBlock);
 // Register in Pipeline's predecessor list so CheckCompleteAction waits for both
 AddPredecessorCompletion(_source.SourceBlock.Completion);
@@ -195,7 +195,7 @@ Both are method invocations, not step types. `Pipeline.ReadXml` calls
 names are hardcoded, and the context is not involved in method dispatch.
 
 - **`<LinkTo>`** — calls `this.LinkTo(target)`, connecting Pipeline's output to the next
-  component. Works identically to `<LinkTo>` on any other ETLBox component.
+  component. Works identically to `<LinkTo>` on any other EtlKit component.
 - **`<LinkErrorTo>`** — calls `this.LinkErrorTo(target)`, which forwards to **all** internal
   steps via the `LinkErrorTo` override in `Pipeline<TIn, TOut>`. Placement has no effect.
 
@@ -281,7 +281,7 @@ public class Pipeline<TIn, TOut> : DataFlowTransformation<TIn, TOut>, IDataFlowX
         TransformBlock = DataflowBlock.Encapsulate(head.TargetBlock, tail.SourceBlock);
     }
 
-    public override void LinkErrorTo(IDataFlowLinkTarget<ETLBoxError> target)
+    public override void LinkErrorTo(IDataFlowLinkTarget<EtlKitError> target)
     {
         foreach (var step in Steps)
             if (step is ILinkErrorSource src)
@@ -472,7 +472,7 @@ public sealed class Pipeline : Pipeline<ExpandoObject, ExpandoObject>, IDataFlow
         if (stepStart < children.Count)
             ReadSteps(children, stepStart, context);
 
-        // Raw TPL link: bypasses ETLBox completion registration on Head so that
+        // Raw TPL link: bypasses EtlKit completion registration on Head so that
         // _source.SourceBlock.Completion goes into Pipeline's PredecessorCompletions,
         // not into Head.PredecessorCompletions. This prevents the race condition where
         // Head closes before an external upstream finishes.

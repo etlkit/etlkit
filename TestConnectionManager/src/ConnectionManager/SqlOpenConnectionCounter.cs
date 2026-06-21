@@ -29,7 +29,7 @@ namespace EtlKit.TestConnectionManager.ConnectionManager
         /// тестов/сборок и с «хвостами» прошлых прогонов на общем сервере.
         /// </summary>
         public static string NewApplicationName(string label) =>
-            $"ETLBoxTest-{label}-{Guid.NewGuid():N}";
+            $"EtlKitTest-{label}-{Guid.NewGuid():N}";
 
         /// <summary>
         /// Возвращает строку подключения с проставленным <c>Application Name</c>, чтобы соединения,

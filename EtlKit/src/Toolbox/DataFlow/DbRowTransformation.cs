@@ -1,11 +1,8 @@
 using System.Linq;
-
-using EtlKit.Primitives;
-
 using EtlKit.Common;
 using EtlKit.Common.DataFlow;
 using EtlKit.ControlFlow;
-
+using EtlKit.Primitives;
 using DataFlow_TypeInfo = EtlKit.Common.DataFlow.TypeInfo;
 using TypeInfo = EtlKit.Common.DataFlow.TypeInfo;
 
@@ -16,7 +13,7 @@ public class DbRowTransformation<TInput> : RowTransformation<TInput>
 {
     /* Public properties */
     /// <summary>
-    /// If you don't want ETLBox to dynamically read the destination table definition from the database,
+    /// If you don't want EtlKit to dynamically read the destination table definition from the database,
     /// you can provide your own table definition.
     /// </summary>
     public TableDefinition DestinationTableDefinition { get; set; }

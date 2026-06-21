@@ -1,5 +1,4 @@
 using EtlKit.DataFlow;
-
 using JetBrains.Annotations;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -7,15 +6,15 @@ using Microsoft.Extensions.DependencyInjection;
 namespace EtlKit.Kafka.Extensions;
 
 /// <summary>
-/// Extension methods for registering ETLBox.Kafka components with <see cref="IServiceCollection"/>.
+/// Extension methods for registering EtlKit.Kafka components with <see cref="IServiceCollection"/>.
 /// </summary>
 [PublicAPI]
 public static class EtlKitKafkaServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers ETLBox.Kafka data flow components as transient services using open generic registrations.
+    /// Registers EtlKit.Kafka data flow components as transient services using open generic registrations.
     /// </summary>
-    public static IServiceCollection AddEtlBoxKafka(this IServiceCollection services)
+    public static IServiceCollection AddEtlKitKafka(this IServiceCollection services)
     {
         services.AddTransient(typeof(KafkaJsonSource<>));
         services.AddTransient(typeof(KafkaStringTransformation<>));

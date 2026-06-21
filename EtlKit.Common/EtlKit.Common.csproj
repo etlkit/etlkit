@@ -5,13 +5,15 @@
     <RootNamespace>EtlKit.Common</RootNamespace>
     <PackageId>EtlKit.Common</PackageId>
     <Description>
-      EtlKit is a fully open-source 1.x version fork from original etlbox (etlbox.net).
+      EtlKit is a fully open-source (MIT) ETL library and data integration toolbox for .NET.
+      Build extract-transform-load pipelines programmatically in C# with async, in-memory
+      data flow components backed by TPL Dataflow.
       Common algorythms and base classes for use in other EtlKit packages.
       This package is not to be installed as direct dependency unless you want to write extensions to EtlKit.
     </Description>
   </PropertyGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="EtlKit;ETLBox.Kafka"/>
+    <InternalsVisibleTo Include="EtlKit;EtlKit.Kafka"/>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="2023.3.0"/>

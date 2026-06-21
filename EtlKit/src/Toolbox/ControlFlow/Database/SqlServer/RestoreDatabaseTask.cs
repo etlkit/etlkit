@@ -1,6 +1,5 @@
 using System.IO;
 using System.Linq;
-
 using EtlKit.Common.ControlFlow;
 
 namespace EtlKit.ControlFlow.SqlServer
@@ -18,12 +17,12 @@ namespace EtlKit.ControlFlow.SqlServer
         public void Execute()
         {
             if (!DbConnectionManager.SupportDatabases)
-                throw new ETLBoxNotSupportedException("This task is not supported!");
+                throw new EtlKitNotSupportedException("This task is not supported!");
 
             DefaultDataPath = (string)
                 new SqlTask(this, DefaultDataPathSql)
                 {
-                    TaskName = "Read default data path"
+                    TaskName = "Read default data path",
                 }.ExecuteScalar();
             FileList = new List<BackupFile>();
             new SqlTask(this, FileListSql)
@@ -35,8 +34,8 @@ namespace EtlKit.ControlFlow.SqlServer
                 {
                     logicalName => CurrentBackupFile.LogicalName = (string)logicalName,
                     type => CurrentBackupFile.Type = (string)type,
-                    fileId => CurrentBackupFile.FileId = (long)fileId
-                }
+                    fileId => CurrentBackupFile.FileId = (long)fileId,
+                },
             }.ExecuteReader();
             new SqlTask(this, Sql).ExecuteNonQuery();
         }

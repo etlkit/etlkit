@@ -21,7 +21,7 @@ namespace EtlKit
         }
 
         public override string MasterDbName =>
-            throw new ETLBoxNotSupportedException("N/A for SQLite connection strings!");
+            throw new EtlKitNotSupportedException("N/A for SQLite connection strings!");
         protected override string DbNameKeyword => "Data Source";
 
         public static implicit operator SQLiteConnectionString(string value) => new(value);

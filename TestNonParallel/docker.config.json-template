@@ -1,11 +1,11 @@
 {
     "Logging": {
-        "SqlConnectionString": "Data Source=${CFG_MSSQL_IP};TrustServerCertificate=true;User Id=sa;Password=YourStrong@Passw0rd;Initial Catalog=ETLBox_Logging",
+        "SqlConnectionString": "Data Source=${CFG_MSSQL_IP};TrustServerCertificate=true;User Id=sa;Password=YourStrong@Passw0rd;Initial Catalog=EtlKit_Logging",
         "SQLiteConnectionString": "Data Source=.${CFG_PD}db${CFG_PD}SQLiteLogging.db;",
-        "MySqlConnectionString": "Server=${CFG_MYSQL_IP};Database=ETLBox_Logging;Uid=root;Pwd=etlboxpassword;",
-        "PostgresConnectionString": "Server=${CFG_POSTGRES_IP};Database=ETLBox_Logging;User Id=postgres;Password=etlboxpassword;"
+        "MySqlConnectionString": "Server=${CFG_MYSQL_IP};Database=EtlKit_Logging;Uid=root;Pwd=etlkitpassword;",
+        "PostgresConnectionString": "Server=${CFG_POSTGRES_IP};Database=EtlKit_Logging;User Id=postgres;Password=etlkitpassword;"
     },
     "NoLog": {
-        "SqlConnectionString": "Data Source=${CFG_MSSQL_IP};TrustServerCertificate=true;User Id=sa;Password=YourStrong@Passw0rd;Initial Catalog=ETLBox_NoLog"
+        "SqlConnectionString": "Data Source=${CFG_MSSQL_IP};TrustServerCertificate=true;User Id=sa;Password=YourStrong@Passw0rd;Initial Catalog=EtlKit_NoLog"
     }
 }

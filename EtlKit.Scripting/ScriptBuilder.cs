@@ -188,7 +188,7 @@ public class {typeName}
     }
 
     /// <summary>
-    /// Fix naming of nested types like "ETLBox.Scripting.Tests.ScriptBuilderTests+MyCoolClass"
+    /// Fix naming of nested types like "EtlKit.Scripting.Tests.ScriptBuilderTests+MyCoolClass"
     /// </summary>
     private static string FullTypeName(Type? type) =>
         type?.FullName?.Replace('+', '.') ?? "dynamic";

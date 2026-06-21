@@ -60,7 +60,7 @@ namespace EtlKit.TestNonParallel.Logging
             //Assert
             Assert.Equal(
                 4,
-                new RowCountTask("etlbox_log", "task_type = 'SqlTask' ")
+                new RowCountTask("etlkit_log", "task_type = 'SqlTask' ")
                 {
                     DisableLogging = true,
                     ConnectionManager = LoggingConnection,
@@ -115,7 +115,7 @@ namespace EtlKit.TestNonParallel.Logging
             //Assert
             Assert.Equal(
                 4,
-                new RowCountTask("etlbox_log", "task_type = 'DbSource'")
+                new RowCountTask("etlkit_log", "task_type = 'DbSource'")
                 {
                     DisableLogging = true,
                     ConnectionManager = LoggingConnection,
@@ -125,7 +125,7 @@ namespace EtlKit.TestNonParallel.Logging
             );
             Assert.Equal(
                 4,
-                new RowCountTask("etlbox_log", "task_type = 'DbDestination'")
+                new RowCountTask("etlkit_log", "task_type = 'DbDestination'")
                 {
                     DisableLogging = true,
                     ConnectionManager = LoggingConnection,

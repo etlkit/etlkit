@@ -1,13 +1,12 @@
-﻿using EtlKit.Primitives;
-
-using EtlKit.Common.ControlFlow;
+﻿using EtlKit.Common.ControlFlow;
 using EtlKit.ControlFlow;
+using EtlKit.Primitives;
 
 namespace EtlKit.Logging
 {
     /// <summary>
     /// Will create the default log table for the default database logging
-    /// You can use `ControlFlow.SetLoggingDatabase(IConnectionManager connectionManager, string logTableName) to let ETLBox
+    /// You can use `ControlFlow.SetLoggingDatabase(IConnectionManager connectionManager, string logTableName) to let EtlKit
     /// update your nlog.config add this table as database target automatically.
     /// Or you can update your nlog.config manually.
     /// </summary>
@@ -15,7 +14,7 @@ namespace EtlKit.Logging
     public sealed class CreateLogTableTask : GenericTask
     {
         /* ITask Interface */
-        public override string TaskName => "Create default etlbox log table";
+        public override string TaskName => "Create default EtlKit log table";
         public string LogTableName { get; set; }
         public string Sql => LogTable.Sql;
         public CreateTableTask LogTable { get; private set; }

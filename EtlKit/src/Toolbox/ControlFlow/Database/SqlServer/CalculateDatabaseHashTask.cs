@@ -1,9 +1,7 @@
 using System.Linq;
-
-using EtlKit.Primitives;
-
 using EtlKit.Common;
 using EtlKit.Common.ControlFlow;
+using EtlKit.Primitives;
 
 namespace EtlKit.ControlFlow.SqlServer
 {
@@ -26,12 +24,12 @@ namespace EtlKit.ControlFlow.SqlServer
         public void Execute()
         {
             if (!DbConnectionManager.SupportSchemas)
-                throw new ETLBoxNotSupportedException("This task is not supported!");
+                throw new EtlKitNotSupportedException("This task is not supported!");
 
             var allColumns = new List<string>();
             new SqlTask(this, Sql)
             {
-                Actions = new List<Action<object>> { col => allColumns.Add((string)col) }
+                Actions = new List<Action<object>> { col => allColumns.Add((string)col) },
             }.ExecuteReader();
             DatabaseHash = HashHelper.Encrypt_Char40(string.Join("|", allColumns));
         }

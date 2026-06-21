@@ -22,7 +22,7 @@ public sealed class PostgresContainerFixture : IDisposable
         _container = new PostgreSqlBuilder()
             .WithDatabase("etltest")
             .WithUsername("postgres")
-            .WithPassword("etlboxpassword")
+            .WithPassword("etlkitpassword")
             .Build();
         using var cts = new CancellationTokenSource(StartupTimeout);
         try

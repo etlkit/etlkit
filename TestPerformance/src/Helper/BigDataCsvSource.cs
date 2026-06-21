@@ -1,8 +1,7 @@
 using System.IO;
-using EtlKit;
 using EtlKit.TestShared.Helper;
 
-namespace EtlKit.TestPerformance.ETLBoxTests.Performance.Helper
+namespace EtlKit.TestPerformance.Helper
 {
     public static class BigDataCsvSource
     {

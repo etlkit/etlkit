@@ -6,7 +6,7 @@ DynamicLinq AsQueryable.Any baseline / cached ExpandoObject / cached typed
 POCO). Optimization 1 (cached compiled delegate) and Optimization 2
 (compiled per-shape mapper bypassing per-row reflection on flat shapes) both
 applied 2026-04-29. The two stages are now consolidated in
-[`ExpressionRowFiltration.cs`](../ETLBox.DynamicLinq/ExpressionRowFiltration.cs)
+[`ExpressionRowFiltration.cs`](../EtlKit.DynamicLinq/ExpressionRowFiltration.cs)
 + [`ExpandoTypeMapper.cs`](../ETLBox.DynamicLinq/ExpandoTypeMapper.cs):
 the mapper routes flat shapes through a compiled per-shape mapper and falls
 back to recursive reflection for shapes with nested dictionaries or

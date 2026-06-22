@@ -1,6 +1,6 @@
-using ALE.ETLBox.DataFlow;
+using EtlKit.DataFlow;
 
-namespace TestFlatFileConnectors.CsvDestination
+namespace EtlKit.TestFlatFileConnectors.CsvDestination
 {
     public class CsvDestinationSerializationTests
     {
@@ -26,7 +26,7 @@ namespace TestFlatFileConnectors.CsvDestination
                     new MySeriRow
                     {
                         Col1 = 1,
-                        Col2 = new DateTime(2010, 02, 05, 0, 0, 0, DateTimeKind.Local)
+                        Col2 = new DateTime(2010, 02, 05, 0, 0, 0, DateTimeKind.Local),
                     },
                 () => rowCount++ == 1
             );

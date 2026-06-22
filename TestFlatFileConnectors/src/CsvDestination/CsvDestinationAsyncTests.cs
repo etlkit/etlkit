@@ -1,8 +1,8 @@
-using ALE.ETLBox.Common.DataFlow;
-using ALE.ETLBox.DataFlow;
+using EtlKit.Common.DataFlow;
+using EtlKit.DataFlow;
 using Xunit.Abstractions;
 
-namespace TestFlatFileConnectors.CsvDestination
+namespace EtlKit.TestFlatFileConnectors.CsvDestination
 {
     public sealed class CsvDestinationAsyncTests
     {

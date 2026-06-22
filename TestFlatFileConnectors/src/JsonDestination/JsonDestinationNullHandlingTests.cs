@@ -1,8 +1,8 @@
-using ALE.ETLBox.DataFlow;
-using TestFlatFileConnectors.Fixture;
-using TestFlatFileConnectors.Helpers;
+using EtlKit.DataFlow;
+using EtlKit.TestFlatFileConnectors.Fixture;
+using EtlKit.TestFlatFileConnectors.Helpers;
 
-namespace TestFlatFileConnectors.JsonDestination
+namespace EtlKit.TestFlatFileConnectors.JsonDestination
 {
     [Collection("FlatFilesToDatabase")]
     public class JsonDestinationNullHandlingTests : FlatFileConnectorsTestBase
@@ -29,8 +29,8 @@ namespace TestFlatFileConnectors.JsonDestination
                     null,
                     new() { Col1 = 2, Col2 = "Test2" },
                     new() { Col1 = 3, Col2 = "Test3" },
-                    null
-                }
+                    null,
+                },
             };
 
             //Act
@@ -62,8 +62,8 @@ namespace TestFlatFileConnectors.JsonDestination
                     null,
                     new[] { "2", "Test2" },
                     new[] { "3", "Test3" },
-                    null
-                }
+                    null,
+                },
             };
 
             //Act

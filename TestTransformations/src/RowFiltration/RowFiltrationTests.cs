@@ -1,6 +1,6 @@
-using ALE.ETLBox.DataFlow;
+using EtlKit.DataFlow;
 
-namespace TestTransformations.RowFiltration
+namespace EtlKit.TestTransformations.RowFiltration
 {
     public class RowFiltrationTests
     {

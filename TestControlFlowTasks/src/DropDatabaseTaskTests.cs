@@ -1,9 +1,9 @@
-using ALE.ETLBox;
-using ALE.ETLBox.Common;
-using ALE.ETLBox.ControlFlow;
-using TestControlFlowTasks.Fixtures;
+using EtlKit;
+using EtlKit.Common;
+using EtlKit.ControlFlow;
+using EtlKit.TestControlFlowTasks.Fixtures;
 
-namespace TestControlFlowTasks
+namespace EtlKit.TestControlFlowTasks
 {
     [Collection(nameof(ControlFlowCollection))]
     public class DropDatabaseTaskTests : ControlFlowTestBase
@@ -16,7 +16,7 @@ namespace TestControlFlowTasks
         {
             //Arrange
             using var connection = CreateConnectionManager(dbType);
-            string dbName = "ETLBox_" + HashHelper.RandomString(10);
+            string dbName = "EtlKit_" + HashHelper.RandomString(10);
             CreateDatabaseTask.Create(connection, dbName);
             bool existsBefore = IfDatabaseExistsTask.IsExisting(connection, dbName);
 
@@ -34,7 +34,7 @@ namespace TestControlFlowTasks
         {
             //Arrange
             using var connection = CreateConnectionManager(dbType);
-            string dbName = "ETLBox_" + HashHelper.RandomString(10);
+            string dbName = "EtlKit_" + HashHelper.RandomString(10);
             DropDatabaseTask.DropIfExists(connection, dbName);
             CreateDatabaseTask.Create(connection, dbName);
             bool existsBefore = IfDatabaseExistsTask.IsExisting(connection, dbName);
@@ -51,7 +51,7 @@ namespace TestControlFlowTasks
         [Fact]
         public void NotSupportedWithSQLite()
         {
-            Assert.Throws<ETLBoxNotSupportedException>(
+            Assert.Throws<EtlKitNotSupportedException>(
                 () => DropDatabaseTask.Drop(SqliteConnection, "Test")
             );
         }

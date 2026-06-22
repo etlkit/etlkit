@@ -1,8 +1,8 @@
-using ALE.ETLBox.DataFlow;
-using TestShared.SharedFixtures;
-using TestTransformations.Fixtures;
+using EtlKit.DataFlow;
+using EtlKit.TestShared.SharedFixtures;
+using EtlKit.TestTransformations.Fixtures;
 
-namespace TestTransformations.RowDuplication
+namespace EtlKit.TestTransformations.RowDuplication
 {
     [Collection("Transformations")]
     public class RowDuplicationDynamicObjectTests : TransformationsTestBase
@@ -14,14 +14,11 @@ namespace TestTransformations.RowDuplication
         public void NoParameter()
         {
             //Arrange
-            var source2Columns = new TwoColumnsTableFixture(
-                "RowDuplicationSource"
-            );
+            var source2Columns = new TwoColumnsTableFixture("RowDuplicationSource");
             source2Columns.InsertTestData();
 
             var source = new DbSource(SqlConnection, "RowDuplicationSource");
-            ALE.ETLBox.DataFlow.RowDuplication duplication =
-                new ALE.ETLBox.DataFlow.RowDuplication();
+            EtlKit.DataFlow.RowDuplication duplication = new EtlKit.DataFlow.RowDuplication();
             var dest = new MemoryDestination();
 
             //Act
@@ -64,18 +61,15 @@ namespace TestTransformations.RowDuplication
         public void WithPredicate()
         {
             //Arrange
-            var source2Columns = new TwoColumnsTableFixture(
-                "RowDuplicationSource"
-            );
+            var source2Columns = new TwoColumnsTableFixture("RowDuplicationSource");
             source2Columns.InsertTestData();
 
             var source = new DbSource(SqlConnection, "RowDuplicationSource");
-            ALE.ETLBox.DataFlow.RowDuplication duplication =
-                new ALE.ETLBox.DataFlow.RowDuplication(row =>
-                {
-                    dynamic r = row;
-                    return r.Col1 == 1 || r.Col2 == "Test3";
-                });
+            EtlKit.DataFlow.RowDuplication duplication = new EtlKit.DataFlow.RowDuplication(row =>
+            {
+                dynamic r = row;
+                return r.Col1 == 1 || r.Col2 == "Test3";
+            });
             var dest = new MemoryDestination();
 
             //Act

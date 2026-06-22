@@ -1,12 +1,12 @@
-using ALE.ETLBox;
-using ALE.ETLBox.Common;
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.DataFlow;
-using ETLBox.Primitives;
-using TestShared.SharedFixtures;
-using TestTransformations.Fixtures;
+using EtlKit;
+using EtlKit.Common;
+using EtlKit.ControlFlow;
+using EtlKit.DataFlow;
+using EtlKit.Primitives;
+using EtlKit.TestShared.SharedFixtures;
+using EtlKit.TestTransformations.Fixtures;
 
-namespace TestTransformations.LookupTransformation
+namespace EtlKit.TestTransformations.LookupTransformation
 {
     [Collection("Transformations")]
     public class LookupErrorLinkingTests : TransformationsTestBase
@@ -37,10 +37,7 @@ namespace TestTransformations.LookupTransformation
             //Arrange
             var _ = new TwoColumnsTableFixture(SqlConnection, "LookupErrorLinkingDest");
             CreateSourceTable(SqlConnection, "LookupErrorLinkingSource");
-            var lookupSource = new DbSource<MyLookupRow>(
-                SqlConnection,
-                "LookupErrorLinkingSource"
-            );
+            var lookupSource = new DbSource<MyLookupRow>(SqlConnection, "LookupErrorLinkingSource");
 
             var source = new MemorySource<MyInputDataRow>
             {
@@ -48,18 +45,15 @@ namespace TestTransformations.LookupTransformation
                 {
                     new() { Col1 = 1 },
                     new() { Col1 = 2 },
-                    new() { Col1 = 3 }
-                }
+                    new() { Col1 = 3 },
+                },
             };
 
             //Act & Assert
             Assert.ThrowsAny<Exception>(() =>
             {
                 var lookupTableData = new List<MyLookupRow>();
-                var lookup = new LookupTransformation<
-                    MyInputDataRow,
-                    MyLookupRow
-                >(
+                var lookup = new LookupTransformation<MyInputDataRow, MyLookupRow>(
                     lookupSource,
                     row =>
                     {
@@ -86,15 +80,9 @@ namespace TestTransformations.LookupTransformation
         public void WithObject()
         {
             //Arrange
-            var dest2Columns = new TwoColumnsTableFixture(
-                SqlConnection,
-                "LookupErrorLinkingDest"
-            );
+            var dest2Columns = new TwoColumnsTableFixture(SqlConnection, "LookupErrorLinkingDest");
             CreateSourceTable(SqlConnection, "LookupErrorLinkingSource");
-            var lookupSource = new DbSource<MyLookupRow>(
-                SqlConnection,
-                "LookupErrorLinkingSource"
-            );
+            var lookupSource = new DbSource<MyLookupRow>(SqlConnection, "LookupErrorLinkingSource");
 
             var source = new MemorySource<MyInputDataRow>
             {
@@ -103,17 +91,14 @@ namespace TestTransformations.LookupTransformation
                     new() { Col1 = 1 },
                     new() { Col1 = 2 },
                     new() { Col1 = 3 },
-                    new() { Col1 = 4 }
-                }
+                    new() { Col1 = 4 },
+                },
             };
-            var errorDest = new MemoryDestination<ETLBoxError>();
+            var errorDest = new MemoryDestination<EtlKitError>();
 
             //Act
             var lookupTableData = new List<MyLookupRow>();
-            var lookup = new LookupTransformation<
-                MyInputDataRow,
-                MyLookupRow
-            >(
+            var lookup = new LookupTransformation<MyInputDataRow, MyLookupRow>(
                 lookupSource,
                 row =>
                 {
@@ -127,10 +112,7 @@ namespace TestTransformations.LookupTransformation
                 },
                 lookupTableData
             );
-            var dest = new DbDestination<MyInputDataRow>(
-                SqlConnection,
-                "LookupErrorLinkingDest"
-            );
+            var dest = new DbDestination<MyInputDataRow>(SqlConnection, "LookupErrorLinkingDest");
             source.LinkTo(lookup);
             lookup.LinkTo(dest);
             lookup.LinkLookupSourceErrorTo(errorDest);
@@ -163,15 +145,11 @@ namespace TestTransformations.LookupTransformation
                 new List<TableColumn>
                 {
                     new("Col1", "VARCHAR(100)", allowNulls: true),
-                    new("Col2", "VARCHAR(100)", allowNulls: true)
+                    new("Col2", "VARCHAR(100)", allowNulls: true),
                 }
             );
             tableDefinition.CreateTable(connection);
-            var TN = new ObjectNameDescriptor(
-                tableName,
-                connection.QB,
-                connection.QE
-            );
+            var TN = new ObjectNameDescriptor(tableName, connection.QB, connection.QE);
             SqlTask.ExecuteNonQuery(
                 connection,
                 "Insert demo data",

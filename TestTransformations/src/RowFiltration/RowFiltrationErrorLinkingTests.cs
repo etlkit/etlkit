@@ -1,7 +1,7 @@
-using ALE.ETLBox.DataFlow;
-using ETLBox.Primitives;
+using EtlKit.DataFlow;
+using EtlKit.Primitives;
 
-namespace TestTransformations.RowFiltration
+namespace EtlKit.TestTransformations.RowFiltration
 {
     public class RowFiltrationErrorLinkingTests
     {
@@ -28,7 +28,7 @@ namespace TestTransformations.RowFiltration
                 return row.Col1 > 0;
             });
             var dest = new MemoryDestination<MySimpleRow>();
-            var errorDest = new MemoryDestination<ETLBoxError>();
+            var errorDest = new MemoryDestination<EtlKitError>();
 
             // Act
             source.LinkTo(filtration);

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <PackageId>EtlKit.Json</PackageId>
+    <RootNamespace>EtlKit.Json</RootNamespace>
+    <Description>
+      EtlKit is a fully open-source (MIT) ETL library and data integration toolbox for .NET.
+      Build extract-transform-load pipelines programmatically in C# with async, in-memory
+      data flow components backed by TPL Dataflow.
+      Support for Json transformations.
+    </Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="JetBrains.Annotations" Version="2023.3.0"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EtlKit.Common\EtlKit.Common.csproj" />
+  </ItemGroup>
+</Project>

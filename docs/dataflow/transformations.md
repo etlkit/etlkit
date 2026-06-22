@@ -30,7 +30,7 @@ It will wait until all data has reached the transformation block - then it will 
 
 ### RowTransformations
 
-The RowTransformation is the simplest but most powerful transformation in ETLBox. The generic transformation has two types
+The RowTransformation is the simplest but most powerful transformation in EtlKit. The generic transformation has two types
 
 * the type of the input data and the type of the output data. When creating a RowTransformation, you pass a delegate
   describing how each record in the dataflow is transformed. Here you can add any C# code that you like.
@@ -187,7 +187,7 @@ RowFiltration filtration = new RowFiltration(row => ((dynamic)row).Col1 > 0);
 
 ### ScriptedRowTransformation
 
-`ScriptedRowTransformation<TInput, TOutput>` (in `ETLBox.Scripting`) transforms rows by
+`ScriptedRowTransformation<TInput, TOutput>` (in `EtlKit.Scripting`) transforms rows by
 evaluating a C# expression per output field, compiled at runtime via Roslyn. Each entry in
 `Mappings` maps an output field name to a C# expression that can reference input fields by name.
 
@@ -204,7 +204,7 @@ The non-generic alias `ScriptedTransformation` is equivalent to
 
 ### ExpressionRowFiltration
 
-Available in `ETLBox.DynamicLinq` (separate lightweight package without the Roslyn dependency). Filters `ExpandoObject` rows by a string predicate evaluated via `System.Linq.Dynamic.Core`. Useful in XML-defined data flows where the predicate must be configurable from the package without recompiling.
+Available in `EtlKit.DynamicLinq` (separate lightweight package without the Roslyn dependency). Filters `ExpandoObject` rows by a string predicate evaluated via `System.Linq.Dynamic.Core`. Useful in XML-defined data flows where the predicate must be configurable from the package without recompiling.
 
 ```csharp
 ExpressionRowFiltration filtration = new ExpressionRowFiltration(
@@ -219,7 +219,7 @@ User-defined types (DTOs, domain classes) are not visible to the parser by defau
 
 ### KafkaTransformation
 
-`KafkaTransformation` (in `ETLBox.Kafka`) produces one Kafka message per input row and forwards the row to its output. The message value is a Liquid `MessageTemplate` rendered from the input fields (an `ExpandoObject` or a POCO).
+`KafkaTransformation` (in `EtlKit.Kafka`) produces one Kafka message per input row and forwards the row to its output. The message value is a Liquid `MessageTemplate` rendered from the input fields (an `ExpandoObject` or a POCO).
 
 An optional `MessageKeyTemplate` (also Liquid, rendered from the same input) sets the Kafka message key. When it is not set (null or whitespace) messages are produced without a key - default partitioning, preserving backward compatibility; when set, every message carries a key (a template that renders to an empty string yields an explicit empty-string key, which still maps to a partition). Whether the topic is keyed or keyless is decided once by whether the template is set and applies uniformly to every row.
 

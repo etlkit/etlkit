@@ -116,7 +116,7 @@ MatchColumn/RetrieveColumn are used for the LookupTransformation and GroupColumn
 for the Aggregation. They will be explained later.
 
 The `ColumnMap` attribute above the property `RatingValue` will map the table column `Rating` in the
-`customer_rating` table with corresponding property "RatingValue". Normally, ETLBox maps columns in
+`customer_rating` table with corresponding property "RatingValue". Normally, EtlKit maps columns in
 source or destinations with properties by matching names. So to make things work by default, the
 property could have been called "Rating" - but by adding the `ColumnMap` attribute, we can define a
 different name for the property and let it match with the column "Rating" in the table.
@@ -172,7 +172,7 @@ and then convert it into a regular object using a RowTransformation. Normally, y
 like `CsvSource<Order> source = new CsvSource<Order>("DemoData.csv");`. All sources and most
 transformations will always try to convert the incoming data into the right data types. In our
 example, it would work if we would remove the "€"-sign from the amount column in the csv file. Then
-ETLBox would have been to automatically convert the data into the right data type.
+EtlKit would have been to automatically convert the data into the right data type.
 
 ### Retrieving the customer key
 

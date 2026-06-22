@@ -1,7 +1,8 @@
-using ALE.ETLBox.DataFlow;
-using ETLBox.Primitives;
+using EtlKit.DataFlow;
+using EtlKit.Primitives;
+using EtlKit.TestDatabaseConnectors.Fixtures;
 
-namespace TestDatabaseConnectors.DBSource
+namespace EtlKit.TestDatabaseConnectors.DBSource
 {
     [Collection(nameof(DataFlowSourceDestinationCollection))]
     public class DbSourceWithSqlTests : DatabaseConnectorsTestBase
@@ -32,7 +33,7 @@ namespace TestDatabaseConnectors.DBSource
             DbSource<MySimpleRow> source = new DbSource<MySimpleRow>
             {
                 Sql = $@"SELECT * FROM {s2C.QB}SourceSelectStar{s2C.QE}",
-                ConnectionManager = connection
+                ConnectionManager = connection,
             };
             DbDestination<MySimpleRow> dest = new DbDestination<MySimpleRow>(
                 connection,
@@ -60,7 +61,7 @@ namespace TestDatabaseConnectors.DBSource
                     $@"SELECT CASE WHEN {s2C.QB}Col1{s2C.QE} IS NOT NULL THEN {s2C.QB}Col1{s2C.QE} ELSE {s2C.QB}Col1{s2C.QE} END AS {s2C.QB}Col1{s2C.QE}, 
 {s2C.QB}Col2{s2C.QE} 
 FROM {s2C.QB}SourceSql{s2C.QE}",
-                ConnectionManager = connection
+                ConnectionManager = connection,
             };
             DbDestination<MySimpleRow> dest = new DbDestination<MySimpleRow>(
                 connection,

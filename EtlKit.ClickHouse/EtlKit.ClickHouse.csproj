@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <Nullable>enable</Nullable>
+    <PackageId>EtlKit.ClickHouse</PackageId>
+    <Description>
+      EtlKit is a fully open-source (MIT) ETL library and data integration toolbox for .NET.
+      Build extract-transform-load pipelines programmatically in C# with async, in-memory
+      data flow components backed by TPL Dataflow.
+      Support for Clickhouse columnar database
+    </Description>
+    <RootNamespace>EtlKit.ClickHouse</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ClickHouse.Ado" Version="2.0.2.2"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EtlKit.Primitives\EtlKit.Primitives.csproj" />
+    <ProjectReference Include="..\EtlKit\EtlKit.csproj" />
+  </ItemGroup>
+
+</Project>

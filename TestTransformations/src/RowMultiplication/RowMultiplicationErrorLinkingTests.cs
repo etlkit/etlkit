@@ -1,9 +1,9 @@
-using ALE.ETLBox.DataFlow;
-using ETLBox.Primitives;
-using TestShared.SharedFixtures;
-using TestTransformations.Fixtures;
+using EtlKit.DataFlow;
+using EtlKit.Primitives;
+using EtlKit.TestShared.SharedFixtures;
+using EtlKit.TestTransformations.Fixtures;
 
-namespace TestTransformations.RowMultiplication
+namespace EtlKit.TestTransformations.RowMultiplication
 {
     [Collection("Transformations")]
     public class RowMultiplicationErrorLinkingTests : TransformationsTestBase
@@ -22,25 +22,19 @@ namespace TestTransformations.RowMultiplication
         public void ThrowExceptionInFlow()
         {
             //Arrange
-            var source2Columns = new TwoColumnsTableFixture(
-                "RowMultiplicationSource"
-            );
+            var source2Columns = new TwoColumnsTableFixture("RowMultiplicationSource");
             source2Columns.InsertTestData();
 
-            var source = new DbSource<MySimpleRow>(
-                SqlConnection,
-                "RowMultiplicationSource"
-            );
-            var multiplication =
-                new RowMultiplication<MySimpleRow>(row =>
-                {
-                    var result = new List<MySimpleRow> { row };
-                    if (row.Col1 == 2)
-                        throw new Exception("Error in Flow!");
-                    return result;
-                });
+            var source = new DbSource<MySimpleRow>(SqlConnection, "RowMultiplicationSource");
+            var multiplication = new RowMultiplication<MySimpleRow>(row =>
+            {
+                var result = new List<MySimpleRow> { row };
+                if (row.Col1 == 2)
+                    throw new Exception("Error in Flow!");
+                return result;
+            });
             var dest = new MemoryDestination<MySimpleRow>();
-            var errorDest = new MemoryDestination<ETLBoxError>();
+            var errorDest = new MemoryDestination<EtlKitError>();
 
             //Act
             source.LinkTo(multiplication);
@@ -64,23 +58,17 @@ namespace TestTransformations.RowMultiplication
         public void ThrowExceptionWithoutHandling()
         {
             //Arrange
-            var source2Columns = new TwoColumnsTableFixture(
-                "RowMultiplicationSource"
-            );
+            var source2Columns = new TwoColumnsTableFixture("RowMultiplicationSource");
             source2Columns.InsertTestData();
 
-            var source = new DbSource<MySimpleRow>(
-                SqlConnection,
-                "RowMultiplicationSource"
-            );
-            var multiplication =
-                new RowMultiplication<MySimpleRow>(row =>
-                {
-                    var result = new List<MySimpleRow> { row };
-                    if (row.Col1 == 2)
-                        throw new Exception("Error in Flow!");
-                    return result;
-                });
+            var source = new DbSource<MySimpleRow>(SqlConnection, "RowMultiplicationSource");
+            var multiplication = new RowMultiplication<MySimpleRow>(row =>
+            {
+                var result = new List<MySimpleRow> { row };
+                if (row.Col1 == 2)
+                    throw new Exception("Error in Flow!");
+                return result;
+            });
             var dest = new MemoryDestination<MySimpleRow>();
 
             //Act & Assert

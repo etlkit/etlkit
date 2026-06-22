@@ -1,8 +1,8 @@
-using ALE.ETLBox;
-using ALE.ETLBox.ControlFlow;
-using TestControlFlowTasks.Fixtures;
+using EtlKit;
+using EtlKit.ControlFlow;
+using EtlKit.TestControlFlowTasks.Fixtures;
 
-namespace TestControlFlowTasks.Postgres
+namespace EtlKit.TestControlFlowTasks.Postgres
 {
     [Collection(nameof(ControlFlowCollection))]
     public class TableDefinitionTests : ControlFlowTestBase

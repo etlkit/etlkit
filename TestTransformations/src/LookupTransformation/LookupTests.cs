@@ -1,9 +1,9 @@
-using ALE.ETLBox.DataFlow;
-using ETLBox.Primitives;
-using TestShared.SharedFixtures;
-using TestTransformations.Fixtures;
+using EtlKit.DataFlow;
+using EtlKit.Primitives;
+using EtlKit.TestShared.SharedFixtures;
+using EtlKit.TestTransformations.Fixtures;
 
-namespace TestTransformations.LookupTransformation
+namespace EtlKit.TestTransformations.LookupTransformation
 {
     [Collection("Transformations")]
     public class LookupTests : TransformationsTestBase
@@ -39,48 +39,30 @@ namespace TestTransformations.LookupTransformation
         public void InputTypeSameAsOutput(IConnectionManager connection)
         {
             //Arrange
-            var source4Columns = new FourColumnsTableFixture(
-                connection,
-                "SourceLookupSameType"
-            );
+            var source4Columns = new FourColumnsTableFixture(connection, "SourceLookupSameType");
             source4Columns.InsertTestData();
-            var dest4Columns = new FourColumnsTableFixture(
-                connection,
-                "DestinationLookupSameType"
-            );
-            var lookup4Columns = new FourColumnsTableFixture(
-                connection,
-                "LookupSameType"
-            );
+            var dest4Columns = new FourColumnsTableFixture(connection, "DestinationLookupSameType");
+            var lookup4Columns = new FourColumnsTableFixture(connection, "LookupSameType");
             lookup4Columns.InsertTestData();
 
-            var source = new DbSource<MyDataRow>(
-                connection,
-                "SourceLookupSameType"
-            );
-            var lookupSource = new DbSource<MyLookupRow>(
-                connection,
-                "LookupSameType"
-            );
+            var source = new DbSource<MyDataRow>(connection, "SourceLookupSameType");
+            var lookupSource = new DbSource<MyLookupRow>(connection, "LookupSameType");
 
             var lookup = new LookupTransformation<MyDataRow, MyLookupRow>();
             lookup.TransformationFunc = row =>
             {
-                row.Col3 = lookup.LookupData
-                    .Where(ld => ld.Key == row.Col1)
+                row.Col3 = lookup
+                    .LookupData.Where(ld => ld.Key == row.Col1)
                     .Select(ld => ld.LookupValue1)
                     .FirstOrDefault();
-                row.Col4 = lookup.LookupData
-                    .Where(ld => ld.Key == row.Col1)
+                row.Col4 = lookup
+                    .LookupData.Where(ld => ld.Key == row.Col1)
                     .Select(ld => ld.LookupValue2)
                     .FirstOrDefault();
                 return row;
             };
             lookup.Source = lookupSource;
-            var dest = new DbDestination<MyDataRow>(
-                connection,
-                "DestinationLookupSameType"
-            );
+            var dest = new DbDestination<MyDataRow>(connection, "DestinationLookupSameType");
             source.LinkTo(lookup);
             lookup.LinkTo(dest);
             source.Execute();

@@ -1,9 +1,10 @@
 using System.Dynamic;
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.DataFlow;
-using ETLBox.Primitives;
+using EtlKit.ControlFlow;
+using EtlKit.DataFlow;
+using EtlKit.Primitives;
+using EtlKit.TestDatabaseConnectors.Fixtures;
 
-namespace TestDatabaseConnectors.DBMerge
+namespace EtlKit.TestDatabaseConnectors.DBMerge
 {
     [Collection(nameof(DataFlowSourceDestinationCollection))]
     public class DbMergeDynamicObjectTests : DatabaseConnectorsTestBase
@@ -112,7 +113,7 @@ namespace TestDatabaseConnectors.DBMerge
             //Act
             DbMerge dest = new DbMerge(SqlConnection, "DBMergeDynamicDeltaDestination")
             {
-                DeltaMode = DeltaMode.Delta
+                DeltaMode = DeltaMode.Delta,
             };
             dest.MergeProperties.IdPropertyNames.Add("Col1");
             dest.MergeProperties.ComparePropertyNames.Add("Col2");

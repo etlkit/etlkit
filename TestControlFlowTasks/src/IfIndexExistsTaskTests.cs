@@ -1,8 +1,8 @@
-using ALE.ETLBox.ControlFlow;
-using ETLBox.Primitives;
-using TestControlFlowTasks.Fixtures;
+using EtlKit.ControlFlow;
+using EtlKit.Primitives;
+using EtlKit.TestControlFlowTasks.Fixtures;
 
-namespace TestControlFlowTasks
+namespace EtlKit.TestControlFlowTasks
 {
     [Collection(nameof(ControlFlowCollection))]
     public class IfIndexExistsTaskTests : ControlFlowTestBase
@@ -23,10 +23,10 @@ namespace TestControlFlowTasks
             CreateTableTask.Create(
                 connection,
                 "indextable",
-                new List<ALE.ETLBox.TableColumn>
+                new List<EtlKit.TableColumn>
                 {
-                    new ALE.ETLBox.TableColumn("col1", "INT", false, true),
-                    new ALE.ETLBox.TableColumn("col2", "INT", true)
+                    new EtlKit.TableColumn("col1", "INT", false, true),
+                    new EtlKit.TableColumn("col2", "INT", true),
                 }
             );
 

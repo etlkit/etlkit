@@ -1,7 +1,7 @@
-using ALE.ETLBox.DataFlow;
-using ETLBox.Primitives;
+using EtlKit.DataFlow;
+using EtlKit.Primitives;
 
-namespace TestTransformations.CrossJoinTests
+namespace EtlKit.TestTransformations.CrossJoinTests
 {
     public class CrossJoinErrorLinkingTests
     {
@@ -17,11 +17,11 @@ namespace TestTransformations.CrossJoinTests
             //Arrange
             var source1 = new MemorySource<string>
             {
-                DataAsList = new List<string> { "A", "B" }
+                DataAsList = new List<string> { "A", "B" },
             };
             var source2 = new MemorySource<int>
             {
-                DataAsList = new List<int> { 1, 2, 3 }
+                DataAsList = new List<int> { 1, 2, 3 },
             };
             var crossJoin = new CrossJoin<string, int, string>(
                 (data1, data2) =>
@@ -32,7 +32,7 @@ namespace TestTransformations.CrossJoinTests
                 }
             );
             var dest = new MemoryDestination<string>();
-            var errorDest = new MemoryDestination<ETLBoxError>();
+            var errorDest = new MemoryDestination<EtlKitError>();
 
             //Act
             source1.LinkTo(crossJoin.InMemoryTarget);

@@ -1,9 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
-using ALE.ETLBox.DataFlow;
-using ETLBox.Primitives;
-using TestFlatFileConnectors.Helpers;
+using EtlKit.DataFlow;
+using EtlKit.Primitives;
+using EtlKit.TestFlatFileConnectors.Helpers;
 
-namespace TestFlatFileConnectors.JsonDestination
+namespace EtlKit.TestFlatFileConnectors.JsonDestination
 {
     public class JsonDestinationErrorLinkingTests
     {
@@ -19,11 +19,11 @@ namespace TestFlatFileConnectors.JsonDestination
                     new() { Col1 = "1" },
                     new() { Col1 = "2" },
                     new() { Col1 = null },
-                    new() { Col1 = "3" }
-                }
+                    new() { Col1 = "3" },
+                },
             };
             var dest = new JsonDestination<MySimpleRow>("ErrorFile.json", ResourceType.File);
-            var errorDest = new MemoryDestination<ETLBoxError>();
+            var errorDest = new MemoryDestination<EtlKitError>();
 
             //Act
             source.LinkTo(dest);
@@ -61,8 +61,8 @@ namespace TestFlatFileConnectors.JsonDestination
                 {
                     new() { Col1 = "X" },
                     new() { Col1 = "1" },
-                    new() { Col1 = null }
-                }
+                    new() { Col1 = null },
+                },
             };
             var dest = new JsonDestination<MySimpleRow>("ErrorFile.json", ResourceType.File);
 

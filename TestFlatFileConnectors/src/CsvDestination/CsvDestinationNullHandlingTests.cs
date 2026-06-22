@@ -1,6 +1,6 @@
-using ALE.ETLBox.DataFlow;
+using EtlKit.DataFlow;
 
-namespace TestFlatFileConnectors.CsvDestination
+namespace EtlKit.TestFlatFileConnectors.CsvDestination
 {
     public class CsvDestinationNullHandlingTests
     {
@@ -27,14 +27,12 @@ namespace TestFlatFileConnectors.CsvDestination
                     null,
                     new() { Col1 = 2, Col2 = "Test2" },
                     new() { Col1 = 3, Col2 = "Test3" },
-                    null
-                }
+                    null,
+                },
             };
 
             //Act
-            var dest = new CsvDestination<MySimpleRow>(
-                "./IgnoreNullValues.csv"
-            );
+            var dest = new CsvDestination<MySimpleRow>("./IgnoreNullValues.csv");
             source.LinkTo(dest);
             source.Execute();
             dest.Wait();
@@ -59,14 +57,12 @@ namespace TestFlatFileConnectors.CsvDestination
                     null,
                     new[] { "2", "Test2" },
                     new[] { "3", "Test3" },
-                    null
-                }
+                    null,
+                },
             };
 
             //Act
-            var dest = new CsvDestination<string[]>(
-                "./IgnoreNullValuesStringArray.csv"
-            );
+            var dest = new CsvDestination<string[]>("./IgnoreNullValuesStringArray.csv");
             source.LinkTo(dest);
             source.Execute();
             dest.Wait();

@@ -10,7 +10,7 @@
 Login to 
 localhost (3306)
 User: root
-Password: etlboxpassword
+Password: etlkitpassword
 
 
 ### Postgres
@@ -18,7 +18,7 @@ Password: etlboxpassword
 Login to
 localhost (5432)
 User: postgres
-Password: etlboxpassword
+Password: etlkitpassword
 Database: postgres
 
 

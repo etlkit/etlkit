@@ -1,13 +1,13 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
-using ALE.ETLBox;
-using ALE.ETLBox.ConnectionManager;
-using ALE.ETLBox.ControlFlow;
-using ETLBox.Primitives;
-using TestControlFlowTasks.Fixtures;
-using TestShared.SharedFixtures;
+using EtlKit;
+using EtlKit.ConnectionManager;
+using EtlKit.ControlFlow;
+using EtlKit.Primitives;
+using EtlKit.TestControlFlowTasks.Fixtures;
+using EtlKit.TestShared.SharedFixtures;
 
-namespace TestControlFlowTasks
+namespace EtlKit.TestControlFlowTasks
 {
     [Collection(nameof(ControlFlowCollection))]
     public class SqlTaskTests : ControlFlowTestBase
@@ -61,7 +61,7 @@ namespace TestControlFlowTasks
             var parameter = new List<QueryParameter>
             {
                 new("value1", "INT", 1),
-                new("value2", "NVARCHAR(100)", "Test1")
+                new("value2", "NVARCHAR(100)", "Test1"),
             };
             SqlTask.ExecuteNonQuery(
                 connection,
@@ -183,7 +183,7 @@ namespace TestControlFlowTasks
 
             List<QueryParameter> parameter = new List<QueryParameter>
             {
-                new("par1", "NVARCHAR(10)", "Test2")
+                new("par1", "NVARCHAR(10)", "Test2"),
             };
             //Act
             SqlTask.ExecuteReader(
@@ -237,7 +237,7 @@ namespace TestControlFlowTasks
             {
                 new(1, "Test1"),
                 new(2, "Test2"),
-                new(3, "Test3")
+                new(3, "Test3"),
             };
             MySimpleRow CurColumn = new MySimpleRow();
 

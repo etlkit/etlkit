@@ -1,11 +1,11 @@
 using System.Data;
 using System.Globalization;
-using ALE.ETLBox.ConnectionManager;
-using ETLBox.Primitives;
+using EtlKit.ConnectionManager;
+using EtlKit.Primitives;
 using JetBrains.Annotations;
 using Moq;
 
-namespace TestConnectionManager.ConnectionManager
+namespace EtlKit.TestConnectionManager.ConnectionManager
 {
     /// <summary>
     /// Unit tests for DbConnectionManager logic using test implementations
@@ -259,7 +259,7 @@ namespace TestConnectionManager.ConnectionManager
             const string commandText = "SELECT 1";
 
             // Act & Assert
-            var exception = Assert.Throws<ALE.ETLBox.Common.ETLBoxException>(
+            var exception = Assert.Throws<EtlKit.Common.EtlKitException>(
                 () => connectionManager.CreateCommand(commandText, null)
             );
             Assert.Equal("Database connection is not established!", exception.Message);

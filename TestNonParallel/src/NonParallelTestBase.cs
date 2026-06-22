@@ -1,9 +1,9 @@
-using ALE.ETLBox.ConnectionManager;
-using ALE.ETLBoxTests.NonParallel.Fixtures;
-using ETLBox.Primitives;
-using TestShared.Helper;
+using EtlKit.ConnectionManager;
+using EtlKit.Primitives;
+using EtlKit.TestNonParallel.Fixtures;
+using EtlKit.TestShared.Helper;
 
-namespace ALE.ETLBoxTests.NonParallel
+namespace EtlKit.TestNonParallel
 {
     [CollectionDefinition("Logging")]
     public class LoggingCollectionClass : ICollectionFixture<LoggingDatabaseFixture> { }

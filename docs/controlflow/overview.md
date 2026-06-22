@@ -7,7 +7,7 @@ a simple statement. Control Flow task can be split in general tasks and logging 
 or to run some particular predefined statements that will execute on any database. Logging tasks are useful helper when you need
 to create some tables for logging or to retrieve the whole log as Json.
 
-Control Flow Tasks reside in the `ALE.ETLBox.ControlFlow` namespace - tasks for logging in the `ALE.ETLBox.Logging` namespace.
+Control Flow Tasks reside in the `EtlKit.ControlFlow` namespace - tasks for logging in the `EtlKit.Logging` namespace.
 
 This article will go into the details about the general ControlFlow Tasks - [see the article about logging to learn more about logging
 specific tasks](logging.md).
@@ -94,7 +94,7 @@ SqlConnectionManager connectionManager = new SqlConnectionManager("Data Source=.
 or for MySql with
 
 ```csharp
-MySqlConnectionManager connectionManager = new MySqlConnectionManager("Server=10.37.128.2;Database=ETLBox_DataFlow;User Id=postgres;Password=etlboxpassword;");
+MySqlConnectionManager connectionManager = new MySqlConnectionManager("Server=10.37.128.2;Database=EtlKit_DataFlow;User Id=postgres;Password=etlkitpassword;");
 ```
 
 ### Tables
@@ -247,7 +247,7 @@ In some cases, you might want to get a connection string without a catalog, e.g.
 This is where you could use the ConnectionString-Wrapper for you database. E.g., for Postgres you could run the following code:
 
 ```csharp
-PostgresConnectionString conStringWrapper = new PostgresConnectionString("Server=10.37.128.2;Database=ETLBox_DataFlow;User Id=postgres;Password=etlboxpassword;");
+PostgresConnectionString conStringWrapper = new PostgresConnectionString("Server=10.37.128.2;Database=EtlKit_DataFlow;User Id=postgres;Password=etlkitpassword;");
 PostgresConnectionString connectionWithoutCatalog = conStringWrapper.GetMasterConnection();
 PostgresConnectionManager connectionManager = new PostgresConnectionManager(connectionWithoutCatalog);
 ```
@@ -331,7 +331,7 @@ SqlTask.ExecuteReader(connectionManager,
 ### Bulk Inserts
 
 Bulk inserts in ADO.NET normally need an object which implement `IDataReader`. Normally, you use a `DataTable` for this purpose.
-But as the implementation of the ADO.NET DataTable has a large overhead and comes with some performance downside, ETLBox
+But as the implementation of the ADO.NET DataTable has a large overhead and comes with some performance downside, EtlKit
 provides it's own object that implements IDataReader: `TableData` can be used to be passed to a bulk insert operation.
 
 Here is an example for a bulk insert:
@@ -385,8 +385,8 @@ select cast(sum([rows]) as int) from sys.partitions where [object_id] = object_i
 
 ## Why not Entitiy Framework
 
-ETLBox was designed to be used as an ETL object library. Therefore, the user normally deals with big data, some kind of datawarehouse structures and is used to
-have full control over the database. With the underlying power of ADO.NET - which is used by ETLBox - you have full access to the database and basically can do anything
+EtlKit was designed to be used as an ETL object library. Therefore, the user normally deals with big data, some kind of datawarehouse structures and is used to
+have full control over the database. With the underlying power of ADO.NET - which is used by EtlKit - you have full access to the database and basically can do anything
 you are used to do with sql on the server. As EF (Entity Framework) is a high sophisticated ORM tool, it comes with the downside that you can only do things on a database that
 EF allows you to do. But as EF does not incorporate all the possibilities that you can do with SQL and ADO.NET on a Sql Server, Entitity Framework normally isn't a
 good choice for creating ETL jobs. This is also true for other ORM tools.

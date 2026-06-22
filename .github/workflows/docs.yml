@@ -5,21 +5,21 @@ on:
     branches: [master]
     paths:
       - 'docfx/**'
-      - 'ETLBox/**'
-      - 'ETLBox.Common/**'
-      - 'ETLBox.Primitives/**'
-      - 'ETLBox.Json/**'
-      - 'ETLBox.Kafka/**'
-      - 'ETLBox.Rest/**'
-      - 'ETLBox.RabbitMq/**'
-      - 'ETLBox.Serialization/**'
-      - 'ETLBox.AI/**'
-      - 'ETLBox.ClickHouse/**'
-      - 'ETLBox.Logging.Database/**'
-      - 'ETLBox.Scripting/**'
-      - 'ETLBox.DynamicLinq/**'
-      - 'ETLBox.MongoDB/**'
-      - 'ETLBox.PostgresStreaming/**'
+      - 'EtlKit/**'
+      - 'EtlKit.Common/**'
+      - 'EtlKit.Primitives/**'
+      - 'EtlKit.Json/**'
+      - 'EtlKit.Kafka/**'
+      - 'EtlKit.Rest/**'
+      - 'EtlKit.RabbitMq/**'
+      - 'EtlKit.Serialization/**'
+      - 'EtlKit.AI/**'
+      - 'EtlKit.ClickHouse/**'
+      - 'EtlKit.Logging.Database/**'
+      - 'EtlKit.Scripting/**'
+      - 'EtlKit.DynamicLinq/**'
+      - 'EtlKit.MongoDB/**'
+      - 'EtlKit.PostgresStreaming/**'
   workflow_dispatch:
 
 permissions:
@@ -45,7 +45,7 @@ jobs:
         run: dotnet tool restore
 
       - name: Build solution
-        run: dotnet build ETLBox.sln -c Release
+        run: dotnet build EtlKit.sln -c Release
         env:
           HUSKY: 0
 

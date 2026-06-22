@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
-using TestShared.Helper;
+using EtlKit.TestShared.Helper;
 
-namespace TestConnectionManager.Fixtures
+namespace EtlKit.TestConnectionManager.Fixtures
 {
     [CollectionDefinition("Connection Manager", DisableParallelization = true)]
     public class CollectionConnectionManagerFixture

@@ -1,8 +1,8 @@
 using System;
 using System.Reflection;
-using ALE.ETLBox.Helper;
+using EtlKit.Helper;
 
-namespace TestHelper
+namespace EtlKit.TestHelper
 {
     public class PropertyInfoExtensionsTests
     {
@@ -29,7 +29,7 @@ namespace TestHelper
         public enum EnumType
         {
             Value1 = 1,
-            Value2 = 2
+            Value2 = 2,
         }
 
         [Fact]

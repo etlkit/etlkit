@@ -8,8 +8,8 @@
     <AnalysisLevel>latest</AnalysisLevel>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageProjectUrl>https://www.rapidsoft.ru</PackageProjectUrl>
-    <RepositoryUrl>https://git.rapidsoft.ru/open-source/etlbox</RepositoryUrl>
-    <PackageTags>etl elt ssis dataflow controlflow data integration etlbox</PackageTags>
+    <RepositoryUrl>https://git.rapidsoft.ru/open-source/etlkit</RepositoryUrl>
+    <PackageTags>etl elt ssis dataflow controlflow data integration etlkit</PackageTags>
     <PackageIcon>logo_bw.png</PackageIcon>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>

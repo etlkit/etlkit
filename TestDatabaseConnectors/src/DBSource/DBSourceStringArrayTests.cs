@@ -1,9 +1,10 @@
-using ALE.ETLBox.Common;
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.DataFlow;
-using ETLBox.Primitives;
+using EtlKit.Common;
+using EtlKit.ControlFlow;
+using EtlKit.DataFlow;
+using EtlKit.Primitives;
+using EtlKit.TestDatabaseConnectors.Fixtures;
 
-namespace TestDatabaseConnectors.DBSource
+namespace EtlKit.TestDatabaseConnectors.DBSource
 {
     [Collection(nameof(DataFlowSourceDestinationCollection))]
     public class DbSourceStringArrayTests : DatabaseConnectorsTestBase
@@ -94,7 +95,7 @@ namespace TestDatabaseConnectors.DBSource
             DbDestination<string[]> dest = new DbDestination<string[]>(SqlConnection, "SomeTable");
 
             //Assert
-            Assert.Throws<ETLBoxException>(() =>
+            Assert.Throws<EtlKitException>(() =>
             {
                 source.LinkTo(dest);
                 source.Execute();

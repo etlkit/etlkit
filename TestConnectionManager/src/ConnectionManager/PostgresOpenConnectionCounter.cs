@@ -1,9 +1,9 @@
-using ALE.ETLBox;
-using ALE.ETLBox.ConnectionManager;
-using ALE.ETLBox.ControlFlow;
+using EtlKit;
+using EtlKit.ConnectionManager;
+using EtlKit.ControlFlow;
 using Npgsql;
 
-namespace TestConnectionManager.ConnectionManager
+namespace EtlKit.TestConnectionManager.ConnectionManager
 {
     /// <summary>
     /// Reliable counting of open PostgreSQL connections for tests.

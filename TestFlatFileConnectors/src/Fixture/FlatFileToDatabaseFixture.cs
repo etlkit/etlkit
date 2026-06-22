@@ -1,6 +1,6 @@
-using TestShared.Helper;
+using EtlKit.TestShared.Helper;
 
-namespace TestFlatFileConnectors.Fixture
+namespace EtlKit.TestFlatFileConnectors.Fixture
 {
     public sealed class FlatFileToDatabaseFixture : IDisposable
     {

@@ -1,9 +1,9 @@
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.DataFlow;
-using TestShared.SharedFixtures;
-using TestTransformations.Fixtures;
+using EtlKit.ControlFlow;
+using EtlKit.DataFlow;
+using EtlKit.TestShared.SharedFixtures;
+using EtlKit.TestTransformations.Fixtures;
 
-namespace TestTransformations.MergeJoin
+namespace EtlKit.TestTransformations.MergeJoin
 {
     [Collection("Transformations")]
     public class MergeJoinStringArrayTests : TransformationsTestBase
@@ -15,28 +15,15 @@ namespace TestTransformations.MergeJoin
         public void MergeJoinUsingOneObject()
         {
             //Arrange
-            var source1Table = new TwoColumnsTableFixture(
-                "MergeJoinNonGenericSource1"
-            );
+            var source1Table = new TwoColumnsTableFixture("MergeJoinNonGenericSource1");
             source1Table.InsertTestData();
-            var source2Table = new TwoColumnsTableFixture(
-                "MergeJoinNonGenericSource2"
-            );
+            var source2Table = new TwoColumnsTableFixture("MergeJoinNonGenericSource2");
             source2Table.InsertTestDataSet2();
             var _ = new TwoColumnsTableFixture("MergeJoinNonGenericDestination");
 
-            var source1 = new DbSource<string[]>(
-                SqlConnection,
-                "MergeJoinNonGenericSource1"
-            );
-            var source2 = new DbSource<string[]>(
-                SqlConnection,
-                "MergeJoinNonGenericSource2"
-            );
-            var dest = new DbDestination<string[]>(
-                SqlConnection,
-                "MergeJoinNonGenericDestination"
-            );
+            var source1 = new DbSource<string[]>(SqlConnection, "MergeJoinNonGenericSource1");
+            var source2 = new DbSource<string[]>(SqlConnection, "MergeJoinNonGenericSource2");
+            var dest = new DbDestination<string[]>(SqlConnection, "MergeJoinNonGenericDestination");
 
             //Act
             var join = new MergeJoin<string[]>(

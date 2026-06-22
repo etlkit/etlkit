@@ -1,9 +1,9 @@
-using ALE.ETLBox.Common.DataFlow;
-using ALE.ETLBox.DataFlow;
-using TestShared.SharedFixtures;
-using TestTransformations.Fixtures;
+using EtlKit.Common.DataFlow;
+using EtlKit.DataFlow;
+using EtlKit.TestShared.SharedFixtures;
+using EtlKit.TestTransformations.Fixtures;
 
-namespace TestTransformations.Sort
+namespace EtlKit.TestTransformations.Sort
 {
     [Collection("Transformations")]
     public class SortStringArrayTests : TransformationsTestBase

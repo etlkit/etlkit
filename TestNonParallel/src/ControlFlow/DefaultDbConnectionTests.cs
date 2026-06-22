@@ -1,10 +1,10 @@
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.DataFlow;
-using ALE.ETLBox.Logging;
-using ALE.ETLBoxTests.NonParallel.Fixtures;
-using EtlBox.Logging.Database;
+using EtlKit.ControlFlow;
+using EtlKit.DataFlow;
+using EtlKit.Logging;
+using EtlKit.Logging.Database;
+using EtlKit.TestNonParallel.Fixtures;
 
-namespace ALE.ETLBoxTests.NonParallel.ControlFlow
+namespace EtlKit.TestNonParallel.ControlFlow
 {
     [Collection("Logging")]
     public sealed class DefaultDbConnectionTests : NonParallelTestBase, IDisposable
@@ -13,14 +13,14 @@ namespace ALE.ETLBoxTests.NonParallel.ControlFlow
             : base(fixture)
         {
             CreateLogTableTask.Create(SqlConnection);
-            ALE.ETLBox.Common.ControlFlow.ControlFlow.DefaultDbConnection = SqlConnection;
+            EtlKit.Common.ControlFlow.ControlFlow.DefaultDbConnection = SqlConnection;
             DatabaseLoggingConfiguration.AddDatabaseLoggingConfiguration(SqlConnection);
         }
 
         public void Dispose()
         {
-            DropTableTask.Drop(SqlConnection, ALE.ETLBox.Common.ControlFlow.ControlFlow.LogTable);
-            ALE.ETLBox.Common.ControlFlow.ControlFlow.ClearSettings();
+            DropTableTask.Drop(SqlConnection, EtlKit.Common.ControlFlow.ControlFlow.LogTable);
+            EtlKit.Common.ControlFlow.ControlFlow.ClearSettings();
         }
 
         [Fact]

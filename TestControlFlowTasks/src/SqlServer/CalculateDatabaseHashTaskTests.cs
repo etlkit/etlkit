@@ -1,9 +1,9 @@
-using ALE.ETLBox;
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.ControlFlow.SqlServer;
-using TestControlFlowTasks.Fixtures;
+using EtlKit;
+using EtlKit.ControlFlow;
+using EtlKit.ControlFlow.SqlServer;
+using EtlKit.TestControlFlowTasks.Fixtures;
 
-namespace TestControlFlowTasks.SqlServer
+namespace EtlKit.TestControlFlowTasks.SqlServer
 {
     [Collection(nameof(ControlFlowCollection))]
     public class CalculateDatabaseHashTaskTests : ControlFlowTestBase
@@ -37,7 +37,7 @@ namespace TestControlFlowTasks.SqlServer
         [Fact]
         public void NotSupportedWithSQLite()
         {
-            Assert.Throws<ETLBoxNotSupportedException>(
+            Assert.Throws<EtlKitNotSupportedException>(
                 () =>
                     CalculateDatabaseHashTask.Calculate(
                         SqliteConnection,

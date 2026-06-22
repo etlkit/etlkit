@@ -1,7 +1,8 @@
-using ALE.ETLBox.DataFlow;
-using ETLBox.Primitives;
+using EtlKit.DataFlow;
+using EtlKit.Primitives;
+using EtlKit.TestDatabaseConnectors.Fixtures;
 
-namespace TestDatabaseConnectors.DBSource
+namespace EtlKit.TestDatabaseConnectors.DBSource
 {
     [Collection(nameof(DataFlowSourceDestinationCollection))]
     public class DbSourceTableDefinitionTests : DatabaseConnectorsTestBase
@@ -35,12 +36,12 @@ namespace TestDatabaseConnectors.DBSource
             DbSource<MySimpleRow> source = new DbSource<MySimpleRow>
             {
                 SourceTableDefinition = source2Columns.TableDefinition,
-                ConnectionManager = connection
+                ConnectionManager = connection,
             };
             DbDestination<MySimpleRow> dest = new DbDestination<MySimpleRow>
             {
                 DestinationTableDefinition = dest2Columns.TableDefinition,
-                ConnectionManager = connection
+                ConnectionManager = connection,
             };
             source.LinkTo(dest);
             source.Execute();

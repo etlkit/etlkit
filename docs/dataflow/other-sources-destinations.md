@@ -2,7 +2,7 @@
 
 ## Custom sources & destinations
 
-ETLBox allows you to write your own implementation of sources and destinations. This gives you a
+EtlKit allows you to write your own implementation of sources and destinations. This gives you a
 great flexibility if you need to integrate systems that are currently now included in the list of default
 connectors.
 

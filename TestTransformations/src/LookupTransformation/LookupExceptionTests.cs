@@ -1,7 +1,7 @@
-using ALE.ETLBox.Common;
-using ALE.ETLBox.DataFlow;
+using EtlKit.Common;
+using EtlKit.DataFlow;
 
-namespace TestTransformations.LookupTransformation
+namespace EtlKit.TestTransformations.LookupTransformation
 {
     public class LookupExceptionTests
     {
@@ -33,7 +33,7 @@ namespace TestTransformations.LookupTransformation
             var dest = new MemoryDestination<MyDataRow>();
 
             //Assert
-            Assert.Throws<ETLBoxException>(() =>
+            Assert.Throws<EtlKitException>(() =>
             {
                 try
                 {

@@ -1,6 +1,6 @@
-using ALE.ETLBox.Helper;
+using EtlKit.Helper;
 
-namespace TestHelper
+namespace EtlKit.TestHelper
 {
     public class StringExtensionTests
     {

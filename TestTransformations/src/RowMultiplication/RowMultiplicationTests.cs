@@ -1,8 +1,8 @@
-using ALE.ETLBox.DataFlow;
-using TestShared.SharedFixtures;
-using TestTransformations.Fixtures;
+using EtlKit.DataFlow;
+using EtlKit.TestShared.SharedFixtures;
+using EtlKit.TestTransformations.Fixtures;
 
-namespace TestTransformations.RowMultiplication
+namespace EtlKit.TestTransformations.RowMultiplication
 {
     [Collection("Transformations")]
     public class RowMultiplicationTests : TransformationsTestBase
@@ -25,27 +25,21 @@ namespace TestTransformations.RowMultiplication
         public void RandomDoubling()
         {
             //Arrange
-            var source2Columns = new TwoColumnsTableFixture(
-                "RowMultiplicationSource"
-            );
+            var source2Columns = new TwoColumnsTableFixture("RowMultiplicationSource");
             source2Columns.InsertTestData();
 
-            var source = new DbSource<MySimpleRow>(
-                SqlConnection,
-                "RowMultiplicationSource"
-            );
-            var multiplication =
-                new RowMultiplication<MySimpleRow>(row =>
+            var source = new DbSource<MySimpleRow>(SqlConnection, "RowMultiplicationSource");
+            var multiplication = new RowMultiplication<MySimpleRow>(row =>
+            {
+                var result = new List<MySimpleRow>();
+                for (var i = 0; i < row.Col1; i++)
                 {
-                    var result = new List<MySimpleRow>();
-                    for (var i = 0; i < row.Col1; i++)
-                    {
-                        result.Add(
-                            new MySimpleRow { Col1 = row.Col1 + i, Col2 = "Test" + (row.Col1 + i) }
-                        );
-                    }
-                    return result;
-                });
+                    result.Add(
+                        new MySimpleRow { Col1 = row.Col1 + i, Col2 = "Test" + (row.Col1 + i) }
+                    );
+                }
+                return result;
+            });
             var dest = new MemoryDestination<MySimpleRow>();
 
             //Act
@@ -70,19 +64,11 @@ namespace TestTransformations.RowMultiplication
         public void DifferentOutputType()
         {
             //Arrange
-            var source2Columns = new TwoColumnsTableFixture(
-                "RowMultiplicationSource"
-            );
+            var source2Columns = new TwoColumnsTableFixture("RowMultiplicationSource");
             source2Columns.InsertTestData();
 
-            var source = new DbSource<MySimpleRow>(
-                SqlConnection,
-                "RowMultiplicationSource"
-            );
-            var multiplication = new RowMultiplication<
-                MySimpleRow,
-                MyOtherRow
-            >(row =>
+            var source = new DbSource<MySimpleRow>(SqlConnection, "RowMultiplicationSource");
+            var multiplication = new RowMultiplication<MySimpleRow, MyOtherRow>(row =>
             {
                 var result = new List<MyOtherRow>();
                 for (var i = 0; i <= row.Col1; i++)

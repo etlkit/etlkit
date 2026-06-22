@@ -1,6 +1,7 @@
-using ALE.ETLBox.DataFlow;
+using EtlKit.DataFlow;
+using EtlKit.TestDatabaseConnectors.Fixtures;
 
-namespace TestDatabaseConnectors.DBDestination
+namespace EtlKit.TestDatabaseConnectors.DBDestination
 {
     [Collection(nameof(DataFlowSourceDestinationCollection))]
     public class DbDestinationNullHandlingTests : DatabaseConnectorsTestBase
@@ -31,8 +32,8 @@ namespace TestDatabaseConnectors.DBDestination
                     null,
                     new() { Col1 = 2, Col2 = "Test2" },
                     new() { Col1 = 3, Col2 = "Test3" },
-                    null
-                }
+                    null,
+                },
             };
             DbDestination<MySimpleRow> dest = new DbDestination<MySimpleRow>(
                 SqlConnection,
@@ -65,8 +66,8 @@ namespace TestDatabaseConnectors.DBDestination
                     null,
                     new[] { "2", "Test2" },
                     new[] { "3", "Test3" },
-                    null
-                }
+                    null,
+                },
             };
             DbDestination<string[]> dest = new DbDestination<string[]>(
                 SqlConnection,

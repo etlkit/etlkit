@@ -1,8 +1,8 @@
-using ALE.ETLBox.DataFlow;
-using TestShared.SharedFixtures;
-using TestTransformations.Fixtures;
+using EtlKit.DataFlow;
+using EtlKit.TestShared.SharedFixtures;
+using EtlKit.TestTransformations.Fixtures;
 
-namespace TestTransformations.RowDuplication
+namespace EtlKit.TestTransformations.RowDuplication
 {
     [Collection("Transformations")]
     public class RowDuplicationTests : TransformationsTestBase
@@ -20,15 +20,10 @@ namespace TestTransformations.RowDuplication
         public void NoParameter()
         {
             //Arrange
-            var source2Columns = new TwoColumnsTableFixture(
-                "RowDuplicationSource"
-            );
+            var source2Columns = new TwoColumnsTableFixture("RowDuplicationSource");
             source2Columns.InsertTestData();
 
-            var source = new DbSource<MySimpleRow>(
-                SqlConnection,
-                "RowDuplicationSource"
-            );
+            var source = new DbSource<MySimpleRow>(SqlConnection, "RowDuplicationSource");
             var duplication = new RowDuplication<MySimpleRow>();
             var dest = new MemoryDestination<MySimpleRow>();
 
@@ -54,15 +49,10 @@ namespace TestTransformations.RowDuplication
         public void DuplicateTwice()
         {
             //Arrange
-            var source2Columns = new TwoColumnsTableFixture(
-                "RowDuplicationSource"
-            );
+            var source2Columns = new TwoColumnsTableFixture("RowDuplicationSource");
             source2Columns.InsertTestData();
 
-            var source = new DbSource<MySimpleRow>(
-                SqlConnection,
-                "RowDuplicationSource"
-            );
+            var source = new DbSource<MySimpleRow>(SqlConnection, "RowDuplicationSource");
             var duplication = new RowDuplication<MySimpleRow>(2);
             var dest = new MemoryDestination<MySimpleRow>();
 
@@ -91,17 +81,12 @@ namespace TestTransformations.RowDuplication
         public void WithPredicate()
         {
             //Arrange
-            var source2Columns = new TwoColumnsTableFixture(
-                "RowDuplicationSource"
-            );
+            var source2Columns = new TwoColumnsTableFixture("RowDuplicationSource");
             source2Columns.InsertTestData();
 
-            var source = new DbSource<MySimpleRow>(
-                SqlConnection,
-                "RowDuplicationSource"
-            );
-            var duplication = new RowDuplication<MySimpleRow>(
-                row => row.Col1 == 1 || row.Col2 == "Test3"
+            var source = new DbSource<MySimpleRow>(SqlConnection, "RowDuplicationSource");
+            var duplication = new RowDuplication<MySimpleRow>(row =>
+                row.Col1 == 1 || row.Col2 == "Test3"
             );
             var dest = new MemoryDestination<MySimpleRow>();
 

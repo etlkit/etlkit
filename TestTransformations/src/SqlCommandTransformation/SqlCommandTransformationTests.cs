@@ -1,12 +1,12 @@
 using System.Text.Json;
-using ALE.ETLBox;
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.DataFlow;
-using ETLBox.ClickHouse.ConnectionManager;
-using TestShared.SharedFixtures;
-using TestTransformations.Fixtures;
+using EtlKit;
+using EtlKit.ClickHouse.ConnectionManager;
+using EtlKit.ControlFlow;
+using EtlKit.DataFlow;
+using EtlKit.TestShared.SharedFixtures;
+using EtlKit.TestTransformations.Fixtures;
 
-namespace TestTransformations.SqlCommandTransformation
+namespace EtlKit.TestTransformations.SqlCommandTransformation
 {
     public class SqlCommandTransformationTests : TransformationsTestBase
     {
@@ -27,7 +27,7 @@ namespace TestTransformations.SqlCommandTransformation
 
             var settings = new MemorySource<ExpandoObject>([(ExpandoObject)obj]);
 
-            var query = new ALE.ETLBox.DataFlow.SqlCommandTransformation
+            var query = new EtlKit.DataFlow.SqlCommandTransformation
             {
                 ConnectionManager = SqlConnection,
                 SqlTemplate =
@@ -63,7 +63,7 @@ namespace TestTransformations.SqlCommandTransformation
 
             var settings = new MemorySource<ExpandoObject>([(ExpandoObject)obj]);
 
-            var query = new ALE.ETLBox.DataFlow.SqlCommandTransformation
+            var query = new EtlKit.DataFlow.SqlCommandTransformation
             {
                 ConnectionManager = SqlConnection,
                 SqlTemplate =
@@ -111,8 +111,8 @@ namespace TestTransformations.SqlCommandTransformation
         public void ClickHouse_WhenSaveValidJsonStringWithNestedJsonStringProperty_ThenSaveInvalidJson()
         {
             //Arrange
-            var connectionString = TestShared
-                .Helper.Config.ClickHouseConnection.ConnectionString("DataFlow")
+            var connectionString = EtlKit
+                .TestShared.Helper.Config.ClickHouseConnection.ConnectionString("DataFlow")
                 .Value;
 
             var testTable = "TableWithInvalidJson";
@@ -121,7 +121,7 @@ namespace TestTransformations.SqlCommandTransformation
                 [new("Col1", "UInt32", false, true), new("Col2", "String", true, false)]
             );
 
-            var builder = new ETLBox.ClickHouse.ConnectionStrings.ClickHouseConnectionStringBuilder
+            var builder = new EtlKit.ClickHouse.ConnectionStrings.ClickHouseConnectionStringBuilder
             {
                 ConnectionString = connectionString,
             };
@@ -142,7 +142,7 @@ namespace TestTransformations.SqlCommandTransformation
 
             var settings = new MemorySource<ExpandoObject>([(ExpandoObject)obj]);
 
-            var query = new ALE.ETLBox.DataFlow.SqlCommandTransformation
+            var query = new EtlKit.DataFlow.SqlCommandTransformation
             {
                 ConnectionManager = con,
                 SqlTemplate = "Insert INTO TableWithInvalidJson VALUES({{Col1}}, '{{Col2}}')",
@@ -186,8 +186,8 @@ namespace TestTransformations.SqlCommandTransformation
         public void ClickHouse_WhenEscapeBackslashInNestedJsonStringProperty_ThenSaveValidJson()
         {
             //Arrange
-            var connectionString = TestShared
-                .Helper.Config.ClickHouseConnection.ConnectionString("DataFlow")
+            var connectionString = EtlKit
+                .TestShared.Helper.Config.ClickHouseConnection.ConnectionString("DataFlow")
                 .Value;
 
             var testTable = "TableWithValidJson";
@@ -196,7 +196,7 @@ namespace TestTransformations.SqlCommandTransformation
                 [new("Col1", "UInt32", false, true), new("Col2", "String", true, false)]
             );
 
-            var builder = new ETLBox.ClickHouse.ConnectionStrings.ClickHouseConnectionStringBuilder
+            var builder = new EtlKit.ClickHouse.ConnectionStrings.ClickHouseConnectionStringBuilder
             {
                 ConnectionString = connectionString,
             };
@@ -220,7 +220,7 @@ namespace TestTransformations.SqlCommandTransformation
 
             var settings = new MemorySource<ExpandoObject>([(ExpandoObject)obj]);
 
-            var query = new ALE.ETLBox.DataFlow.SqlCommandTransformation
+            var query = new EtlKit.DataFlow.SqlCommandTransformation
             {
                 ConnectionManager = con,
                 SqlTemplate = "Insert INTO TableWithValidJson VALUES({{Col1}}, '{{Col2}}')",

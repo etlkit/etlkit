@@ -1,8 +1,8 @@
-using ALE.ETLBox.DataFlow;
-using TestShared.SharedFixtures;
-using TestTransformations.Fixtures;
+using EtlKit.DataFlow;
+using EtlKit.TestShared.SharedFixtures;
+using EtlKit.TestTransformations.Fixtures;
 
-namespace TestTransformations.RowMultiplication
+namespace EtlKit.TestTransformations.RowMultiplication
 {
     [Collection("Transformations")]
     public class RowMultiplicationStringArrayTests : TransformationsTestBase
@@ -14,15 +14,10 @@ namespace TestTransformations.RowMultiplication
         public void RandomDoubling()
         {
             //Arrange
-            var source2Columns = new TwoColumnsTableFixture(
-                "RowMultiplicationSource"
-            );
+            var source2Columns = new TwoColumnsTableFixture("RowMultiplicationSource");
             source2Columns.InsertTestData();
 
-            var source = new DbSource<string[]>(
-                SqlConnection,
-                "RowMultiplicationSource"
-            );
+            var source = new DbSource<string[]>(SqlConnection, "RowMultiplicationSource");
             var multiplication = new RowMultiplication<string[]>(row =>
             {
                 var result = new List<string[]>();

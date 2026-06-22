@@ -1,10 +1,11 @@
 using System.Threading;
-using ALE.ETLBox;
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.DataFlow;
-using ETLBox.Primitives;
+using EtlKit;
+using EtlKit.ControlFlow;
+using EtlKit.DataFlow;
+using EtlKit.Primitives;
+using EtlKit.TestDatabaseConnectors.Fixtures;
 
-namespace TestDatabaseConnectors.DBSource
+namespace EtlKit.TestDatabaseConnectors.DBSource
 {
     [Collection(nameof(DataFlowSourceDestinationCollection))]
     public class DbSourceDataTypeTests : DatabaseConnectorsTestBase
@@ -16,7 +17,7 @@ namespace TestDatabaseConnectors.DBSource
         private enum EnumType
         {
             Value1 = 1,
-            Value2 = 2
+            Value2 = 2,
         }
 
         public static IEnumerable<object[]> Connections => AllSqlConnections;
@@ -52,7 +53,7 @@ namespace TestDatabaseConnectors.DBSource
                         new("char_col", "CHAR(1)", true),
                         new("decimal_string_col", "DECIMAL(12,10)", true),
                         new("null_col", "CHAR(1)", true),
-                        new("enum_col", "INT", true)
+                        new("enum_col", "INT", true),
                     }
                 );
 

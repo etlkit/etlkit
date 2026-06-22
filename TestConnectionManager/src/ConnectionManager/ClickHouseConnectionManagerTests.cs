@@ -1,10 +1,9 @@
-using ALE.ETLBox;
-using ALE.ETLBox.ControlFlow;
-using ETLBox.ClickHouse.ConnectionManager;
-using ETLBox.Primitives;
-using TestShared.Helper;
+using EtlKit.ClickHouse.ConnectionManager;
+using EtlKit.ControlFlow;
+using EtlKit.Primitives;
+using EtlKit.TestShared.Helper;
 
-namespace TestConnectionManager.src.ConnectionManager
+namespace EtlKit.TestConnectionManager.ConnectionManager
 {
     public class ClickHouseConnectionManagerTests
     {
@@ -25,7 +24,7 @@ namespace TestConnectionManager.src.ConnectionManager
             );
 
             var builder =
-                new ETLBox.ClickHouse.ConnectionStrings.ClickHouseConnectionStringBuilder();
+                new EtlKit.ClickHouse.ConnectionStrings.ClickHouseConnectionStringBuilder();
             builder.ConnectionString = connectionString;
 
             using var con = new ClickHouseConnectionManager(builder.ConnectionString);

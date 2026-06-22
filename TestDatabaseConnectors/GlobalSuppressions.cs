@@ -10,5 +10,5 @@ using System.Diagnostics.CodeAnalysis;
     "S1481:Unused local variables should be removed",
     Justification = "This is used to create fixtures",
     Scope = "member",
-    Target = "~M:TestDatabaseConnectors.DBDestination.DbDestinationBatchChangesTests.AfterBatchWrite(ALE.ETLBox.ConnectionManager.IConnectionManager)"
+    Target = "~M:TestDatabaseConnectors.DBDestination.DbDestinationBatchChangesTests.AfterBatchWrite(ALE.EtlKit.ConnectionManager.IConnectionManager)"
 )]

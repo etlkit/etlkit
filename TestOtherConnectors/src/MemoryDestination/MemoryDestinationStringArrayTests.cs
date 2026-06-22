@@ -1,6 +1,7 @@
-using TestShared.SharedFixtures;
+using EtlKit.TestOtherConnectors.Fixture;
+using EtlKit.TestShared.SharedFixtures;
 
-namespace TestOtherConnectors.MemoryDestination
+namespace EtlKit.TestOtherConnectors.MemoryDestination
 {
     [Collection("OtherConnectors")]
     public class MemoryDestinationStringArrayTests : OtherConnectorsTestBase

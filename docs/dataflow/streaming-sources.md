@@ -24,7 +24,7 @@ inside it for effective exactly-once — see "Co-located commit" below.)
 
 ### ICheckpointStore&lt;TPosition&gt;
 
-Defined in `ETLBox.Common`. `TPosition` is the single monotone stream position (e.g. `long` for a
+Defined in `EtlKit.Common`. `TPosition` is the single monotone stream position (e.g. `long` for a
 sequence column, a resume-token `string`), hence `IComparable<TPosition>` — commits advance strictly
 forward and never regress.
 
@@ -41,7 +41,7 @@ tailed by several consumers, each with its own `checkpointId` and therefore its 
 Kafka consumer-group model); one store can hold many checkpoints. Source and `CheckpointWriter` must
 be configured with the **same** `CheckpointId`.
 
-`DbCheckpointStore<TPosition>` is a ready-made implementation over an ETLBox `IConnectionManager`
+`DbCheckpointStore<TPosition>` is a ready-made implementation over an EtlKit `IConnectionManager`
 (`TableName`, `KeyColumn`, `PositionColumn`); positions are stored natively (`bigint` for `long`,
 `text` for `string`).
 
@@ -73,7 +73,7 @@ When the destination and the checkpoint live in the same database, skip the `Che
 call `ICheckpointStore.CommitAsync` inside the destination's own transaction. Commit and write then
 succeed or fail atomically — effective exactly-once for that consumer.
 
-## MongoChangeStreamSource (ETLBox.MongoDB)
+## MongoChangeStreamSource (EtlKit.MongoDB)
 
 `MongoChangeStreamSource<TOutput>` watches a MongoDB
 [change stream](https://www.mongodb.com/docs/manual/changeStreams/) and emits one record per change
@@ -83,7 +83,7 @@ event.
 
 - The MongoDB deployment must run in **replica set mode** (a single-node replica set is sufficient
   for development).
-- NuGet package: `EtlBox.MongoDB`
+- NuGet package: `EtlKit.MongoDB`
 
 ### Basic usage
 
@@ -174,7 +174,7 @@ at-least-once.
 
 ---
 
-## PostgresXminTailSource (ETLBox.PostgresStreaming)
+## PostgresXminTailSource (EtlKit.PostgresStreaming)
 
 `PostgresXminTailSource<TOutput>` continuously polls a PostgreSQL table for new rows using the
 `xmin` system column as a visibility fence. It uses `pg_snapshot_xmin(pg_current_snapshot())` as a
@@ -184,7 +184,7 @@ prematurely — they appear only after their transaction commits.
 ### Requirements
 
 - PostgreSQL 13 or later (uses `pg_current_snapshot()`).
-- NuGet package: `EtlBox.PostgresStreaming`
+- NuGet package: `EtlKit.PostgresStreaming`
 
 ### Basic usage
 

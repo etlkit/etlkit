@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
-using ALE.ETLBox.DataFlow;
+using EtlKit.DataFlow;
 
-namespace TestTransformations.AggregationTests
+namespace EtlKit.TestTransformations.AggregationTests
 {
     [SuppressMessage("ReSharper", "CompareOfFloatsByEqualityOperator")]
     public class AggregationTests

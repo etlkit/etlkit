@@ -1,9 +1,9 @@
-using ALE.ETLBox.DataFlow;
-using TestFlatFileConnectors.Fixture;
-using TestFlatFileConnectors.Helpers;
-using TestShared.SharedFixtures;
+using EtlKit.DataFlow;
+using EtlKit.TestFlatFileConnectors.Fixture;
+using EtlKit.TestFlatFileConnectors.Helpers;
+using EtlKit.TestShared.SharedFixtures;
 
-namespace TestFlatFileConnectors.XmlDestination
+namespace EtlKit.TestFlatFileConnectors.XmlDestination
 {
     [Collection("FlatFilesToDatabase")]
     public class XmlDestinationTests : FlatFileConnectorsTestBase
@@ -23,16 +23,10 @@ namespace TestFlatFileConnectors.XmlDestination
             //Arrange
             var s2C = new TwoColumnsTableFixture("XmlDestSimple");
             s2C.InsertTestDataSet3();
-            var source = new DbSource<MySimpleRow>(
-                SqlConnection,
-                "XmlDestSimple"
-            );
+            var source = new DbSource<MySimpleRow>(SqlConnection, "XmlDestSimple");
 
             //Act
-            var dest = new XmlDestination<MySimpleRow>(
-                "./SimpleWithObject.xml",
-                ResourceType.File
-            );
+            var dest = new XmlDestination<MySimpleRow>("./SimpleWithObject.xml", ResourceType.File);
             source.LinkTo(dest);
             source.Execute();
             dest.Wait();
@@ -60,10 +54,7 @@ namespace TestFlatFileConnectors.XmlDestination
             //Arrange
             var s2C = new TwoColumnsTableFixture("XmlDestOnlyAttributes");
             s2C.InsertTestDataSet3();
-            var source = new DbSource<MyAttributeRow>(
-                SqlConnection,
-                "XmlDestOnlyAttributes"
-            );
+            var source = new DbSource<MyAttributeRow>(SqlConnection, "XmlDestOnlyAttributes");
 
             //Act
             var dest = new XmlDestination<MyAttributeRow>(

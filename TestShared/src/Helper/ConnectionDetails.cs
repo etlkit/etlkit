@@ -1,6 +1,6 @@
-﻿using ETLBox.Primitives;
+﻿using EtlKit.Primitives;
 
-namespace TestShared.Helper;
+namespace EtlKit.TestShared.Helper;
 
 /// <summary>
 /// Connection details for a specific connection string name.
@@ -25,17 +25,11 @@ public class ConnectionDetails<TConnectionString, TConnectionManager>
 
     public TConnectionString ConnectionString(string section)
     {
-        return new TConnectionString
-        {
-            Value = RawConnectionString(section)
-        };
+        return new TConnectionString { Value = RawConnectionString(section) };
     }
 
     public TConnectionManager ConnectionManager(string section)
     {
-        return new TConnectionManager
-        {
-            ConnectionString = ConnectionString(section)
-        };
+        return new TConnectionManager { ConnectionString = ConnectionString(section) };
     }
 }

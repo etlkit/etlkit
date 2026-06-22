@@ -1,9 +1,10 @@
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.DataFlow;
-using ETLBox.Primitives;
-using TestShared;
+using EtlKit.ControlFlow;
+using EtlKit.DataFlow;
+using EtlKit.Primitives;
+using EtlKit.TestDatabaseConnectors.Fixtures;
+using EtlKit.TestShared;
 
-namespace TestDatabaseConnectors.DBDestination
+namespace EtlKit.TestDatabaseConnectors.DBDestination
 {
     [Collection(nameof(DataFlowSourceDestinationCollection))]
     public class DbDestinationStringArrayTests : DatabaseConnectorsTestBase
@@ -86,9 +87,9 @@ namespace TestDatabaseConnectors.DBDestination
             CreateTableTask.Create(
                 connection,
                 "destination_onecolumn",
-                new List<ALE.ETLBox.TableColumn>()
+                new List<EtlKit.TableColumn>()
                 {
-                    new ALE.ETLBox.TableColumn("colx", "VARCHAR(100)", false, true),
+                    new EtlKit.TableColumn("colx", "VARCHAR(100)", false, true),
                 }
             );
 
@@ -123,12 +124,12 @@ namespace TestDatabaseConnectors.DBDestination
             CreateTableTask.Create(
                 connection,
                 "destination_additionalnullcol",
-                new List<ALE.ETLBox.TableColumn>()
+                new List<EtlKit.TableColumn>()
                 {
-                    new ALE.ETLBox.TableColumn("id", "INT", false, true),
-                    new ALE.ETLBox.TableColumn("col1", "VARCHAR(100)", true),
-                    new ALE.ETLBox.TableColumn("col2", "VARCHAR(100)", true),
-                    new ALE.ETLBox.TableColumn("col3", "VARCHAR(100)", true),
+                    new EtlKit.TableColumn("id", "INT", false, true),
+                    new EtlKit.TableColumn("col1", "VARCHAR(100)", true),
+                    new EtlKit.TableColumn("col2", "VARCHAR(100)", true),
+                    new EtlKit.TableColumn("col3", "VARCHAR(100)", true),
                 }
             );
 
@@ -162,12 +163,12 @@ namespace TestDatabaseConnectors.DBDestination
             CreateTableTask.Create(
                 connection,
                 "destination_additionalnotnullcol",
-                new List<ALE.ETLBox.TableColumn>()
+                new List<EtlKit.TableColumn>()
                 {
-                    new ALE.ETLBox.TableColumn("id", "INT", false, true),
-                    new ALE.ETLBox.TableColumn("col1", "VARCHAR(100)", true),
-                    new ALE.ETLBox.TableColumn("col2", "VARCHAR(100)", true),
-                    new ALE.ETLBox.TableColumn("col3", "VARCHAR(100)", false),
+                    new EtlKit.TableColumn("id", "INT", false, true),
+                    new EtlKit.TableColumn("col1", "VARCHAR(100)", true),
+                    new EtlKit.TableColumn("col2", "VARCHAR(100)", true),
+                    new EtlKit.TableColumn("col3", "VARCHAR(100)", false),
                 }
             );
 

@@ -1,6 +1,6 @@
-using ALE.ETLBox.Common;
+using EtlKit.Common;
 
-namespace TestHelper
+namespace EtlKit.TestHelper
 {
     public class TableNameDescriptorTests
     {

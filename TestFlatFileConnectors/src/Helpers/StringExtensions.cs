@@ -1,4 +1,4 @@
-namespace TestFlatFileConnectors.Helpers
+namespace EtlKit.TestFlatFileConnectors.Helpers
 {
     public static class StringExtensions
     {

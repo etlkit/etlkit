@@ -1,9 +1,9 @@
 using System.Threading;
 using System.Threading.Tasks;
-using ALE.ETLBox.Common.DataFlow;
-using ALE.ETLBox.DataFlow;
+using EtlKit.Common.DataFlow;
+using EtlKit.DataFlow;
 
-namespace TestTransformations.UseCases
+namespace EtlKit.TestTransformations.UseCases
 {
     public class ReuseDataFlowAsyncTests
     {

@@ -1,9 +1,9 @@
-using ALE.ETLBox.DataFlow;
-using TestFlatFileConnectors.Fixture;
-using TestFlatFileConnectors.Helpers;
-using TestShared.SharedFixtures;
+using EtlKit.DataFlow;
+using EtlKit.TestFlatFileConnectors.Fixture;
+using EtlKit.TestFlatFileConnectors.Helpers;
+using EtlKit.TestShared.SharedFixtures;
 
-namespace TestFlatFileConnectors.JsonDestination
+namespace EtlKit.TestFlatFileConnectors.JsonDestination
 {
     [Collection("FlatFilesToDatabase")]
     public class JsonDestinationTests : FlatFileConnectorsTestBase
@@ -24,10 +24,7 @@ namespace TestFlatFileConnectors.JsonDestination
             //Arrange
             var s2C = new TwoColumnsTableFixture("JsonDestSimple");
             s2C.InsertTestDataSet3();
-            var source = new DbSource<MySimpleRow>(
-                SqlConnection,
-                "JsonDestSimple"
-            );
+            var source = new DbSource<MySimpleRow>(SqlConnection, "JsonDestSimple");
 
             //Act
             var dest = new JsonDestination<MySimpleRow>(

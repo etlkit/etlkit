@@ -1,10 +1,11 @@
 using System.Threading;
 using System.Threading.Tasks;
-using ALE.ETLBox;
-using ALE.ETLBox.DataFlow;
+using EtlKit;
+using EtlKit.DataFlow;
+using EtlKit.TestDatabaseConnectors.Fixtures;
 using Microsoft.Data.SqlClient;
 
-namespace TestDatabaseConnectors.DBSource
+namespace EtlKit.TestDatabaseConnectors.DBSource
 {
     [Collection(nameof(DataFlowSourceDestinationCollection))]
     public class DbSourceExceptionTests : DatabaseConnectorsTestBase

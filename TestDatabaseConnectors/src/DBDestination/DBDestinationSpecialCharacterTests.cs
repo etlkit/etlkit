@@ -1,9 +1,10 @@
-using ALE.ETLBox.Common;
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.DataFlow;
-using ETLBox.Primitives;
+using EtlKit.Common;
+using EtlKit.ControlFlow;
+using EtlKit.DataFlow;
+using EtlKit.Primitives;
+using EtlKit.TestDatabaseConnectors.Fixtures;
 
-namespace TestDatabaseConnectors.DBDestination
+namespace EtlKit.TestDatabaseConnectors.DBDestination
 {
     [Collection(nameof(DataFlowSourceDestinationCollection))]
     public class DbDestinationSpecialCharacterTests : DatabaseConnectorsTestBase
@@ -58,12 +59,12 @@ namespace TestDatabaseConnectors.DBDestination
             DbSource<string[]> source = new DbSource<string[]>
             {
                 ConnectionManager = connection,
-                SourceTableDefinition = s2C.TableDefinition
+                SourceTableDefinition = s2C.TableDefinition,
             };
             DbDestination<string[]> dest = new DbDestination<string[]>
             {
                 ConnectionManager = connection,
-                DestinationTableDefinition = d2C.TableDefinition
+                DestinationTableDefinition = d2C.TableDefinition,
             };
             source.LinkTo(dest);
             source.Execute();

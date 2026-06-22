@@ -1,9 +1,9 @@
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.DataFlow;
-using TestShared.SharedFixtures;
-using TestTransformations.Fixtures;
+using EtlKit.ControlFlow;
+using EtlKit.DataFlow;
+using EtlKit.TestShared.SharedFixtures;
+using EtlKit.TestTransformations.Fixtures;
 
-namespace TestTransformations.BlockTransformationTests
+namespace EtlKit.TestTransformations.BlockTransformationTests
 {
     [Collection("Transformations")]
     public class BlockTransformationStringArrayTests : TransformationsTestBase
@@ -15,20 +15,12 @@ namespace TestTransformations.BlockTransformationTests
         public void ModifyInputDataList()
         {
             //Arrange
-            var source2Columns = new TwoColumnsTableFixture(
-                "BlockTransSourceNonGeneric"
-            );
+            var source2Columns = new TwoColumnsTableFixture("BlockTransSourceNonGeneric");
             source2Columns.InsertTestData();
             var _ = new TwoColumnsTableFixture("BlockTransDestNonGeneric");
 
-            var source = new DbSource<string[]>(
-                SqlConnection,
-                "BlockTransSourceNonGeneric"
-            );
-            var dest = new DbDestination<string[]>(
-                SqlConnection,
-                "BlockTransDestNonGeneric"
-            );
+            var source = new DbSource<string[]>(SqlConnection, "BlockTransSourceNonGeneric");
+            var dest = new DbDestination<string[]>(SqlConnection, "BlockTransDestNonGeneric");
 
             //Act
             var block = new BlockTransformation<string[]>(inputData =>

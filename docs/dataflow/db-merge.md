@@ -1,6 +1,6 @@
 # Syncing tables with Merge
 
-ETLbox can be used to integrate data from different source and write them into different destinations.
+EtlKit can be used to integrate data from different source and write them into different destinations.
 Most of the time you will use tables in a database as target.
 A very common use case here is to keep a source and destination tables "in sync".
 The following article describes how you can use the data from your data flow to insert
@@ -29,7 +29,7 @@ Or it could be that deletions are not transferred at all, either because they do
 
 ### DBMerge
 
-Both scenarios are supported with ETLBox. The `DBMerge` component can be used to tackle this problem
+Both scenarios are supported with EtlKit. The `DBMerge` component can be used to tackle this problem
 
 The `DBMerge` is a destination component and is created on a destination table in your dataflow.
 It will wait for all data from the flow to arrive, and then either insert,

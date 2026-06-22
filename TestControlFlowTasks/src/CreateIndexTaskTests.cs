@@ -1,9 +1,9 @@
-using ALE.ETLBox;
-using ALE.ETLBox.ControlFlow;
-using ETLBox.Primitives;
-using TestControlFlowTasks.Fixtures;
+using EtlKit;
+using EtlKit.ControlFlow;
+using EtlKit.Primitives;
+using EtlKit.TestControlFlowTasks.Fixtures;
 
-namespace TestControlFlowTasks
+namespace EtlKit.TestControlFlowTasks
 {
     [Collection(nameof(ControlFlowCollection))]
     public class CreateIndexTaskTests : ControlFlowTestBase
@@ -22,7 +22,7 @@ namespace TestControlFlowTasks
                 new List<TableColumn>
                 {
                     new("Key1", "INT", allowNulls: false, true),
-                    new("Key2", "INT", allowNulls: true)
+                    new("Key2", "INT", allowNulls: true),
                 }
             );
 
@@ -51,7 +51,7 @@ namespace TestControlFlowTasks
                 new List<TableColumn>
                 {
                     new("Key1", "INT", allowNulls: false, true),
-                    new("Key2", "INT", allowNulls: true)
+                    new("Key2", "INT", allowNulls: true),
                 }
             );
             CreateIndexTask.CreateOrRecreate(
@@ -88,7 +88,7 @@ namespace TestControlFlowTasks
                     new("Key1", "INT", allowNulls: false),
                     new("Key2", "CHAR(2)", allowNulls: true),
                     new("Value1", "NVARCHAR(10)", allowNulls: true),
-                    new("Value2", "DECIMAL(10,2)", allowNulls: false)
+                    new("Value2", "DECIMAL(10,2)", allowNulls: false),
                 }
             );
             //Act

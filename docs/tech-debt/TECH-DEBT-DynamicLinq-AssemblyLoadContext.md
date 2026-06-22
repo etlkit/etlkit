@@ -1,8 +1,8 @@
-# Tech Debt: ETLBox.DynamicLinq AssemblyLoadContext Unloading
+# Tech Debt: EtlKit.DynamicLinq AssemblyLoadContext Unloading
 
 ## Problem
 
-`ETLBox.DynamicLinq` does not run Roslyn and does not emit user-defined assemblies at runtime, but
+`EtlKit.DynamicLinq` does not run Roslyn and does not emit user-defined assemblies at runtime, but
 `System.Linq.Dynamic.Core.DynamicClassFactory.CreateType(properties)` emits a dynamic type per
 unique `ExpandoObject` shape (see `ExpandoTypeMapper`). These generated types are loaded into the
 default `AssemblyLoadContext`, which is non-unloadable - the same accumulation pattern documented
@@ -32,7 +32,7 @@ shapes. In those workloads the emitted types pin memory for the lifetime of the 
 
 ## Why The Fix Was Deferred
 
-Same root cause as `ETLBox.Scripting`: `ETLBox.DynamicLinq` targets `netstandard2.0` and the
+Same root cause as `EtlKit.Scripting`: `EtlKit.DynamicLinq` targets `netstandard2.0` and the
 collectible constructor `new AssemblyLoadContext(string name, bool isCollectible)` requires
 `net5.0+`. A clean fix needs the package to multi-target.
 

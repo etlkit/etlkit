@@ -1,11 +1,11 @@
 using System.Globalization;
-using ALE.ETLBox;
-using ALE.ETLBox.Common;
-using ALE.ETLBox.ConnectionManager;
-using ALE.ETLBox.ControlFlow;
-using TestControlFlowTasks.Fixtures;
+using EtlKit;
+using EtlKit.Common;
+using EtlKit.ConnectionManager;
+using EtlKit.ControlFlow;
+using EtlKit.TestControlFlowTasks.Fixtures;
 
-namespace TestControlFlowTasks
+namespace EtlKit.TestControlFlowTasks
 {
     [Collection(nameof(ControlFlowCollection))]
     public class CreateDatabaseTaskTests : ControlFlowTestBase
@@ -18,7 +18,7 @@ namespace TestControlFlowTasks
         {
             //Arrange
             using var connection = CreateConnectionManager(dbType);
-            var dbName = "ETLBox_" + HashHelper.RandomString(10);
+            var dbName = "EtlKit_" + HashHelper.RandomString(10);
             var dbListBefore = GetDatabaseListTask.List(connection);
             Assert.DoesNotContain(dbName, dbListBefore);
 
@@ -39,7 +39,7 @@ namespace TestControlFlowTasks
             //Arrange
             using var save = SetCurrentCulture(CultureInfo.GetCultureInfo("en-US"));
             using var connection = CreateConnectionManager(dbType);
-            var dbName = "ETLBox_" + HashHelper.RandomString(10);
+            var dbName = "EtlKit_" + HashHelper.RandomString(10);
             var collation = "Latin1_General_CS_AS";
             if (connection.GetType() == typeof(PostgresConnectionManager))
                 collation = "en_US.utf8";
@@ -59,7 +59,7 @@ namespace TestControlFlowTasks
         [Fact]
         public void NotSupportedWithSQLite()
         {
-            Assert.Throws<ETLBoxNotSupportedException>(
+            Assert.Throws<EtlKitNotSupportedException>(
                 () => CreateDatabaseTask.Create(SqliteConnection, "Test")
             );
         }

@@ -241,6 +241,7 @@ release_new_version_job:
 publish:nuget-org:patch:
   extends: .publish_nuget_org_base
   needs:
+    - get_unique_semversion
     - job: release_job
       artifacts: true
   before_script:
@@ -251,6 +252,7 @@ publish:nuget-org:patch:
 publish:nuget-org:new-version:
   extends: .publish_nuget_org_base
   needs:
+    - get_unique_semversion
     - job: release_new_version_job
       artifacts: true
   before_script:

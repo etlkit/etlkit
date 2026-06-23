@@ -2,8 +2,8 @@
 _layout: landing
 ---
 
-# ETLBox API Reference
+# EtlKit API Reference
 
-Auto-generated API documentation for ETLBox.
+Auto-generated API documentation for EtlKit.
 
-For guides and tutorials, see the [documentation in the repository](https://github.com/rpsft/etlbox/tree/master/docs).
+For guides and tutorials, see the [documentation in the repository](https://github.com/etlkit/etlkit/tree/master/docs).

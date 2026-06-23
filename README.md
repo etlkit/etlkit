@@ -43,7 +43,7 @@ namespaces.
 ## Documentation
 
 - [Guides and tutorials](docs/README.md) — `docs/` contains hand-written guides and tutorials, browsable directly in the repo
-- [API Reference](https://rpsft.github.io/etlbox/) — `docfx/` contains the DocFx config that generates the hosted API reference from XML comments
+- [API Reference](https://etlkit.github.io/etlkit/) — `docfx/` contains the DocFx config that generates the hosted API reference from XML comments
 
 ## Installation
 

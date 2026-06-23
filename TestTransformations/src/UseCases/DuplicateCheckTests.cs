@@ -1,12 +1,12 @@
-using ALE.ETLBox;
-using ALE.ETLBox.Common.DataFlow;
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.DataFlow;
 using CsvHelper.Configuration;
 using CsvHelper.Configuration.Attributes;
-using TestTransformations.Fixtures;
+using EtlKit;
+using EtlKit.Common.DataFlow;
+using EtlKit.ControlFlow;
+using EtlKit.DataFlow;
+using EtlKit.TestTransformations.Fixtures;
 
-namespace TestTransformations.UseCases
+namespace EtlKit.TestTransformations.UseCases
 {
     [Collection("Transformations")]
     public class DuplicateCheckTests : TransformationsTestBase

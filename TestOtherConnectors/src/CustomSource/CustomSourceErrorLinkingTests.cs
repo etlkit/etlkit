@@ -1,7 +1,8 @@
-using ETLBox.Primitives;
-using TestShared.SharedFixtures;
+using EtlKit.Primitives;
+using EtlKit.TestOtherConnectors.Fixture;
+using EtlKit.TestShared.SharedFixtures;
 
-namespace TestOtherConnectors.CustomSource
+namespace EtlKit.TestOtherConnectors.CustomSource
 {
     [Collection("OtherConnectors")]
     public class CustomSourceErrorLinkingTests : OtherConnectorsTestBase
@@ -42,7 +43,7 @@ namespace TestOtherConnectors.CustomSource
                 SqlConnection,
                 "ErrorLinkingCustomSource"
             );
-            MemoryDestination<ETLBoxError> errorDest = new MemoryDestination<ETLBoxError>();
+            MemoryDestination<EtlKitError> errorDest = new MemoryDestination<EtlKitError>();
 
             //Act
             source.LinkTo(dest);

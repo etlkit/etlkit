@@ -1,10 +1,11 @@
-using ALE.ETLBox;
-using ALE.ETLBox.Common;
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.DataFlow;
-using ETLBox.Primitives;
+using EtlKit;
+using EtlKit.Common;
+using EtlKit.ControlFlow;
+using EtlKit.DataFlow;
+using EtlKit.Primitives;
+using EtlKit.TestDatabaseConnectors.Fixtures;
 
-namespace TestDatabaseConnectors.DBMerge
+namespace EtlKit.TestDatabaseConnectors.DBMerge
 {
     [Collection(nameof(DataFlowSourceDestinationCollection))]
     public class DbMergeCompositeKeysTests : DatabaseConnectorsTestBase
@@ -41,7 +42,7 @@ namespace TestDatabaseConnectors.DBMerge
                     new("ColKey1", "INT", allowNulls: false, isPrimaryKey: true),
                     new("ColKey2", "CHAR(1)", allowNulls: false, isPrimaryKey: true),
                     new("ColValue1", "NVARCHAR(100)", allowNulls: true, isPrimaryKey: false),
-                    new("ColValue2", "NVARCHAR(100)", allowNulls: true, isPrimaryKey: false)
+                    new("ColValue2", "NVARCHAR(100)", allowNulls: true, isPrimaryKey: false),
                 }
             );
         }

@@ -1,10 +1,10 @@
-# ETLBox Documentation
+# EtlKit Documentation
 
 For API reference documentation, see the [hosted API docs](https://rpsft.github.io/etlbox/).
 
 ## Getting Started
 
-- [What is ETLBox](overview.md)
+- [What is EtlKit](overview.md)
 - [Core concepts](getting-started.md)
 
 ## DataFlow Tutorial

@@ -1,12 +1,12 @@
 {
     "ControlFlow": {
-        "SqlConnectionString": "Data Source=${CFG_MSSQL_IP};TrustServerCertificate=true;User Id=sa;Password=YourStrong@Passw0rd;Initial Catalog=ETLBox_ControlFlow",
-        "SSASConnectionString": "Data Source=.;Integrated Security=SSPI;Initial Catalog=ETLBox_ControlFlow",
+        "SqlConnectionString": "Data Source=${CFG_MSSQL_IP};TrustServerCertificate=true;User Id=sa;Password=YourStrong@Passw0rd;Initial Catalog=EtlKit_ControlFlow",
+        "SSASConnectionString": "Data Source=.;Integrated Security=SSPI;Initial Catalog=EtlKit_ControlFlow",
         "SQLiteConnectionString": "Data Source=.${CFG_PD}db${CFG_PD}SQLiteControlFlow.db;",
         "AccessOdbcConnectionString": "Driver={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=.${CFG_PD}db${CFG_PD}AccessControlFlow.accdb",
-        "SqlOdbcConnectionString": "Driver={SQL Server};Server=${CFG_MSSQL_IP};Database=ETLBox_ControlFlow;Uid=sa;Pwd=YourStrong@Passw0rd;",
-        "MySqlConnectionString": "Server=${CFG_MYSQL_IP};Database=ETLBox_ControlFlow;Uid=root;Pwd=etlboxpassword;",
-        "PostgresConnectionString": "Server=${CFG_POSTGRES_IP};Database=ETLBox_ControlFlow;User Id=postgres;Password=etlboxpassword;",
+        "SqlOdbcConnectionString": "Driver={SQL Server};Server=${CFG_MSSQL_IP};Database=EtlKit_ControlFlow;Uid=sa;Pwd=YourStrong@Passw0rd;",
+        "MySqlConnectionString": "Server=${CFG_MYSQL_IP};Database=EtlKit_ControlFlow;Uid=root;Pwd=etlkitpassword;",
+        "PostgresConnectionString": "Server=${CFG_POSTGRES_IP};Database=EtlKit_ControlFlow;User Id=postgres;Password=etlkitpassword;",
         "ClickHouseConnectionString": "Host=${CFG_CLICKHOUSE_IP};Port=9000;Database=default;User=clickhouse;Password=Qwe123456;"
     }
 }

@@ -1,7 +1,7 @@
-using ALE.ETLBox.ControlFlow;
-using ETLBox.Primitives;
+using EtlKit.ControlFlow;
+using EtlKit.Primitives;
 
-namespace TestShared.Helper
+namespace EtlKit.TestShared.Helper
 {
     public static class DatabaseHelper
     {
@@ -24,7 +24,7 @@ namespace TestShared.Helper
             new CreateDatabaseTask(dbName)
             {
                 DisableLogging = true,
-                ConnectionManager = connManagerMaster
+                ConnectionManager = connManagerMaster,
             }.Execute();
         }
 
@@ -37,7 +37,7 @@ namespace TestShared.Helper
             new DropDatabaseTask(dbName)
             {
                 DisableLogging = true,
-                ConnectionManager = connManagerMaster
+                ConnectionManager = connManagerMaster,
             }.DropIfExists();
         }
 

@@ -1,6 +1,6 @@
-using ALE.ETLBox.DataFlow;
+using EtlKit.DataFlow;
 
-namespace TestTransformations.CrossJoinTests
+namespace EtlKit.TestTransformations.CrossJoinTests
 {
     public class CrossJoinNullHandlingTests
     {
@@ -16,11 +16,11 @@ namespace TestTransformations.CrossJoinTests
             //Arrange
             var source1 = new MemorySource<string>
             {
-                DataAsList = new List<string> { "A", null, "B", "C" }
+                DataAsList = new List<string> { "A", null, "B", "C" },
             };
             var source2 = new MemorySource<int?>
             {
-                DataAsList = new List<int?> { 1, null, 2, null, 3 }
+                DataAsList = new List<int?> { 1, null, 2, null, 3 },
             };
             var crossJoin = new CrossJoin<string, int?, string>(
                 (data1, data2) =>

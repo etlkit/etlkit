@@ -1,8 +1,8 @@
-using ALE.ETLBox.DataFlow;
-using TestShared.SharedFixtures;
-using TestTransformations.Fixtures;
+using EtlKit.DataFlow;
+using EtlKit.TestShared.SharedFixtures;
+using EtlKit.TestTransformations.Fixtures;
 
-namespace TestTransformations.RowMultiplication
+namespace EtlKit.TestTransformations.RowMultiplication
 {
     [Collection("Transformations")]
     public class RowMultiplicationDynamicObjectTests : TransformationsTestBase
@@ -14,14 +14,12 @@ namespace TestTransformations.RowMultiplication
         public void ReturningNewDynamicObject()
         {
             //Arrange
-            var source2Columns = new TwoColumnsTableFixture(
-                "RowMultiplicationSource"
-            );
+            var source2Columns = new TwoColumnsTableFixture("RowMultiplicationSource");
             source2Columns.InsertTestData();
 
             var source = new DbSource(SqlConnection, "RowMultiplicationSource");
-            ALE.ETLBox.DataFlow.RowMultiplication multiplication =
-                new ALE.ETLBox.DataFlow.RowMultiplication(row =>
+            EtlKit.DataFlow.RowMultiplication multiplication =
+                new EtlKit.DataFlow.RowMultiplication(row =>
                 {
                     var result = new List<ExpandoObject>();
                     dynamic r = row;

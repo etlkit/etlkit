@@ -1,7 +1,7 @@
-using ALE.ETLBox.Common;
-using ALE.ETLBox.DataFlow;
+using EtlKit.Common;
+using EtlKit.DataFlow;
 
-namespace TestTransformations.LookupTransformation
+namespace EtlKit.TestTransformations.LookupTransformation
 {
     public class LookupAttributeTests
     {
@@ -38,7 +38,7 @@ namespace TestTransformations.LookupTransformation
 
             var lookup = new LookupTransformation<InputDataRow, LookupData>
             {
-                Source = lookupSource
+                Source = lookupSource,
             };
             var dest = new MemoryDestination<InputDataRow>();
             source.LinkTo(lookup);
@@ -97,7 +97,7 @@ namespace TestTransformations.LookupTransformation
                     Id1 = 1,
                     Id2 = "T1",
                     Value1 = "Test1",
-                    Value2 = 100
+                    Value2 = 100,
                 }
             );
             lookupSource.DataAsList.Add(
@@ -105,7 +105,7 @@ namespace TestTransformations.LookupTransformation
                 {
                     Id1 = 2,
                     Value1 = "Test2",
-                    Value2 = 200
+                    Value2 = 200,
                 }
             );
             lookupSource.DataAsList.Add(
@@ -113,13 +113,13 @@ namespace TestTransformations.LookupTransformation
                 {
                     Id1 = 3,
                     Id2 = "T3",
-                    Value2 = 300
+                    Value2 = 300,
                 }
             );
 
             var lookup = new LookupTransformation<InputDataMultiple, LookupDataMultiple>
             {
-                Source = lookupSource
+                Source = lookupSource,
             };
             var dest = new MemoryDestination<InputDataMultiple>();
             source.LinkTo(lookup);
@@ -186,7 +186,7 @@ namespace TestTransformations.LookupTransformation
             lookup.LinkTo(dest);
 
             //Act && Assert
-            Assert.Throws<ETLBoxException>(() =>
+            Assert.Throws<EtlKitException>(() =>
             {
                 try
                 {

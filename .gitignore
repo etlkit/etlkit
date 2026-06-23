@@ -1,4 +1,4 @@
-#ETLBox specific changes
+#EtlKit specific changes
 # System files
 .DS_STORE
 
@@ -305,7 +305,6 @@ paket-files/
 .fake/
 
 # JetBrains Rider
-.idea/
 *.sln.iml
 
 # CodeRush
@@ -346,5 +345,5 @@ ASALocalRun/
 # MFractors (Xamarin productivity tool) working folder
 .mfractor/
 
-/ETLBox.Kafka.Tests/default.config.json
+/EtlKit.Kafka.Tests/default.config.json
 .testcontainers.properties

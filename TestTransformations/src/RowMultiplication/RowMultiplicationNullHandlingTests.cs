@@ -1,6 +1,6 @@
-using ALE.ETLBox.DataFlow;
+using EtlKit.DataFlow;
 
-namespace TestTransformations.RowMultiplication
+namespace EtlKit.TestTransformations.RowMultiplication
 {
     public class RowMultiplicationNullHandlingTests
     {
@@ -23,14 +23,16 @@ namespace TestTransformations.RowMultiplication
                     null,
                     new() { Col1 = 2, Col2 = "Test2" },
                     new() { Col1 = 3, Col2 = "Test3" },
-                    null
-                }
+                    null,
+                },
             };
 
             //Act
-            var multiplication = new RowMultiplication<MySimpleRow>(
-                row => new List<MySimpleRow> { row, row }
-            );
+            var multiplication = new RowMultiplication<MySimpleRow>(row => new List<MySimpleRow>
+            {
+                row,
+                row,
+            });
             var dest = new MemoryDestination<MySimpleRow>();
             source.LinkTo(multiplication);
             multiplication.LinkTo(dest);

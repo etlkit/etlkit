@@ -69,7 +69,7 @@ dest2.Wait();
 
 Whenever you use predicates, sometime you end up with data which you don't want to write into a destination.
 Unfortunately, your DataFlow won't finish until all rows where written into any destination block. That's why
-there is a `VoidDestination` in ETLBox. Use this destination for all records for that you don't wish any further processing.
+there is a `VoidDestination` in EtlKit. Use this destination for all records for that you don't wish any further processing.
 
 ```csharp
 VoidDestination voidDest = new VoidDestination(); 
@@ -105,7 +105,7 @@ Here an example for a database source, where error records are linked into a Mem
 ```csharp
 DbSource<MySimpleRow> source = new DbSource<MySimpleRow>(connection, "SourceTable");
 DbDestination<MySimpleRow> dest = new DbDestination<MySimpleRow>(connection, "DestinationTable");
-MemoryDestination<ETLBoxError> errorDest = new MemoryDestination<ETLBoxError>();
+MemoryDestination<EtlKitError> errorDest = new MemoryDestination<EtlKitError>();
 source.LinkTo(dest);
 source.LinkErrorTo(errorDest);
 source.Execute();
@@ -113,14 +113,14 @@ dest.Wait();
 errorDest.Wait();
 ```
 
-`LinkErrorTo` only accepts transformations or destinations that have the input type `ETLBoxError`. It will contain
+`LinkErrorTo` only accepts transformations or destinations that have the input type `EtlKitError`. It will contain
 the exception itself and an exception message, the time the error occured, and the faulted record as json (if it was
 possible to connvert it).
 
-ETLBoxError is defined like this:
+EtlKitError is defined like this:
 
 ```csharp
-public class ETLBoxError
+public class EtlKitError
 {
     public string ErrorText { get; set; }
     public DateTime ReportTime { get; set; }
@@ -131,11 +131,11 @@ public class ETLBoxError
 
 ### CreateErrorTableTask
 
-If you want to store your exception in a table in a database, ETLBox offers you a task that will automatically
+If you want to store your exception in a table in a database, EtlKit offers you a task that will automatically
 create this table for you.
 
 ```csharp
-CreateErrorTableTask.Create(connection, "etlbox_error");
+CreateErrorTableTask.Create(connection, "etlkit_error");
 ```
 
 The table will have three columns: ErrorText, RecordAsJson and ReportTime (with the right data type). Of course you can
@@ -170,7 +170,7 @@ debugging a lot easier, as you don't have to deal with async programming and the
 handling with tasks.
 
 Please note: In the background, the dataflow is always executed asynchronous! The underlying dataflow engine
-is based on `Microsoft.TPL.Dataflow`. ETLBox will wrap this behavior into synchronous methods.
+is based on `Microsoft.TPL.Dataflow`. EtlKit will wrap this behavior into synchronous methods.
 
 ### Example sync execution
 

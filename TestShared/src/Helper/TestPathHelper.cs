@@ -1,7 +1,7 @@
 using System.IO;
 using System.Reflection;
 
-namespace TestShared.Helper;
+namespace EtlKit.TestShared.Helper;
 
 public static class TestPathHelper
 {

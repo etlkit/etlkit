@@ -1,6 +1,7 @@
-using TestShared.SharedFixtures;
+using EtlKit.TestOtherConnectors.Fixture;
+using EtlKit.TestShared.SharedFixtures;
 
-namespace TestOtherConnectors.MemorySource
+namespace EtlKit.TestOtherConnectors.MemorySource
 {
     [Collection("OtherConnectors")]
     public class MemorySourceStringArrayTests : OtherConnectorsTestBase
@@ -26,7 +27,7 @@ namespace TestOtherConnectors.MemorySource
             {
                 new[] { "1", "Test1" },
                 new[] { "2", "Test2" },
-                new[] { "3", "Test3" }
+                new[] { "3", "Test3" },
             };
             source.LinkTo(dest);
             source.Execute();

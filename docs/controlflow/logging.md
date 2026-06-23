@@ -1,13 +1,13 @@
 # Logging
 
-By default, ETLBox uses NLog. NLog already comes with different log targets that be configured
+By default, EtlKit uses NLog. NLog already comes with different log targets that be configured
 either via your app.config or programmatically. See the NLog-documentation for a full reference:
 <https://nlog-project.org/>
 
-ETLBox already comes with NLog as dependency - so the necessary packages will be retrieved from
+EtlKit already comes with NLog as dependency - so the necessary packages will be retrieved from
 nuget automatically through your package manager.
 
-On top of NLog, ETLBox offers you support to create a simple but still powerful database logging,
+On top of NLog, EtlKit offers you support to create a simple but still powerful database logging,
 which is simple to set up and eays to maintain.
 
 ## A simple Configuration File
@@ -32,7 +32,7 @@ A simple and very basic nlog.config would look like this
 ```
 
 After adding a file with this configuration, you will already get some logging output to your
-console output when you trigger some ETLBox components.
+console output when you trigger some EtlKit components.
 
 ### Copy to output directory
 
@@ -96,7 +96,7 @@ which are: Trace, Debug, Info, Warn, Error and Fatal.)
 ```
 
 As you can see, the log output into the file is formatted using a particular NLog notation in the
-Layout attribute. NLog does provide some default LayoutRenderer here. Additionally, ETLBox will
+Layout attribute. NLog does provide some default LayoutRenderer here. Additionally, EtlKit will
 register also some layout renderer which can be used. These are:
 
 ```csharp
@@ -142,7 +142,7 @@ ControlFlow.STAGE = "STAGING"
 
 Perhaps you want some particular tasks or components not to produce any log output, but you don't
 want to remove the logging completely. For this case you can use the `DisableLogging` property on
-every task or component in ETLBox. E.g., if you create a new DbSource, just set the property to
+every task or component in EtlKit. E.g., if you create a new DbSource, just set the property to
 true:
 
 ```csharp
@@ -162,7 +162,7 @@ activated again.
 ## Logging to database
 
 Of course logging to console output or to a file is perhaps not sufficient. If you want to have
-logging tables in your database, ETLBox comes with some additions to the default logging mechanism
+logging tables in your database, EtlKit comes with some additions to the default logging mechanism
 provided by NLog.
 
 ### Method 1: Extend the nlog.config
@@ -201,7 +201,7 @@ The modification to the nlog.config could like this:
 </nlog>
 ```
 
-### Method 2: Let ETLBox do the work
+### Method 2: Let EtlKit do the work
 
 Alternatively, you can use some pre-defined Logging tasks to update your nlog configuration and
 create the logging table.
@@ -209,7 +209,7 @@ create the logging table.
 The following code snipped will do this for you:
 
 ```csharp
-var SqlConnectionManager connection = new SqlConnectionManager("Data Source=.;Integrated Security=SSPI;Initial Catalog=ETLBox_Logging");
+var SqlConnectionManager connection = new SqlConnectionManager("Data Source=.;Integrated Security=SSPI;Initial Catalog=EtlKit_Logging");
 CreateLogTableTask.Create(connection);
 ControlFlow.AddLoggingDatabaseToConfig(connection);
 ```
@@ -228,7 +228,7 @@ like this:
 | task_action     | String    |                               |
 | task_hash       | String    |                               |
 | source          | String    |                               |
-| load_process_id | Int64     | Id of etlbox_loadproces table |
+| load_process_id | Int64     | Id of etlkit_loadprocess table |
 
 This will work on all supported database - the real data type will be reflected by the corresponding
 database specific type. E.g. Int64 is a BIGINT on SqlServer and INTEGER on SqlLite The id column is
@@ -243,7 +243,7 @@ the newly create database table
 
 #### Log table name
 
-By default, the name for the logging table is "etlbox_log". If you want to change that name, the
+By default, the name for the logging table is "etlkit_log". If you want to change that name, the
 `CreateLogTableTask` and `AddLoggingDatabaseToConfig` method do have a parameter logTableName that
 can be set to your specifig table name. If you use a different name, before you call
 `AddLoggingDatabaseToConfig` you have to set the table name in the static property LogTable of
@@ -292,7 +292,7 @@ LogTask.Fatal("Some text!");
 ### Logging of Load Processes
 
 Additionally to the traditional nlog setup where log information is send to any target by changing
-the configuration, ETLBox comes with a set of Tasks to control your ETL processes - so called "Load
+the configuration, EtlKit comes with a set of Tasks to control your ETL processes - so called "Load
 processes".
 
 The use case for a load process table is simple - if you have one log table, this table will store a
@@ -301,13 +301,13 @@ in the log table - with different timestamps of course. If you need to identify 
 relates to which job run, there are some information missing. This is where the load process table
 comes in.
 
-You can use the task `CreateLoadProcessTableTask` to have ETLBox created a load process table.
+You can use the task `CreateLoadProcessTableTask` to have EtlKit created a load process table.
 
 ```csharp
 CreateLoadProcessTableTask.Create(connection);
 ```
 
-By default this will create a talbe "etlbox_loadprocess". This table will look like this:
+By default this will create a talbe "etlkit_loadprocess". This table will look like this:
 
 | Column name    | Data type | Remarks  |
 | -------------- | --------- | -------- |
@@ -340,7 +340,7 @@ try {
 }
 ```
 
-After calling the `StartLoadProcessTask` a new entry was created in the etlbox_loadprocess table.
+After calling the `StartLoadProcessTask` a new entry was created in the etlkit_loadprocess table.
 This entry had a start date and contained the process name "Process 1" and the start message
 "Starting process". The column `is_running` is 0. Calling the `EndLoadProcessTask` will set an end
 date and change the columns `is_running` to 0 and was_successful to 1. Vice versa will
@@ -363,7 +363,7 @@ current load process.
 #### Load process table name
 
 When you create the load process table, and you don't pass a custom table name, by default the name
-of the table is "etlbox_loadprocess". You can change this by passing the table name to the
+of the table is "etlkit_loadprocess". You can change this by passing the table name to the
 `CreateLoadProcessTableTask`. If the table is already created, you must specify the Table name in
 the static property LoadProcessTable of the ControlFlow class
 

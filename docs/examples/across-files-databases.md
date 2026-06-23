@@ -3,14 +3,14 @@
 ## Purpose
 
 Sometimes you are in need to transfer data across databases on different server or to integrate flat
-files. ETLBox is an excellent tool of choice for integrating data from different sources. This
+files. EtlKit is an excellent tool of choice for integrating data from different sources. This
 example will guide you through the most common scenarios.
 
 ### Prerequisites
 
 The example code will not go into the details of the sql code to create the necessary table or
 files. It will focus on how to move the data from the source to the destinations. If you are
-interest how you can create the tables or databases with ETLBox, have a look at the
+interest how you can create the tables or databases with EtlKit, have a look at the
 [ControlFlow tasks](../controlflow/overview.md)
 
 ## Import or exporting CSV files
@@ -27,7 +27,7 @@ example, we will connect to a Postgres database - but this will also work with a
 database.
 
 ```csharp
-string PostgresConnectionString = @"Server=.;Database=demodataflow;User Id=postgres;Password=etlboxpassword;";
+string PostgresConnectionString = @"Server=.;Database=demodataflow;User Id=postgres;Password=etlkitpassword;";
 PostgresConnectionManager conMan = new PostgresConnectionManager(PostgresConnectionString);
 ```
 
@@ -108,7 +108,7 @@ Running this example will import the csv file into the Postgres table. It should
 No we want to export the data again, which is just the other way round.
 
 But to spice this example a little bit up, we now add an object type that hold the data during the
-processing. You don't need to specify the object type as shown above - in this case, ETLBox will use
+processing. You don't need to specify the object type as shown above - in this case, EtlKit will use
 a string array instead. But if you are in the need to work with your data, e.g. by add a
 transformation in the flow, it is easier if you have defined a class that specifies your data type.
 
@@ -167,7 +167,7 @@ First let's create the destination table on Sql Server with a CreateTableTask (o
 To do so, we will also need a new connection manager that can connect with Sql Server:
 
 ```csharp
-string SqlServerConnectionString = @"Data Source=.;Initial Catalog=ETLBox_DataFlow;Integrated Security=false;User=sa;password=reallyStrongPwd123";
+string SqlServerConnectionString = @"Data Source=.;Initial Catalog=EtlKit_DataFlow;Integrated Security=false;User=sa;password=reallyStrongPwd123";
 SqlConnectionManager conMan = new SqlConnectionManager(SqlServerConnectionString);#
 
 List<TableColumn> tc = new List<TableColumn>()

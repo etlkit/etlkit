@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 
-namespace TestControlFlowTasks.Fixtures
+namespace EtlKit.TestControlFlowTasks.Fixtures
 {
     [CollectionDefinition(nameof(ControlFlowCollection))]
     public class ControlFlowCollection : ICollectionFixture<ControlFlowDatabaseFixture> { }

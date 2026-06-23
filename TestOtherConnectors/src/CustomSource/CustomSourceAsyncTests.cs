@@ -1,8 +1,9 @@
 using System.Threading;
-using ALE.ETLBox.Common;
-using TestShared.SharedFixtures;
+using EtlKit.Common;
+using EtlKit.TestOtherConnectors.Fixture;
+using EtlKit.TestShared.SharedFixtures;
 
-namespace TestOtherConnectors.CustomSource
+namespace EtlKit.TestOtherConnectors.CustomSource
 {
     [Collection("OtherConnectors")]
     public class CustomSourceAsyncTests : OtherConnectorsTestBase
@@ -51,17 +52,17 @@ namespace TestOtherConnectors.CustomSource
         public async Task ExceptionalAsyncFlow()
         {
             //Arrange
-            var source = new ALE.ETLBox.DataFlow.CustomSource(
-                () => throw new ETLBoxException("Test Exception"),
+            var source = new EtlKit.DataFlow.CustomSource(
+                () => throw new EtlKitException("Test Exception"),
                 () => false
             );
-            var dest = new ALE.ETLBox.DataFlow.CustomDestination(_ => { });
+            var dest = new EtlKit.DataFlow.CustomDestination(_ => { });
 
             //Act
             source.LinkTo(dest);
 
             //Assert
-            await Assert.ThrowsAsync<ETLBoxException>(async () =>
+            await Assert.ThrowsAsync<EtlKitException>(async () =>
             {
                 try
                 {

@@ -3,8 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <IsPackable>false</IsPackable>
-    <AssemblyName>ALE.ETLBoxTestsPerformance</AssemblyName>
-    <RootNamespace>ALE.ETLBoxTests.Performance</RootNamespace>
+    <AssemblyName>EtlKit.TestPerformance</AssemblyName>
+    <RootNamespace>EtlKit.TestPerformance</RootNamespace>
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ETLBox\ETLBox.csproj" />
+    <ProjectReference Include="..\EtlKit\EtlKit.csproj" />
     <ProjectReference Include="..\TestShared\TestShared.csproj" />
   </ItemGroup>
 

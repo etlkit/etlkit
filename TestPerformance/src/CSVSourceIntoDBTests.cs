@@ -1,15 +1,14 @@
-using ALE.ETLBox;
-using ALE.ETLBox.Common;
-using ALE.ETLBox.Common.DataFlow;
-using ALE.ETLBox.ConnectionManager;
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.DataFlow;
-using ALE.ETLBoxTests.Performance.Fixtures;
-using ALE.ETLBoxTests.Performance.Helper;
-using ETLBox.Primitives;
-using TestShared.Helper;
+using EtlKit.Common;
+using EtlKit.Common.DataFlow;
+using EtlKit.ConnectionManager;
+using EtlKit.ControlFlow;
+using EtlKit.DataFlow;
+using EtlKit.Primitives;
+using EtlKit.TestPerformance.Fixtures;
+using EtlKit.TestPerformance.Helper;
+using EtlKit.TestShared.Helper;
 
-namespace ALE.ETLBoxTests.Performance
+namespace EtlKit.TestPerformance
 {
     [Collection("Performance")]
     public class CsvSourceIntoDBTests : PerformanceTestBase
@@ -52,16 +51,16 @@ namespace ALE.ETLBoxTests.Performance
         {
             //Arrange
             BigDataCsvSource.CreateCsvFileIfNeeded(numberOfRows);
-            ReCreateDestinationTable(connection, "CsvDestinationNonGenericETLBox");
+            ReCreateDestinationTable(connection, "CsvDestinationNonGenericEtlKit");
             ReCreateDestinationTable(connection, "CsvDestinationBulkInsert");
-            ReCreateDestinationTable(connection, "CsvDestinationGenericETLBox");
+            ReCreateDestinationTable(connection, "CsvDestinationGenericEtlKit");
 
             var sourceNonGeneric = new CsvSource(
                 BigDataCsvSource.GetCompleteFilePath(numberOfRows)
             );
             var destNonGeneric = new DbDestination(
                 connection,
-                "CsvDestinationNonGenericETLBox",
+                "CsvDestinationNonGenericEtlKit",
                 batchSize
             );
             var sourceGeneric = new CsvSource<CsvData>(
@@ -69,52 +68,52 @@ namespace ALE.ETLBoxTests.Performance
             );
             var destGeneric = new DbDestination<CsvData>(
                 connection,
-                "CsvDestinationGenericETLBox",
+                "CsvDestinationGenericEtlKit",
                 batchSize
             );
 
             //Act
-            var timeElapsedETLBoxNonGeneric = GetETLBoxTime(
+            var timeElapsedEtlKitNonGeneric = GetEtlKitTime(
                 numberOfRows,
                 sourceNonGeneric,
                 destNonGeneric
             );
-            var timeElapsedETLBoxGeneric = GetETLBoxTime(numberOfRows, sourceGeneric, destGeneric);
+            var timeElapsedEtlKitGeneric = GetEtlKitTime(numberOfRows, sourceGeneric, destGeneric);
 
             //Assert
             Assert.Equal(
                 numberOfRows,
-                RowCountTask.Count(connection, "CsvDestinationNonGenericETLBox")
+                RowCountTask.Count(connection, "CsvDestinationNonGenericEtlKit")
             );
             Assert.Equal(
                 numberOfRows,
-                RowCountTask.Count(connection, "CsvDestinationGenericETLBox")
+                RowCountTask.Count(connection, "CsvDestinationGenericEtlKit")
             );
 
             var timeDifference = Math.Abs(
-                timeElapsedETLBoxGeneric.TotalMilliseconds
-                    - timeElapsedETLBoxNonGeneric.TotalMilliseconds
+                timeElapsedEtlKitGeneric.TotalMilliseconds
+                    - timeElapsedEtlKitNonGeneric.TotalMilliseconds
             );
 
             var diffPercentage =
                 timeDifference
                 / Math.Min(
-                    timeElapsedETLBoxGeneric.TotalMilliseconds,
-                    timeElapsedETLBoxNonGeneric.TotalMilliseconds
+                    timeElapsedEtlKitGeneric.TotalMilliseconds,
+                    timeElapsedEtlKitNonGeneric.TotalMilliseconds
                 );
 
             Assert.InRange(diffPercentage, 0.0, deviation);
         }
 
-        private TimeSpan GetETLBoxTime<T>(
+        private TimeSpan GetEtlKitTime<T>(
             int numberOfRows,
             CsvSource<T> source,
             DbDestination<T> dest
         )
         {
             source.LinkTo(dest);
-            var timeElapsedETLBox = BigDataHelper.LogExecutionTime(
-                $"Copying Csv into DB (non generic) with {numberOfRows} rows of data using ETLBox",
+            var timeElapsedEtlKit = BigDataHelper.LogExecutionTime(
+                $"Copying Csv into DB (non generic) with {numberOfRows} rows of data using EtlKit",
                 () =>
                 {
                     source.Execute();
@@ -124,16 +123,15 @@ namespace ALE.ETLBoxTests.Performance
             if (typeof(T) == typeof(string[]))
                 _output.WriteLine(
                     "Elapsed "
-                        + timeElapsedETLBox.TotalSeconds
-                        + " seconds for ETLBox (Non generic)."
+                        + timeElapsedEtlKit.TotalSeconds
+                        + " seconds for EtlKit (Non generic)."
                 );
             else
                 _output.WriteLine(
-                    "Elapsed " + timeElapsedETLBox.TotalSeconds + " seconds for ETLBox (Generic)."
+                    "Elapsed " + timeElapsedEtlKit.TotalSeconds + " seconds for EtlKit (Generic)."
                 );
-            return timeElapsedETLBox;
+            return timeElapsedEtlKit;
         }
-
 
         [Trait("Category", "Performance")]
         [Fact()]
@@ -157,7 +155,7 @@ namespace ALE.ETLBoxTests.Performance
                     Col1 = r.Col1,
                     Col2 = r.Col2,
                     Col3 = r.Col3,
-                    Col4 = r.Col4
+                    Col4 = r.Col4,
                 };
             });
             var destGeneric = new DbDestination<CsvData>(
@@ -189,8 +187,8 @@ namespace ALE.ETLBoxTests.Performance
                 Assert.InRange(memAfter, 0, memBefore + memBefore * deviation);
             };
 
-            var timeElapsedETLBox = BigDataHelper.LogExecutionTime(
-                $"Copying Csv into DB (non generic) with {numberOfRows} rows of data using ETLBox",
+            var timeElapsedEtlKit = BigDataHelper.LogExecutionTime(
+                $"Copying Csv into DB (non generic) with {numberOfRows} rows of data using EtlKit",
                 () =>
                 {
                     sourceExpando.Execute();
@@ -199,8 +197,8 @@ namespace ALE.ETLBoxTests.Performance
             );
             _output.WriteLine(
                 "Elapsed "
-                    + timeElapsedETLBox.TotalSeconds
-                    + " seconds for ETLBox (Expando to object transformation)."
+                    + timeElapsedEtlKit.TotalSeconds
+                    + " seconds for EtlKit (Expando to object transformation)."
             );
 
             //Assert
@@ -223,7 +221,7 @@ namespace ALE.ETLBoxTests.Performance
                     Col1 = HashHelper.RandomString(255),
                     Col2 = HashHelper.RandomString(255),
                     Col3 = HashHelper.RandomString(255),
-                    Col4 = HashHelper.RandomString(255)
+                    Col4 = HashHelper.RandomString(255),
                 };
             }
         }

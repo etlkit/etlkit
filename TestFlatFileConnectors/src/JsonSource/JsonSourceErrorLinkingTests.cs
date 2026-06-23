@@ -1,9 +1,9 @@
-using ALE.ETLBox.DataFlow;
-using ETLBox.Primitives;
-using TestFlatFileConnectors.Fixture;
-using TestShared.SharedFixtures;
+using EtlKit.DataFlow;
+using EtlKit.Primitives;
+using EtlKit.TestFlatFileConnectors.Fixture;
+using EtlKit.TestShared.SharedFixtures;
 
-namespace TestFlatFileConnectors.JsonSource
+namespace EtlKit.TestFlatFileConnectors.JsonSource
 {
     [Collection("FlatFilesToDatabase")]
     public class JsonSourceErrorLinkingTests : FlatFileConnectorsTestBase
@@ -21,14 +21,9 @@ namespace TestFlatFileConnectors.JsonSource
         public void WithObjectErrorLinking()
         {
             //Arrange
-            var dest2Columns = new TwoColumnsTableFixture(
-                "JsonSourceErrorLinking"
-            );
-            var dest = new DbDestination<MySimpleRow>(
-                SqlConnection,
-                "JsonSourceErrorLinking"
-            );
-            var errorDest = new MemoryDestination<ETLBoxError>();
+            var dest2Columns = new TwoColumnsTableFixture("JsonSourceErrorLinking");
+            var dest = new DbDestination<MySimpleRow>(SqlConnection, "JsonSourceErrorLinking");
+            var errorDest = new MemoryDestination<EtlKitError>();
 
             //Act
             var source = new JsonSource<MySimpleRow>(

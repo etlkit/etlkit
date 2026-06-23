@@ -1,7 +1,7 @@
-using ALE.ETLBox.ControlFlow.SqlServer;
-using TestControlFlowTasks.Fixtures;
+using EtlKit.ControlFlow.SqlServer;
+using EtlKit.TestControlFlowTasks.Fixtures;
 
-namespace TestControlFlowTasks.SqlServer
+namespace EtlKit.TestControlFlowTasks.SqlServer
 {
     [Collection(nameof(ControlFlowCollection))]
     public class XmlaTaskTests : ControlFlowTestBase
@@ -40,7 +40,7 @@ namespace TestControlFlowTasks.SqlServer
         [Fact(Skip = "Adjust to work with tabular model")]
         public void TestCreateAndDelete()
         {
-            const string dbName = "ETLBox_TestXMLA";
+            const string dbName = "EtlKit_TestXMLA";
             try
             {
                 XmlaTask.ExecuteNonQuery(AdomdConnection, "Drop cube", DeleteCubeXmla(dbName));

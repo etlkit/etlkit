@@ -1,6 +1,6 @@
-using ETLBox.Primitives;
+using EtlKit.Primitives;
 
-namespace TestShared
+namespace EtlKit.TestShared
 {
     /// <summary>
     /// TheoryData model (IConnectionManager, WithPK)

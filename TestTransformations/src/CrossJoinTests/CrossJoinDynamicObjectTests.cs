@@ -1,8 +1,8 @@
-using ALE.ETLBox.DataFlow;
-using TestShared.SharedFixtures;
-using TestTransformations.Fixtures;
+using EtlKit.DataFlow;
+using EtlKit.TestShared.SharedFixtures;
+using EtlKit.TestTransformations.Fixtures;
 
-namespace TestTransformations.CrossJoinTests
+namespace EtlKit.TestTransformations.CrossJoinTests
 {
     [Collection("Transformations")]
     public class CrossJoinDynamicObjectTests : TransformationsTestBase
@@ -14,24 +14,12 @@ namespace TestTransformations.CrossJoinTests
         public void DynamicObjectJoin()
         {
             //Arrange
-            var table1 = new TwoColumnsTableFixture(
-                SqlConnection,
-                "CrossJoinSource1"
-            );
+            var table1 = new TwoColumnsTableFixture(SqlConnection, "CrossJoinSource1");
             table1.InsertTestData();
-            var table2 = new TwoColumnsTableFixture(
-                SqlConnection,
-                "CrossJoinSource2"
-            );
+            var table2 = new TwoColumnsTableFixture(SqlConnection, "CrossJoinSource2");
             table2.InsertTestData();
-            var source1 = new DbSource<ExpandoObject>(
-                SqlConnection,
-                "CrossJoinSource1"
-            );
-            var source2 = new DbSource<ExpandoObject>(
-                SqlConnection,
-                "CrossJoinSource2"
-            );
+            var source1 = new DbSource<ExpandoObject>(SqlConnection, "CrossJoinSource1");
+            var source2 = new DbSource<ExpandoObject>(SqlConnection, "CrossJoinSource2");
             var dest = new MemoryDestination();
 
             var crossJoin = new CrossJoin(

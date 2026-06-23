@@ -1,8 +1,8 @@
-using ALE.ETLBox.DataFlow;
-using TestFlatFileConnectors.Fixture;
-using TestShared.SharedFixtures;
+using EtlKit.DataFlow;
+using EtlKit.TestFlatFileConnectors.Fixture;
+using EtlKit.TestShared.SharedFixtures;
 
-namespace TestFlatFileConnectors.CsvSource
+namespace EtlKit.TestFlatFileConnectors.CsvSource
 {
     [Collection("FlatFilesToDatabase")]
     public class CsvSourceIdentityColumnTests : FlatFileConnectorsTestBase

@@ -1,12 +1,12 @@
 using System.Linq;
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.Logging;
-using ALE.ETLBoxTests.NonParallel.Fixtures;
-using EtlBox.Logging.Database;
-using ETLBox.Primitives;
+using EtlKit.ControlFlow;
+using EtlKit.Logging;
+using EtlKit.Logging.Database;
+using EtlKit.Primitives;
+using EtlKit.TestNonParallel.Fixtures;
 using Microsoft.Extensions.Logging;
 
-namespace ALE.ETLBoxTests.NonParallel.Logging.LogTable
+namespace EtlKit.TestNonParallel.Logging.LogTable
 {
     [Collection("Logging")]
     public sealed class LogTaskTests : NonParallelTestBase, IDisposable
@@ -21,7 +21,7 @@ namespace ALE.ETLBoxTests.NonParallel.Logging.LogTable
 
         public void Dispose()
         {
-            ALE.ETLBox.Common.ControlFlow.ControlFlow.ClearSettings();
+            EtlKit.Common.ControlFlow.ControlFlow.ClearSettings();
         }
 
         [Theory, MemberData(nameof(ConnectionsWithoutClickHouse))]
@@ -29,14 +29,14 @@ namespace ALE.ETLBoxTests.NonParallel.Logging.LogTable
         {
             //Arrange
             //Act
-            CreateLogTableTask.Create(connection, "etlbox_testlog");
+            CreateLogTableTask.Create(connection, "etlkit_testlog");
 
             //Assert
-            Assert.True(IfTableOrViewExistsTask.IsExisting(connection, "etlbox_testlog"));
-            var td = TableDefinition.GetDefinitionFromTableName(connection, "etlbox_testlog");
+            Assert.True(IfTableOrViewExistsTask.IsExisting(connection, "etlkit_testlog"));
+            var td = TableDefinition.GetDefinitionFromTableName(connection, "etlkit_testlog");
             Assert.True(td.Columns.Count == 10);
             //Cleanup
-            DropTableTask.Drop(connection, "etlbox_testlog");
+            DropTableTask.Drop(connection, "etlkit_testlog");
         }
 
         [Theory, MemberData(nameof(ConnectionsWithoutClickHouse))]
@@ -61,7 +61,7 @@ namespace ALE.ETLBoxTests.NonParallel.Logging.LogTable
                 1,
                 RowCountTask.Count(
                     connection,
-                    ALE.ETLBox.Common.ControlFlow.ControlFlow.LogTable,
+                    EtlKit.Common.ControlFlow.ControlFlow.LogTable,
                     "message = 'Error!' AND level = 'Error' and task_action = 'LOG'"
                 )
             );
@@ -69,7 +69,7 @@ namespace ALE.ETLBoxTests.NonParallel.Logging.LogTable
                 1,
                 RowCountTask.Count(
                     connection,
-                    ALE.ETLBox.Common.ControlFlow.ControlFlow.LogTable,
+                    EtlKit.Common.ControlFlow.ControlFlow.LogTable,
                     "message = 'Warn!' AND level = 'Warn' and task_action = 'LOG'"
                 )
             );
@@ -77,7 +77,7 @@ namespace ALE.ETLBoxTests.NonParallel.Logging.LogTable
                 1,
                 RowCountTask.Count(
                     connection,
-                    ALE.ETLBox.Common.ControlFlow.ControlFlow.LogTable,
+                    EtlKit.Common.ControlFlow.ControlFlow.LogTable,
                     "message = 'Info!' AND level = 'Info' and task_action = 'LOG'"
                 )
             );
@@ -85,7 +85,7 @@ namespace ALE.ETLBoxTests.NonParallel.Logging.LogTable
                 1,
                 RowCountTask.Count(
                     connection,
-                    ALE.ETLBox.Common.ControlFlow.ControlFlow.LogTable,
+                    EtlKit.Common.ControlFlow.ControlFlow.LogTable,
                     "message = 'Debug!' AND level = 'Debug' and task_action = 'LOG'"
                 )
             );
@@ -93,13 +93,13 @@ namespace ALE.ETLBoxTests.NonParallel.Logging.LogTable
                 1,
                 RowCountTask.Count(
                     connection,
-                    ALE.ETLBox.Common.ControlFlow.ControlFlow.LogTable,
+                    EtlKit.Common.ControlFlow.ControlFlow.LogTable,
                     "message = 'Trace!' AND level = 'Trace' and task_action = 'LOG'"
                 )
             );
 
             //Cleanup
-            DropTableTask.Drop(connection, ALE.ETLBox.Common.ControlFlow.ControlFlow.LogTable);
+            DropTableTask.Drop(connection, EtlKit.Common.ControlFlow.ControlFlow.LogTable);
         }
 
         [Fact]
@@ -114,7 +114,7 @@ namespace ALE.ETLBoxTests.NonParallel.Logging.LogTable
             );
 
             //Act
-            ALE.ETLBox.Common.ControlFlow.ControlFlow.Stage = "SETUP";
+            EtlKit.Common.ControlFlow.ControlFlow.Stage = "SETUP";
             SqlTask.ExecuteNonQuery(SqlConnection, "Test Task", "Select 1 as test");
 
             //Assert
@@ -130,7 +130,7 @@ namespace ALE.ETLBoxTests.NonParallel.Logging.LogTable
             );
 
             //Cleanup
-            DropTableTask.Drop(SqlConnection, ALE.ETLBox.Common.ControlFlow.ControlFlow.LogTable);
+            DropTableTask.Drop(SqlConnection, EtlKit.Common.ControlFlow.ControlFlow.LogTable);
         }
 
         [Theory, MemberData(nameof(ConnectionsWithoutClickHouse))]
@@ -168,7 +168,7 @@ namespace ALE.ETLBoxTests.NonParallel.Logging.LogTable
             );
 
             //Cleanup
-            DropTableTask.Drop(connection, ALE.ETLBox.Common.ControlFlow.ControlFlow.LogTable);
+            DropTableTask.Drop(connection, EtlKit.Common.ControlFlow.ControlFlow.LogTable);
         }
     }
 }

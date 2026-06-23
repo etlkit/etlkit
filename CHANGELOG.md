@@ -2,6 +2,96 @@
 
 All notable changes to this project will be documented in this file.
 
+<a name="2.0"></a>
+
+# 2.0.0
+
+⛓️‍💥 Breaking changes
+
+The entire library has been renamed from **EtlBox.Classic** to **EtlKit** to avoid future
+package naming collisions with the original ETLBox project. This is a wholesale rename across
+NuGet package IDs, .NET root namespaces, project/solution files, and DI registration extension
+methods. **Every consumer must update package references, `using` directives, and DI registration
+calls.** There is no backward-compatibility shim — code compiled against 1.x will not link
+against 2.0.
+
+### NuGet package renames
+
+| Old package ID                  | New package ID                |
+| ------------------------------- | ----------------------------- |
+| `EtlBox.Classic`                | `EtlKit`                      |
+| `EtlBox.Classic.Common`         | `EtlKit.Common`               |
+| `EtlBox.Classic.Primitives`     | `EtlKit.Primitives`           |
+| `EtlBox.Classic.Json`           | `EtlKit.Json`                 |
+| `EtlBox.Classic.Kafka`          | `EtlKit.Kafka`                |
+| `EtlBox.Classic.Rest`           | `EtlKit.Rest`                 |
+| `EtlBox.Classic.RabbitMq`       | `EtlKit.RabbitMq`             |
+| `EtlBox.Classic.ClickHouse`     | `EtlKit.ClickHouse`           |
+| `EtlBox.Classic.MongoDB`        | `EtlKit.MongoDB`              |
+| `EtlBox.Classic.PostgresStreaming` | `EtlKit.PostgresStreaming` |
+| `EtlBox.Classic.Serialization`  | `EtlKit.Serialization`        |
+| `EtlBox.Classic.Scripting`      | `EtlKit.Scripting`            |
+| `EtlBox.Classic.DynamicLinq`    | `EtlKit.DynamicLinq`          |
+| `EtlBox.Classic.AI`            | `EtlKit.AI`                   |
+| `EtlBox.Classic.Logging.Database` | `EtlKit.Logging.Database`  |
+
+### Root namespace renames
+
+All `ALE.ETLBox.*` root namespaces have been renamed to `EtlKit.*`. The legacy `ALE.` prefix
+is dropped entirely.
+
+| Old root namespace              | New root namespace            |
+| ------------------------------- | ----------------------------- |
+| `ALE.ETLBox`                    | `EtlKit`                      |
+| `ALE.ETLBox.Common`             | `EtlKit.Common`               |
+| `ALE.ETLBox.DataFlow`           | `EtlKit.DataFlow`             |
+| `ALE.ETLBox.Common.DataFlow`    | `EtlKit.Common.DataFlow`      |
+| `ALE.ETLBox.DynamicLinq`        | `EtlKit.DynamicLinq`          |
+| `ALE.ETLBox.Serialization`       | `EtlKit.Serialization`         |
+| `ALE.ETLBox.Scripting`          | `EtlKit.Scripting`            |
+
+Every `using ALE.ETLBox.…;` directive must be changed to `using EtlKit.…;`.
+
+### DI registration extension method renames
+
+The `IServiceCollection` extension methods that register data flow components have been
+renamed to match the new package identity. All `AddEtlBox*` calls must be updated to
+`AddEtlKit*`.
+
+| Old method              | New method             |
+| ------------------------ | ---------------------- |
+| `AddEtlBoxCore()`        | `AddEtlKitCore()`      |
+| `AddEtlBoxJson()`        | `AddEtlKitJson()`      |
+| `AddEtlBoxKafka()`       | `AddEtlKitKafka()`     |
+| `AddEtlBoxRabbitMq()`    | `AddEtlKitRabbitMq()`  |
+| `AddEtlBoxRest()`        | `AddEtlKitRest()`      |
+| `AddEtlBoxScripting()`   | `AddEtlKitScripting()` |
+| `AddEtlBoxAI()`          | `AddEtlKitAI()`        |
+| `AddEtlBoxSerialization()` | `AddEtlKitSerialization()` |
+
+### Type renames
+
+- `EtlBoxException` → `EtlKitException` (the generic exception type in `EtlKit.Common`).
+- The solution file `ETLBox.sln` has been renamed to `EtlKit.sln`.
+
+### What did NOT change
+
+- Class names for data flow components (`MemorySource`, `DbDestination`, `JsonTransformation`,
+  `KafkaSource`, etc.) are **unchanged** — only namespaces and package IDs changed.
+- `ETLBoxNotSupportedException` retains its class name (namespace changed from `ALE.ETLBox`
+  to `EtlKit`).
+- The public API surface of every component is otherwise identical to 1.20.0; this release is
+  purely a rename.
+
+### Migration guide
+
+1. Update all `<PackageReference>` entries from `EtlBox.Classic.*` to `EtlKit.*`.
+2. Find-and-replace `using ALE.ETLBox` → `using EtlKit` across all `.cs` files.
+3. Find-and-replace `EtlBoxException` → `EtlKitException`.
+4. Find-and-replace `AddEtlBox` → `AddEtlKit` in DI registration calls.
+5. Update solution file references from `ETLBox.sln` to `EtlKit.sln`.
+
+
 <a name="1.20.0"></a>
 
 # 1.20.0

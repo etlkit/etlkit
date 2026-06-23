@@ -1,11 +1,11 @@
 using System.Collections.Generic;
-using ALE.ETLBox;
-using ALE.ETLBox.Common;
-using ALE.ETLBox.ControlFlow;
-using ETLBox.Primitives;
-using TestShared.Helper;
+using EtlKit;
+using EtlKit.Common;
+using EtlKit.ControlFlow;
+using EtlKit.Primitives;
+using EtlKit.TestShared.Helper;
 
-namespace TestShared.SharedFixtures
+namespace EtlKit.TestShared.SharedFixtures
 {
     public class TwoColumnsTableFixture
     {
@@ -27,7 +27,8 @@ namespace TestShared.SharedFixtures
         public TwoColumnsTableFixture(
             IConnectionManager connection,
             string tableName,
-            bool withPk = false)
+            bool withPk = false
+        )
         {
             Connection = connection;
             TableName = tableName;
@@ -43,7 +44,7 @@ namespace TestShared.SharedFixtures
                 new List<TableColumn>
                 {
                     new("Col1", "INT", allowNulls: false, isPrimaryKey: withPk),
-                    new("Col2", "NVARCHAR(100)", allowNulls: true)
+                    new("Col2", "NVARCHAR(100)", allowNulls: true),
                 }
             );
             TableDefinition.CreateTable(Connection);

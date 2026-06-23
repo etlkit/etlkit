@@ -3,18 +3,18 @@ using System.Text.RegularExpressions;
 using System.Xml.Linq;
 using Xunit;
 
-namespace ETLBox.Architecture.Tests;
+namespace EtlKit.Architecture.Tests;
 
 /// <summary>
 /// Regression tests for <c>docfx/docfx.json</c> and the GitHub Actions workflow
-/// that publishes the API reference to <c>https://rpsft.github.io/etlbox/</c>.
+/// that publishes the API reference to <c>https://upbonus-io.github.io/etlkit/</c>.
 ///
 /// These tests would have caught the 1.19.0 release gap where
-/// <c>ETLBox.MongoDB</c>, <c>ETLBox.DynamicLinq</c>, and
-/// <c>ETLBox.PostgresStreaming</c> were missing from <c>docfx.json</c> — the
+/// <c>EtlKit.MongoDB</c>, <c>EtlKit.DynamicLinq</c>, and
+/// <c>EtlKit.PostgresStreaming</c> were missing from <c>docfx.json</c> — the
 /// public docs site had no pages for them — and the multi-TFM mismatch where
-/// <c>ETLBox.ClickHouse</c> (netstandard2.1) referenced <c>ETLBox.Common</c> /
-/// <c>ETLBox.Primitives</c> (netstandard2.0) without a matching metadata
+/// <c>EtlKit.ClickHouse</c> (netstandard2.1) referenced <c>EtlKit.Common</c> /
+/// <c>EtlKit.Primitives</c> (netstandard2.0) without a matching metadata
 /// reference, emitting DocFx warnings on every build.
 /// </summary>
 public class DocFxMetadataCoverageTests
@@ -29,7 +29,7 @@ public class DocFxMetadataCoverageTests
     );
 
     [Fact]
-    public void Every_ETLBox_source_project_is_documented_in_docfx_metadata()
+    public void Every_EtlKit_source_project_is_documented_in_docfx_metadata()
     {
         var documented = LoadDocumentedProjects();
         var actual = EnumerateSourceProjects();
@@ -128,8 +128,8 @@ public class DocFxMetadataCoverageTests
     [Fact]
     public void Common_and_Primitives_are_present_in_every_compatible_metadata_block()
     {
-        // ETLBox.Common and ETLBox.Primitives are transitive dependencies of nearly every
-        // ETLBox package via <ProjectReference>. Ideally they'd appear in every block so DocFx
+        // EtlKit.Common and EtlKit.Primitives are transitive dependencies of nearly every
+        // EtlKit package via <ProjectReference>. Ideally they'd appear in every block so DocFx
         // never emits `Found project reference without a matching metadata reference`. But DocFx
         // forces the block's TargetFramework onto *every* project in it, and these two are
         // netstandard2.0-only — listing them in the net6.0 / netstandard2.1 blocks makes DocFx
@@ -139,10 +139,10 @@ public class DocFxMetadataCoverageTests
         // warnings for ClickHouse / MongoDB are accepted as the lesser evil.
         var blocks = LoadMetadataBlocks();
         var commonTfms = LoadProjectTargetFrameworks(
-            Path.Combine(RepoRoot, "ETLBox.Common", "ETLBox.Common.csproj")
+            Path.Combine(RepoRoot, "EtlKit.Common", "EtlKit.Common.csproj")
         );
         var primitivesTfms = LoadProjectTargetFrameworks(
-            Path.Combine(RepoRoot, "ETLBox.Primitives", "ETLBox.Primitives.csproj")
+            Path.Combine(RepoRoot, "EtlKit.Primitives", "EtlKit.Primitives.csproj")
         );
         var offenders = new List<string>();
 
@@ -153,17 +153,17 @@ public class DocFxMetadataCoverageTests
                 continue;
 
             if (
-                commonTfms.Contains(tfm) && !projects.Contains("ETLBox.Common/ETLBox.Common.csproj")
+                commonTfms.Contains(tfm) && !projects.Contains("EtlKit.Common/EtlKit.Common.csproj")
             )
                 offenders.Add(
-                    $"'{tfm}' block: ETLBox.Common is missing but is referenced by [{string.Join(", ", referencers)}]"
+                    $"'{tfm}' block: EtlKit.Common is missing but is referenced by [{string.Join(", ", referencers)}]"
                 );
             if (
                 primitivesTfms.Contains(tfm)
-                && !projects.Contains("ETLBox.Primitives/ETLBox.Primitives.csproj")
+                && !projects.Contains("EtlKit.Primitives/EtlKit.Primitives.csproj")
             )
                 offenders.Add(
-                    $"'{tfm}' block: ETLBox.Primitives is missing but is referenced by [{string.Join(", ", referencers)}]"
+                    $"'{tfm}' block: EtlKit.Primitives is missing but is referenced by [{string.Join(", ", referencers)}]"
                 );
         }
 
@@ -231,7 +231,7 @@ public class DocFxMetadataCoverageTests
         return Directory
             .GetDirectories(RepoRoot)
             .Select(Path.GetFileName)
-            .Where(d => d is not null && d.StartsWith("ETLBox", StringComparison.Ordinal))
+            .Where(d => d is not null && d.StartsWith("EtlKit", StringComparison.Ordinal))
             .Where(d => !d!.EndsWith(".Tests", StringComparison.Ordinal))
             .Where(d => !d!.EndsWith(".Benchmarks", StringComparison.Ordinal))
             // sanity check the directory actually contains a matching .csproj
@@ -266,7 +266,7 @@ public class DocFxMetadataCoverageTests
 
         // Common and Primitives don't reference themselves — skip.
         var dir = Path.GetFileName(Path.GetDirectoryName(absPath));
-        if (dir is "ETLBox.Common" or "ETLBox.Primitives")
+        if (dir is "EtlKit.Common" or "EtlKit.Primitives")
             return false;
 
         var doc = XDocument.Load(absPath);
@@ -274,8 +274,8 @@ public class DocFxMetadataCoverageTests
         {
             var include = pr.Attribute("Include")?.Value ?? "";
             if (
-                include.Contains("ETLBox.Common", StringComparison.Ordinal)
-                || include.Contains("ETLBox.Primitives", StringComparison.Ordinal)
+                include.Contains("EtlKit.Common", StringComparison.Ordinal)
+                || include.Contains("EtlKit.Primitives", StringComparison.Ordinal)
             )
                 return true;
         }
@@ -305,12 +305,12 @@ public class DocFxMetadataCoverageTests
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
         while (dir is not null)
         {
-            if (File.Exists(Path.Combine(dir.FullName, "ETLBox.sln")))
+            if (File.Exists(Path.Combine(dir.FullName, "EtlKit.sln")))
                 return dir.FullName;
             dir = dir.Parent;
         }
         throw new InvalidOperationException(
-            $"Could not locate repo root (looking for ETLBox.sln) walking up from {AppContext.BaseDirectory}"
+            $"Could not locate repo root (looking for EtlKit.sln) walking up from {AppContext.BaseDirectory}"
         );
     }
 }

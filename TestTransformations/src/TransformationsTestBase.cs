@@ -1,9 +1,9 @@
-﻿using ALE.ETLBox.ConnectionManager;
-using ETLBox.Primitives;
-using TestShared.Helper;
-using TestTransformations.Fixtures;
+﻿using EtlKit.ConnectionManager;
+using EtlKit.Primitives;
+using EtlKit.TestShared.Helper;
+using EtlKit.TestTransformations.Fixtures;
 
-namespace TestTransformations
+namespace EtlKit.TestTransformations
 {
     [CollectionDefinition("Transformations")]
     public class DataFlowCollection : ICollectionFixture<TransformationsDatabaseFixture> { }

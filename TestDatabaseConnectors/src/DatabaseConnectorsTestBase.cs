@@ -1,10 +1,11 @@
-using ALE.ETLBox.ConnectionManager;
-using ETLBox.ClickHouse.ConnectionManager;
-using ETLBox.Primitives;
-using TestShared;
-using TestShared.Helper;
+using EtlKit.ClickHouse.ConnectionManager;
+using EtlKit.ConnectionManager;
+using EtlKit.Primitives;
+using EtlKit.TestDatabaseConnectors.Fixtures;
+using EtlKit.TestShared;
+using EtlKit.TestShared.Helper;
 
-namespace TestDatabaseConnectors
+namespace EtlKit.TestDatabaseConnectors
 {
     [CollectionDefinition(
         nameof(DataFlowSourceDestinationCollection),

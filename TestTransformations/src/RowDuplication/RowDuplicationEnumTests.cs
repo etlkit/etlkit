@@ -1,6 +1,6 @@
-using ALE.ETLBox.DataFlow;
+using EtlKit.DataFlow;
 
-namespace TestTransformations.RowDuplication;
+namespace EtlKit.TestTransformations.RowDuplication;
 
 public class RowDuplicationEnumTests
 {
@@ -8,7 +8,7 @@ public class RowDuplicationEnumTests
     public enum EnumType
     {
         Value1 = 1,
-        Value2 = 2
+        Value2 = 2,
     }
 
     [Fact]

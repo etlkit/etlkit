@@ -1,9 +1,9 @@
-using ALE.ETLBox.DataFlow;
-using ETLBox.Primitives;
-using TestShared.SharedFixtures;
-using TestTransformations.Fixtures;
+using EtlKit.DataFlow;
+using EtlKit.Primitives;
+using EtlKit.TestShared.SharedFixtures;
+using EtlKit.TestTransformations.Fixtures;
 
-namespace TestTransformations.LookupTransformation
+namespace EtlKit.TestTransformations.LookupTransformation
 {
     [Collection("Transformations")]
     public sealed class LookupDynamicObjectTests : TransformationsTestBase, IDisposable
@@ -32,10 +32,7 @@ namespace TestTransformations.LookupTransformation
                 -1
             );
 
-            var source = new DbSource<ExpandoObject>(
-                connection,
-                "SourceLookupDynamicObject"
-            );
+            var source = new DbSource<ExpandoObject>(connection, "SourceLookupDynamicObject");
             var dest = new DbDestination<ExpandoObject>(
                 connection,
                 "DestinationLookupDynamicObject"
@@ -44,9 +41,7 @@ namespace TestTransformations.LookupTransformation
             //Act
             var lookupList = new List<ExpandoObject>();
 
-            var lookupSource = new CsvSource<ExpandoObject>(
-                "res/Lookup/LookupSource.csv"
-            );
+            var lookupSource = new CsvSource<ExpandoObject>("res/Lookup/LookupSource.csv");
 
             var lookup = new LookupTransformation<ExpandoObject, ExpandoObject>(
                 lookupSource,

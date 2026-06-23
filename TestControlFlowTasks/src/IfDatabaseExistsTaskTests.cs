@@ -1,10 +1,10 @@
-using ALE.ETLBox;
-using ALE.ETLBox.Common;
-using ALE.ETLBox.ControlFlow;
-using ETLBox.Primitives;
-using TestControlFlowTasks.Fixtures;
+using EtlKit;
+using EtlKit.Common;
+using EtlKit.ControlFlow;
+using EtlKit.Primitives;
+using EtlKit.TestControlFlowTasks.Fixtures;
 
-namespace TestControlFlowTasks
+namespace EtlKit.TestControlFlowTasks
 {
     [Collection(nameof(ControlFlowCollection))]
     public class IfDatabaseExistsTaskTests : ControlFlowTestBase
@@ -18,7 +18,7 @@ namespace TestControlFlowTasks
         public void IfDatabaseExists(IConnectionManager connection)
         {
             //Arrange
-            string dbName = ("ETLBox_" + HashHelper.RandomString(10)).ToLower();
+            string dbName = ("EtlKit_" + HashHelper.RandomString(10)).ToLower();
             var existsBefore = IfDatabaseExistsTask.IsExisting(connection, dbName);
 
             //Act
@@ -36,7 +36,7 @@ namespace TestControlFlowTasks
         [Fact]
         public void NotSupportedWithSQLite()
         {
-            Assert.Throws<ETLBoxNotSupportedException>(
+            Assert.Throws<EtlKitNotSupportedException>(
                 () => IfDatabaseExistsTask.IsExisting(SqliteConnection, "Test")
             );
         }

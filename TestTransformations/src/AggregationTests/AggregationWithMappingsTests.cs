@@ -1,6 +1,6 @@
-using ALE.ETLBox.DataFlow;
+using EtlKit.DataFlow;
 
-namespace TestTransformations.AggregationTests
+namespace EtlKit.TestTransformations.AggregationTests
 {
     public class AggregationWithMappingsTests
     {
@@ -29,14 +29,14 @@ namespace TestTransformations.AggregationTests
                     ["GroupName"] = new()
                     {
                         Name = "ClassName",
-                        AggregationMethod = InputAggregationField.InputAggregationMethod.GroupBy
+                        AggregationMethod = InputAggregationField.InputAggregationMethod.GroupBy,
                     },
                     ["AggValue"] = new()
                     {
                         Name = "DetailValue",
-                        AggregationMethod = InputAggregationField.InputAggregationMethod.Sum
-                    }
-                }
+                        AggregationMethod = InputAggregationField.InputAggregationMethod.Sum,
+                    },
+                },
             };
             var dest = new MemoryDestination<ExpandoObject>();
             //Act
@@ -90,7 +90,7 @@ namespace TestTransformations.AggregationTests
                         new InputAggregationField
                         {
                             Name = "Id",
-                            AggregationMethod = InputAggregationField.InputAggregationMethod.Max
+                            AggregationMethod = InputAggregationField.InputAggregationMethod.Max,
                         }
                     },
                     {
@@ -98,7 +98,7 @@ namespace TestTransformations.AggregationTests
                         new InputAggregationField
                         {
                             Name = "Id",
-                            AggregationMethod = InputAggregationField.InputAggregationMethod.Min
+                            AggregationMethod = InputAggregationField.InputAggregationMethod.Min,
                         }
                     },
                     {
@@ -106,7 +106,7 @@ namespace TestTransformations.AggregationTests
                         new InputAggregationField
                         {
                             Name = "Id",
-                            AggregationMethod = InputAggregationField.InputAggregationMethod.Sum
+                            AggregationMethod = InputAggregationField.InputAggregationMethod.Sum,
                         }
                     },
                     {
@@ -114,10 +114,10 @@ namespace TestTransformations.AggregationTests
                         new InputAggregationField
                         {
                             Name = "Id",
-                            AggregationMethod = InputAggregationField.InputAggregationMethod.Count
+                            AggregationMethod = InputAggregationField.InputAggregationMethod.Count,
                         }
-                    }
-                }
+                    },
+                },
             };
 
             var dest = new MemoryDestination<ExpandoObject>();
@@ -164,7 +164,7 @@ namespace TestTransformations.AggregationTests
                         new InputAggregationField
                         {
                             Name = "Id",
-                            AggregationMethod = InputAggregationField.InputAggregationMethod.Max
+                            AggregationMethod = InputAggregationField.InputAggregationMethod.Max,
                         }
                     },
                     {
@@ -172,10 +172,10 @@ namespace TestTransformations.AggregationTests
                         new InputAggregationField
                         {
                             Name = "Id",
-                            AggregationMethod = InputAggregationField.InputAggregationMethod.Min
+                            AggregationMethod = InputAggregationField.InputAggregationMethod.Min,
                         }
                     },
-                }
+                },
             };
 
             var dest = new MemoryDestination<ExpandoObject>();
@@ -189,8 +189,8 @@ namespace TestTransformations.AggregationTests
             // Assert
             Assert.Single(dest.Data);
 
-            var ids = source.Data
-                .Select(d => d as IDictionary<string, object>)
+            var ids = source
+                .Data.Select(d => d as IDictionary<string, object>)
                 .Select(d => d["Id"])
                 .ToArray();
             var aggObj = dest.Data.First() as IDictionary<string, object>;

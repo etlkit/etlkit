@@ -1,8 +1,8 @@
-﻿using ALE.ETLBox.ConnectionManager;
-using ALE.ETLBoxTests.Performance.Fixtures;
-using TestShared.Helper;
+﻿using EtlKit.ConnectionManager;
+using EtlKit.TestPerformance.Fixtures;
+using EtlKit.TestShared.Helper;
 
-namespace ALE.ETLBoxTests.Performance
+namespace EtlKit.TestPerformance
 {
     [CollectionDefinition("Performance")]
     public class PerformanceCollectionClass : ICollectionFixture<PerformanceDatabaseFixture> { }
@@ -41,8 +41,8 @@ namespace ALE.ETLBoxTests.Performance
                     Config.MySqlConnection.ConnectionManager("Performance"),
                     numberOfRows,
                     batchSize,
-                    deviation
-                }
+                    deviation,
+                },
             };
 
         public static IEnumerable<object[]> PostgresConnection(
@@ -57,8 +57,8 @@ namespace ALE.ETLBoxTests.Performance
                     Config.PostgresConnection.ConnectionManager("Performance"),
                     numberOfRows,
                     batchSize,
-                    deviation
-                }
+                    deviation,
+                },
             };
 
         public static IEnumerable<object[]> SQLiteConnection(
@@ -73,8 +73,8 @@ namespace ALE.ETLBoxTests.Performance
                     Config.SQLiteConnection.ConnectionManager("Performance"),
                     numberOfRows,
                     batchSize,
-                    deviation
-                }
+                    deviation,
+                },
             };
     }
 }

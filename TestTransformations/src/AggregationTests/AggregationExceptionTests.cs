@@ -1,6 +1,6 @@
-using ALE.ETLBox.DataFlow;
+using EtlKit.DataFlow;
 
-namespace TestTransformations.AggregationTests
+namespace EtlKit.TestTransformations.AggregationTests
 {
     public class AggregationExceptionTests
     {
@@ -25,14 +25,12 @@ namespace TestTransformations.AggregationTests
             {
                 DataAsList = new List<MyRow>
                 {
-                    new() { Id = 1, DetailValue = 3.5 }
-                }
+                    new() { Id = 1, DetailValue = 3.5 },
+                },
             };
 
             //Act
-            var agg = new Aggregation<MyRow, MyAggRow>(
-                (_, _) => throw new Exception("Test")
-            );
+            var agg = new Aggregation<MyRow, MyAggRow>((_, _) => throw new Exception("Test"));
 
             var dest = new MemoryDestination<MyAggRow>();
 
@@ -59,9 +57,9 @@ namespace TestTransformations.AggregationTests
                     {
                         Id = 1,
                         ClassName = "Class1",
-                        DetailValue = 3.5
-                    }
-                }
+                        DetailValue = 3.5,
+                    },
+                },
             };
 
             //Act

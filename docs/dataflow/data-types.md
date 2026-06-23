@@ -2,7 +2,7 @@
 
 ## Generic approach
 
-Almost all components in ETLBox can be defined with a POCO (Plain old component object), which is a very simple
+Almost all components in EtlKit can be defined with a POCO (Plain old component object), which is a very simple
 object describing your data and data types. This object can be used to store your data in your data flow.
 
 Almost all sources provide a column name for every data column. In a CSV file, you nomrally have a header at the top row
@@ -82,7 +82,7 @@ DbSource<MyNewRow> source = new DbSource<MyNewRow>() {
 ```
 
 The Sql statement would produce 2 columns: Column 1 with the column name Value1 and column 2 with the column name "AnotherValue".
-ETLBox now is able to map the first column to the property Value1 and the second column to the property AnotherValue.
+EtlKit now is able to map the first column to the property Value1 and the second column to the property AnotherValue.
 Of course, you still could use the `ColumnMap` Attribute.
 
 ### ColumnMap attribute
@@ -126,10 +126,10 @@ the [existing transformations](transformations.md) to modify your data.
 
 Whenever you read data from any source (database, csv, json, ...) or you write into any destination, sometimes the data types
 in your object will be different than the ones your database table or your object.
-ETLBox will always try to convert the data into the right type: E.g. when you read data from a CSV file, by default the data
+EtlKit will always try to convert the data into the right type: E.g. when you read data from a CSV file, by default the data
 comes as a string. But if your object defines a numeric data type like int or double, it will be automatically converted.
 Or if you write into a database table, there could be a DECIMAL column in your table, and your object could hold a string value.
-As long as the string in your object can be converted into a decimal value, ETLBox will automatically try to cast your data
+As long as the string in your object can be converted into a decimal value, EtlKit will automatically try to cast your data
 into the right type.
 
 ## Dynamic object approach
@@ -141,7 +141,7 @@ no type checks are executed when you compile you program. The keyword here is `d
 
 ### ExpandoObject
 
-ETLBox offers support for dynamic objects, and relies on the `ExpandoObject`. The ExpandoObject can be cast into
+EtlKit offers support for dynamic objects, and relies on the `ExpandoObject`. The ExpandoObject can be cast into
 a dynamic, and after the cast properties can be created by simple assigned them a value.
 
 Here is a simple example of the `ExpandoObject`
@@ -155,9 +155,9 @@ sampleObject.test = "Dynamic Property";
 [The Microsoft documentation gives you a good explanation of the possibilites of the ExpandoObject and also more details about
 the use of `dynamic`.](https://docs.microsoft.com/en-us/dotnet/api/system.dynamic.expandoobject?view=netframework-4.8)
 
-### ETLBox support for ExpandoObject
+### EtlKit support for ExpandoObject
 
-In order to use the ExpandoObject and dynmic objects with ETLBox, you simple type your data flow with this object.
+In order to use the ExpandoObject and dynmic objects with EtlKit, you simple type your data flow with this object.
 Alternatively, you just use the non generic object - which automitically will use the ExpandoObject.
 The following two lines will do the same:
 
@@ -192,12 +192,12 @@ DbDestination dest = new DbDestination("destTable");
 ```
 
 In this example code, the data is read from a DbSource into an ExpandoObject. The properties SourceCol1 and SourceCol2
-are created automatically, because ETLBox will recognize that it is an ExpandoObject and add a property
+are created automatically, because EtlKit will recognize that it is an ExpandoObject and add a property
 for each column in the source.
 In the RowTransformation, you can convert the ExpandoObject into a dynamic object first, so that you don't get any errros
 message when you compile your code. Now we can assign a new property to the (same) ExpandoObject - in this case, it's called
 DestColSum as a sum of the properties SourceCol1 and SourceCol2.
-Now when we write into the destination, ETLBox will see that there is one property on the ExpandoObject which name mathces
+Now when we write into the destination, EtlKit will see that there is one property on the ExpandoObject which name mathces
 with the destination column: "DestColSum". The other two properties (SourceCol1 and SourceCol2) will be ignored, and data
 from DestColSum will be written into the target.
 
@@ -206,7 +206,7 @@ property DestColSum.
 
 ## Working with Arrays
 
-Wworking with dynamic types can sometimes be a hazzle. ETLBox offers a third way to create your data flow without
+Wworking with dynamic types can sometimes be a hazzle. EtlKit offers a third way to create your data flow without
 defining object types and the need to create a POCO for your data. Simple use an array as data type - either an array
 of type object or string. An string array could have advantages if you read data from json or csvs, object could work better
 when reading from databases.

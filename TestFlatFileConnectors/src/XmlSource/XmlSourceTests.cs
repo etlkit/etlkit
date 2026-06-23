@@ -1,8 +1,8 @@
-using ALE.ETLBox.DataFlow;
-using TestFlatFileConnectors.Fixture;
-using TestShared.SharedFixtures;
+using EtlKit.DataFlow;
+using EtlKit.TestFlatFileConnectors.Fixture;
+using EtlKit.TestShared.SharedFixtures;
 
-namespace TestFlatFileConnectors.XmlSource
+namespace EtlKit.TestFlatFileConnectors.XmlSource
 {
     [Collection("FlatFilesToDatabase")]
     public class XmlSourceTests : FlatFileConnectorsTestBase
@@ -21,10 +21,7 @@ namespace TestFlatFileConnectors.XmlSource
         {
             //Arrange
             var dest2Columns = new TwoColumnsTableFixture("XmlSource2Cols");
-            var dest = new DbDestination<MySimpleRow>(
-                SqlConnection,
-                "XmlSource2Cols"
-            );
+            var dest = new DbDestination<MySimpleRow>(SqlConnection, "XmlSource2Cols");
 
             //Act
             var source = new XmlSource<MySimpleRow>(
@@ -53,13 +50,8 @@ namespace TestFlatFileConnectors.XmlSource
         public void XmlOnlyAttributes()
         {
             //Arrange
-            var dest2Columns = new TwoColumnsTableFixture(
-                "XmlSource2ColsAttribute"
-            );
-            var dest = new DbDestination<MyAttributeRow>(
-                SqlConnection,
-                "XmlSource2ColsAttribute"
-            );
+            var dest2Columns = new TwoColumnsTableFixture("XmlSource2ColsAttribute");
+            var dest = new DbDestination<MyAttributeRow>(SqlConnection, "XmlSource2ColsAttribute");
 
             //Actt
             var source = new XmlSource<MyAttributeRow>(

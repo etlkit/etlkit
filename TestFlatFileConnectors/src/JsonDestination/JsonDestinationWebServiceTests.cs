@@ -1,10 +1,10 @@
 using System.Net.Http;
-using ALE.ETLBox.DataFlow;
+using EtlKit.DataFlow;
+using EtlKit.TestFlatFileConnectors.Fixture;
 using Moq;
 using Moq.Contrib.HttpClient;
-using TestFlatFileConnectors.Fixture;
 
-namespace TestFlatFileConnectors.JsonDestination
+namespace EtlKit.TestFlatFileConnectors.JsonDestination
 {
     [Collection("FlatFilesToDatabase")]
     public class JsonDestinationWebServiceTests : FlatFileConnectorsTestBase

@@ -1,12 +1,12 @@
-using ALE.ETLBox.Common.DataFlow;
-using ALE.ETLBox.ConnectionManager;
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.DataFlow;
-using ALE.ETLBox.Logging;
-using ALE.ETLBoxTests.NonParallel.Fixtures;
-using EtlBox.Logging.Database;
+using EtlKit.Common.DataFlow;
+using EtlKit.ConnectionManager;
+using EtlKit.ControlFlow;
+using EtlKit.DataFlow;
+using EtlKit.Logging;
+using EtlKit.Logging.Database;
+using EtlKit.TestNonParallel.Fixtures;
 
-namespace ALE.ETLBoxTests.NonParallel.Logging
+namespace EtlKit.TestNonParallel.Logging
 {
     [Collection("Logging")]
     public sealed class DifferentLoggingDBTests
@@ -32,12 +32,9 @@ namespace ALE.ETLBoxTests.NonParallel.Logging
 
         public void Dispose()
         {
-            DropTableTask.Drop(
-                LoggingConnection,
-                ALE.ETLBox.Common.ControlFlow.ControlFlow.LogTable
-            );
-            ALE.ETLBox.Common.ControlFlow.ControlFlow.ClearSettings();
-            DataFlow.ClearSettings();
+            DropTableTask.Drop(LoggingConnection, EtlKit.Common.ControlFlow.ControlFlow.LogTable);
+            EtlKit.Common.ControlFlow.ControlFlow.ClearSettings();
+            Common.DataFlow.DataFlow.ClearSettings();
         }
 
         [Fact]
@@ -53,7 +50,7 @@ namespace ALE.ETLBoxTests.NonParallel.Logging
                             (Col1 INT NOT NULL, Col2 NVARCHAR(50) NULL)"
             );
 
-            ALE.ETLBox.Common.ControlFlow.ControlFlow.DefaultDbConnection = NoLogConnection;
+            EtlKit.Common.ControlFlow.ControlFlow.DefaultDbConnection = NoLogConnection;
 
             SqlTask.ExecuteNonQuery(
                 "Insert demo data",
@@ -63,10 +60,10 @@ namespace ALE.ETLBoxTests.NonParallel.Logging
             //Assert
             Assert.Equal(
                 4,
-                new RowCountTask("etlbox_log", "task_type = 'SqlTask' ")
+                new RowCountTask("etlkit_log", "task_type = 'SqlTask' ")
                 {
                     DisableLogging = true,
-                    ConnectionManager = LoggingConnection
+                    ConnectionManager = LoggingConnection,
                 }
                     .Count()
                     .Rows
@@ -77,7 +74,7 @@ namespace ALE.ETLBoxTests.NonParallel.Logging
         public void DataFlowLoggingInDifferentDB()
         {
             //Arrange
-            DataFlow.LoggingThresholdRows = 3;
+            Common.DataFlow.DataFlow.LoggingThresholdRows = 3;
             SqlTask.ExecuteNonQuery(
                 NoLogConnection,
                 "Create source table",
@@ -118,20 +115,20 @@ namespace ALE.ETLBoxTests.NonParallel.Logging
             //Assert
             Assert.Equal(
                 4,
-                new RowCountTask("etlbox_log", "task_type = 'DbSource'")
+                new RowCountTask("etlkit_log", "task_type = 'DbSource'")
                 {
                     DisableLogging = true,
-                    ConnectionManager = LoggingConnection
+                    ConnectionManager = LoggingConnection,
                 }
                     .Count()
                     .Rows
             );
             Assert.Equal(
                 4,
-                new RowCountTask("etlbox_log", "task_type = 'DbDestination'")
+                new RowCountTask("etlkit_log", "task_type = 'DbDestination'")
                 {
                     DisableLogging = true,
-                    ConnectionManager = LoggingConnection
+                    ConnectionManager = LoggingConnection,
                 }
                     .Count()
                     .Rows

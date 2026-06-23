@@ -1,8 +1,8 @@
-using ALE.ETLBox.DataFlow;
-using TestShared.SharedFixtures;
-using TestTransformations.Fixtures;
+using EtlKit.DataFlow;
+using EtlKit.TestShared.SharedFixtures;
+using EtlKit.TestTransformations.Fixtures;
 
-namespace TestTransformations.RowDuplication
+namespace EtlKit.TestTransformations.RowDuplication
 {
     [Collection("Transformations")]
     public class RowDuplicationStringArrayTests : TransformationsTestBase
@@ -14,15 +14,10 @@ namespace TestTransformations.RowDuplication
         public void DataIsInList()
         {
             //Arrange
-            var source2Columns = new TwoColumnsTableFixture(
-                "RowDuplicationStringArraySource"
-            );
+            var source2Columns = new TwoColumnsTableFixture("RowDuplicationStringArraySource");
             source2Columns.InsertTestData();
 
-            var source = new DbSource<string[]>(
-                SqlConnection,
-                "RowDuplicationStringArraySource"
-            );
+            var source = new DbSource<string[]>(SqlConnection, "RowDuplicationStringArraySource");
             var duplication = new RowDuplication<string[]>();
             var dest = new MemoryDestination<string[]>();
 

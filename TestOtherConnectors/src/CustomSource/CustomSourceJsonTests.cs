@@ -1,16 +1,14 @@
 using System.Text.Json.Nodes;
-using ALE.ETLBox.ControlFlow;
+using EtlKit.ControlFlow;
+using EtlKit.TestOtherConnectors.Fixture;
 
-namespace TestOtherConnectors.CustomSource
+namespace EtlKit.TestOtherConnectors.CustomSource
 {
     [Collection("OtherConnectors")]
     public class CustomSourceJsonTests : OtherConnectorsTestBase
     {
-
         public CustomSourceJsonTests(OtherConnectorsDatabaseFixture fixture)
-            : base(fixture)
-        {
-        }
+            : base(fixture) { }
 
         /// <summary>
         /// See https://jsonplaceholder.typicode.com/ for details of the rest api
@@ -61,9 +59,14 @@ namespace TestOtherConnectors.CustomSource
 
             public WebserviceFakeReader()
             {
-                var fileContent = File.ReadAllText(Path.Join(Directory.GetCurrentDirectory(), "res", "CustomSource",
-                    "typicode.com.todos.json"
-                ));
+                var fileContent = File.ReadAllText(
+                    Path.Join(
+                        Directory.GetCurrentDirectory(),
+                        "res",
+                        "CustomSource",
+                        "typicode.com.todos.json"
+                    )
+                );
                 _todosJsonArray = JsonNode.Parse(fileContent) as JsonArray;
             }
 

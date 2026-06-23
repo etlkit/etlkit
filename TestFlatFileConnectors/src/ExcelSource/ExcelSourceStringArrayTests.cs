@@ -1,9 +1,9 @@
-using ALE.ETLBox.Common.DataFlow;
-using ALE.ETLBox.DataFlow;
-using TestFlatFileConnectors.Fixture;
-using TestShared.SharedFixtures;
+using EtlKit.Common.DataFlow;
+using EtlKit.DataFlow;
+using EtlKit.TestFlatFileConnectors.Fixture;
+using EtlKit.TestShared.SharedFixtures;
 
-namespace TestFlatFileConnectors.ExcelSource
+namespace EtlKit.TestFlatFileConnectors.ExcelSource
 {
     [Collection("FlatFilesToDatabase")]
     public class ExcelSourceStringArrayTests : FlatFileConnectorsTestBase
@@ -21,27 +21,19 @@ namespace TestFlatFileConnectors.ExcelSource
         public void SimpleDataNoHeader()
         {
             //Arrange
-            var dest2Columns = new TwoColumnsTableFixture(
-                "ExcelDestinationStringArray"
-            );
+            var dest2Columns = new TwoColumnsTableFixture("ExcelDestinationStringArray");
 
             //Act
             var source = new ExcelSource<string[]>("res/Excel/TwoColumnData.xlsx")
             {
-                HasNoHeader = true
+                HasNoHeader = true,
             };
-            var trans = new RowTransformation<
-                string[],
-                MyData
-            >(row =>
+            var trans = new RowTransformation<string[], MyData>(row =>
             {
                 var result = new MyData { Col1 = int.Parse(row[0]), Col2 = row[1] };
                 return result;
             });
-            var dest = new DbDestination<MyData>(
-                SqlConnection,
-                "ExcelDestinationStringArray"
-            );
+            var dest = new DbDestination<MyData>(SqlConnection, "ExcelDestinationStringArray");
 
             source.LinkTo(trans);
             trans.LinkTo(dest);

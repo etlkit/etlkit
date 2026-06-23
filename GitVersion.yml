@@ -1,39 +1,21 @@
-# GitVersion configuration for ETLBox
-# Branching strategy: GitFlow (see Confluence: "Процесс разработки в Git")
+# GitVersion configuration for projects following the GitFlow development process.
 #
-# Branch types and their version increment:
-#   hotfix/*       — bug fix on master/support    → Patch  (configured below)
-#   bugfix/*       — bug fix on develop/release   → Patch  (configured below)
-#   feature/*      — new feature from develop     → Minor  (built-in default)
-#   dev/*          — subtask branch from feature  → Inherit from feature (configured below)
-#   release/*      — release branch from develop  → Minor  (built-in default)
-#   support/*      — old-version support branch   → Patch  (built-in default)
-#   documentation/* — docs branch from develop/feature → Inherit (configured below)
+# Version increment strategies by branch type:
+#   hotfix/*        — bug fix in master/support                  → Patch  (built-in default)
+#   bugfix/*        — bug fix in develop/release                 → Patch  (explicitly set below)
+#   feature/*       — new feature from develop                   → Minor  (built-in default)
+#   dev/*           — sub-tasks of a feature, branched from feature → Inherit from feature (explicitly set below)
+#   release/*       — release branch from develop                → Minor  (built-in default)
+#   support/*       — old version support from master            → Patch  (built-in default)
+#   documentation/* — documentation from develop/feature         → Inherit (explicitly set below)
+
+next-version: 2.0.0
 
 branches:
-  hotfix:
-    # increment Patch + label {BranchName}: a hotfix is a fix for the already-released
-    # master/support line, so it always bumps the patch (e.g. 1.20.0 -> 1.20.1).
-    #
-    # Do NOT use 'Inherit' here. Our master tip is a "Merge develop into master" commit and
-    # the release tag sits on the develop side of that merge, so master and develop share the
-    # same history. GitVersion's Inherit then cannot tell them apart and resolves to develop's
-    # Minor, producing 1.21.0 instead of 1.20.1 (reproduced with GitVersion 6.7).
-    mode: ContinuousDelivery
-    label: '{BranchName}'
-    increment: Patch
-    prevent-increment:
-      when-current-commit-tagged: false
-    regex: ^hotfix(es)?[/-](?<BranchName>.+)
-    source-branches:
-      - main
-      - support
-      - develop
-      - feature
-    is-source-branch-for: []
-    is-main-branch: false
-    pre-release-weight: 30000
-
+  # bugfix/* branches are created for bug fixes in develop or release.
+  # Without explicit configuration GitVersion treats them as type unknown and
+  # computes the increment from develop (Minor), yielding an unexpected result —
+  # e.g. 1.17.0 instead of the expected 1.16.1. Explicit Patch fixes this.
   bugfix:
     mode: ManualDeployment
     label: '{BranchName}'
@@ -42,28 +24,34 @@ branches:
       when-current-commit-tagged: false
     regex: ^bugfix(es)?[/-](?<BranchName>.+)
     source-branches:
-      - main
-      - develop
-      - release
-      - support
+    - main
+    - develop
+    - release
+    - support
     is-source-branch-for: []
     is-main-branch: false
     pre-release-weight: 30000
 
+  # dev/* branches are used for sub-tasks within a feature.
+  # Without explicit configuration they fall into unknown and may resolve
+  # the source incorrectly. Explicit configuration limits source-branches
+  # to feature and develop.
   dev:
-    mode: ContinuousDelivery
+    mode: ManualDeployment
     label: '{BranchName}'
     increment: Inherit
     prevent-increment:
       when-current-commit-tagged: false
     regex: ^dev[/-](?<BranchName>.+)
     source-branches:
-      - feature
-      - develop
+    - feature
+    - develop
     is-source-branch-for: []
     is-main-branch: false
     pre-release-weight: 30000
 
+  # documentation/* branches are used for documentation changes.
+  # Version is inherited from the parent branch (develop or feature).
   documentation:
     mode: ManualDeployment
     label: '{BranchName}'
@@ -72,8 +60,8 @@ branches:
       when-current-commit-tagged: false
     regex: ^documentation[/-](?<BranchName>.+)
     source-branches:
-      - develop
-      - feature
+    - develop
+    - feature
     is-source-branch-for: []
     is-main-branch: false
     pre-release-weight: 30000

@@ -1,7 +1,7 @@
 {
-  "CFG_MSSQL_IP" : "localhost",
-  "CFG_MYSQL_IP" : "localhost",
-  "CFG_POSTGRES_IP" : "localhost",
-  "CFG_CLICKHOUSE_IP" : "localhost",
+  "CFG_MSSQL_IP" : "127.0.0.1",
+  "CFG_MYSQL_IP" : "127.0.0.1",
+  "CFG_POSTGRES_IP" : "127.0.0.1",
+  "CFG_CLICKHOUSE_IP" : "127.0.0.1",
   "CFG_PD" : "\\\\"
 }

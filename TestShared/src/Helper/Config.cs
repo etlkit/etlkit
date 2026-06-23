@@ -1,14 +1,14 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Runtime.InteropServices;
-using ALE.ETLBox;
-using ALE.ETLBox.ConnectionManager;
-using ETLBox.ClickHouse.ConnectionManager;
-using ETLBox.ClickHouse.ConnectionStrings;
-using ETLBox.Primitives;
+using EtlKit;
+using EtlKit.ClickHouse.ConnectionManager;
+using EtlKit.ClickHouse.ConnectionStrings;
+using EtlKit.ConnectionManager;
+using EtlKit.Primitives;
 using Microsoft.Extensions.Configuration;
 
-namespace TestShared.Helper;
+namespace EtlKit.TestShared.Helper;
 
 public static class Config
 {
@@ -65,7 +65,7 @@ public static class Config
                 return s_defaultConfigFile;
             }
 
-            var environmentVariable = Environment.GetEnvironmentVariable("ETLBoxConfig");
+            var environmentVariable = Environment.GetEnvironmentVariable("EtlKitConfig");
             var path = string.IsNullOrWhiteSpace(environmentVariable)
                 ? "default.config.json"
                 : environmentVariable;

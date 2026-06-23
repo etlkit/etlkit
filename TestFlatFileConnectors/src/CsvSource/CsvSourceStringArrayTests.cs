@@ -1,9 +1,9 @@
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.DataFlow;
-using TestFlatFileConnectors.Fixture;
-using TestShared.SharedFixtures;
+using EtlKit.ControlFlow;
+using EtlKit.DataFlow;
+using EtlKit.TestFlatFileConnectors.Fixture;
+using EtlKit.TestShared.SharedFixtures;
 
-namespace TestFlatFileConnectors.CsvSource
+namespace EtlKit.TestFlatFileConnectors.CsvSource
 {
     [Collection("FlatFilesToDatabase")]
     public class CsvSourceStringArrayTests : FlatFileConnectorsTestBase
@@ -15,13 +15,8 @@ namespace TestFlatFileConnectors.CsvSource
         public void SimpleCSVIntoDatabase()
         {
             //Arrange
-            var dest2Columns = new TwoColumnsTableFixture(
-                "CsvDestination2Columns"
-            );
-            var dest = new DbDestination<string[]>(
-                SqlConnection,
-                "CsvDestination2Columns"
-            );
+            var dest2Columns = new TwoColumnsTableFixture("CsvDestination2Columns");
+            var dest = new DbDestination<string[]>(SqlConnection, "CsvDestination2Columns");
 
             //Act
             var source = new CsvSource<string[]>("res/CsvSource/TwoColumns.csv");
@@ -37,13 +32,8 @@ namespace TestFlatFileConnectors.CsvSource
         public void MoreColumnsInCSV()
         {
             //Arrange
-            var dest2Columns = new TwoColumnsTableFixture(
-                "CsvDestination2Columns"
-            );
-            var dest = new DbDestination<string[]>(
-                SqlConnection,
-                "CsvDestination2Columns"
-            );
+            var dest2Columns = new TwoColumnsTableFixture("CsvDestination2Columns");
+            var dest = new DbDestination<string[]>(SqlConnection, "CsvDestination2Columns");
 
             //Act
             var source = new CsvSource<string[]>("res/CsvSource/ThreeColumns.csv");
@@ -60,10 +50,7 @@ namespace TestFlatFileConnectors.CsvSource
         {
             //Arrange
             var unused = new TwoColumnsTableFixture("CsvDestination2Columns");
-            var dest = new DbDestination<string[]>(
-                SqlConnection,
-                "CsvDestination2Columns"
-            );
+            var dest = new DbDestination<string[]>(SqlConnection, "CsvDestination2Columns");
 
             //Act
             var source = new CsvSource<string[]>("res/CsvSource/OneColumn.csv");

@@ -1,8 +1,8 @@
-using ALE.ETLBox.DataFlow;
-using TestShared.SharedFixtures;
-using TestTransformations.Fixtures;
+using EtlKit.DataFlow;
+using EtlKit.TestShared.SharedFixtures;
+using EtlKit.TestTransformations.Fixtures;
 
-namespace TestTransformations.Multicast
+namespace EtlKit.TestTransformations.Multicast
 {
     [Collection("Transformations")]
     public class MulticastTests : TransformationsTestBase
@@ -28,18 +28,9 @@ namespace TestTransformations.Multicast
             var dest3Table = new TwoColumnsTableFixture("Destination3");
 
             var source = new DbSource<MySimpleRow>(SqlConnection, "Source");
-            var dest1 = new DbDestination<MySimpleRow>(
-                SqlConnection,
-                "Destination1"
-            );
-            var dest2 = new DbDestination<MySimpleRow>(
-                SqlConnection,
-                "Destination2"
-            );
-            var dest3 = new DbDestination<MySimpleRow>(
-                SqlConnection,
-                "Destination3"
-            );
+            var dest1 = new DbDestination<MySimpleRow>(SqlConnection, "Destination1");
+            var dest2 = new DbDestination<MySimpleRow>(SqlConnection, "Destination2");
+            var dest3 = new DbDestination<MySimpleRow>(SqlConnection, "Destination3");
 
             //Act
             var multicast = new Multicast<MySimpleRow>();

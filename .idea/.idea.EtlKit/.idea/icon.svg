@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="EtlKit avatar">
+  <circle cx="50" cy="50" r="50" fill="#F8462D"></circle>
+  <g transform="translate(19 19) scale(0.62)">
+    <g fill="none" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 75 C34 75 38 50 50 50 S66 25 82 25"></path>
+    </g>
+    <g fill="#FFFFFF">
+      <circle cx="18" cy="75" r="9"></circle>
+      <circle cx="50" cy="50" r="9"></circle>
+      <circle cx="82" cy="25" r="9"></circle>
+    </g>
+  </g>
+</svg>

@@ -1,10 +1,10 @@
 using System.Data;
 using System.Linq;
-using ALE.ETLBox;
-using ALE.ETLBox.ControlFlow;
-using ETLBox.Primitives;
+using EtlKit;
+using EtlKit.ControlFlow;
+using EtlKit.Primitives;
 
-namespace TestShared.Helper
+namespace EtlKit.TestShared.Helper
 {
     /// <summary>
     /// Debug helper for debug purposes

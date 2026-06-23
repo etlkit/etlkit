@@ -1,8 +1,8 @@
-using ALE.ETLBox.DataFlow;
-using TestFlatFileConnectors.Fixture;
-using TestShared.SharedFixtures;
+using EtlKit.DataFlow;
+using EtlKit.TestFlatFileConnectors.Fixture;
+using EtlKit.TestShared.SharedFixtures;
 
-namespace TestFlatFileConnectors.ExcelSource
+namespace EtlKit.TestFlatFileConnectors.ExcelSource
 {
     [Collection("FlatFilesToDatabase")]
     public class ExcelSourceNameAttributeTests : FlatFileConnectorsTestBase
@@ -26,12 +26,8 @@ namespace TestFlatFileConnectors.ExcelSource
         public void SimpleData()
         {
             //Arrange
-            var dest2Columns = new TwoColumnsTableFixture(
-                "ExcelDestinationWithNameAttribute"
-            );
-            var source = new ExcelSource<MySimpleRow>(
-                "res/Excel/TwoColumnWithHeader.xlsx"
-            );
+            var dest2Columns = new TwoColumnsTableFixture("ExcelDestinationWithNameAttribute");
+            var source = new ExcelSource<MySimpleRow>("res/Excel/TwoColumnWithHeader.xlsx");
             var dest = new DbDestination<MySimpleRow>(
                 SqlConnection,
                 "ExcelDestinationWithNameAttribute"

@@ -1,9 +1,9 @@
-using ALE.ETLBox.DataFlow;
-using ETLBox.Primitives;
-using TestFlatFileConnectors.Fixture;
-using TestShared.SharedFixtures;
+using EtlKit.DataFlow;
+using EtlKit.Primitives;
+using EtlKit.TestFlatFileConnectors.Fixture;
+using EtlKit.TestShared.SharedFixtures;
 
-namespace TestFlatFileConnectors.ExcelSource
+namespace EtlKit.TestFlatFileConnectors.ExcelSource
 {
     [Collection("FlatFilesToDatabase")]
     public class ExcelSourceErrorLinkingTests : FlatFileConnectorsTestBase
@@ -24,21 +24,14 @@ namespace TestFlatFileConnectors.ExcelSource
         public void WithObjectErrorLinking()
         {
             //Arrange
-            var dest2Columns = new TwoColumnsTableFixture(
-                "ExcelSourceErrorLinking"
-            );
-            var dest = new DbDestination<MySimpleRow>(
-                SqlConnection,
-                "ExcelSourceErrorLinking"
-            );
-            var errorDest = new MemoryDestination<ETLBoxError>();
+            var dest2Columns = new TwoColumnsTableFixture("ExcelSourceErrorLinking");
+            var dest = new DbDestination<MySimpleRow>(SqlConnection, "ExcelSourceErrorLinking");
+            var errorDest = new MemoryDestination<EtlKitError>();
 
             //Act
-            var source = new ExcelSource<MySimpleRow>(
-                "res/Excel/TwoColumnErrorLinking.xlsx"
-            )
+            var source = new ExcelSource<MySimpleRow>("res/Excel/TwoColumnErrorLinking.xlsx")
             {
-                HasNoHeader = true
+                HasNoHeader = true,
             };
             source.LinkTo(dest);
             source.LinkErrorTo(errorDest);
@@ -61,11 +54,9 @@ namespace TestFlatFileConnectors.ExcelSource
         public void WithoutErrorLinking()
         {
             //Arrange
-            var source = new ExcelSource<MySimpleRow>(
-                "res/Excel/TwoColumnErrorLinking.xlsx"
-            )
+            var source = new ExcelSource<MySimpleRow>("res/Excel/TwoColumnErrorLinking.xlsx")
             {
-                HasNoHeader = true
+                HasNoHeader = true,
             };
             var dest = new MemoryDestination<MySimpleRow>();
 

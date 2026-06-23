@@ -1,6 +1,6 @@
 using System.Runtime.InteropServices;
 
-namespace TestShared.Attributes
+namespace EtlKit.TestShared.Attributes
 {
     [AttributeUsage(AttributeTargets.Method, AllowMultiple = false)]
     public sealed class WindowsOnlyTheoryAttribute : TheoryAttribute

@@ -1,5 +1,5 @@
 apiRules:
   - include:
-      uidRegex: ^ALE\.ETLBox
+      uidRegex: ^EtlKit
   - exclude:
       uidRegex: .*

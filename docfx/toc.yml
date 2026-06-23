@@ -1,2 +1,6 @@
 - name: API Reference
   href: api/
+- name: EtlKit.ClickHouse
+  href: api/clickhouse/
+- name: EtlKit.MongoDB
+  href: api/mongodb/

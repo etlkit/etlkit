@@ -36,7 +36,7 @@
           "src": ".."
         }
       ],
-      "dest": "api",
+      "dest": "api/clickhouse",
       "properties": {
         "TargetFramework": "netstandard2.1"
       },
@@ -51,7 +51,7 @@
           "src": ".."
         }
       ],
-      "dest": "api",
+      "dest": "api/mongodb",
       "properties": {
         "TargetFramework": "net6.0"
       },

@@ -4,8 +4,8 @@
 
 # DocFx generated output
 /_site/
-/docfx/api/*.yml
-/docfx/api/.manifest
+/docfx/api/**/*.yml
+/docfx/api/**/.manifest
 
 # dotnet tools and artifacts in CI
 /.tools/

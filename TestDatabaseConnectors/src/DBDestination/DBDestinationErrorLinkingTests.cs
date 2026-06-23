@@ -1,9 +1,10 @@
-using ALE.ETLBox.DataFlow;
-using ETLBox.Primitives;
-using TestShared;
-using TestShared.Helper;
+using EtlKit.DataFlow;
+using EtlKit.Primitives;
+using EtlKit.TestDatabaseConnectors.Fixtures;
+using EtlKit.TestShared;
+using EtlKit.TestShared.Helper;
 
-namespace TestDatabaseConnectors.DBDestination
+namespace EtlKit.TestDatabaseConnectors.DBDestination
 {
     [Collection(nameof(DataFlowSourceDestinationCollection))]
     public class DbDestinationErrorLinkingTests : DatabaseConnectorsTestBase
@@ -46,7 +47,7 @@ namespace TestDatabaseConnectors.DBDestination
                 "DestLinkError",
                 batchSize: 2
             );
-            MemoryDestination<ETLBoxError> errorDest = new MemoryDestination<ETLBoxError>();
+            MemoryDestination<EtlKitError> errorDest = new MemoryDestination<EtlKitError>();
 
             //Act
             source.LinkTo(dest);

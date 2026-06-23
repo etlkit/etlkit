@@ -1,9 +1,9 @@
-using ALE.ETLBox.ConnectionManager;
-using ALE.ETLBox.ControlFlow;
-using ETLBox.Primitives;
-using TestControlFlowTasks.Fixtures;
+using EtlKit.ConnectionManager;
+using EtlKit.ControlFlow;
+using EtlKit.Primitives;
+using EtlKit.TestControlFlowTasks.Fixtures;
 
-namespace TestControlFlowTasks
+namespace EtlKit.TestControlFlowTasks
 {
     [Collection(nameof(ControlFlowCollection))]
     public class IfTableOrViewExistsTaskTests : ControlFlowTestBase
@@ -28,10 +28,10 @@ namespace TestControlFlowTasks
             CreateTableTask.Create(
                 connection,
                 "existtable_test",
-                new List<ALE.ETLBox.TableColumn>()
+                new List<EtlKit.TableColumn>()
                 {
-                    new ALE.ETLBox.TableColumn("Id", "Int", false, true),
-                    new ALE.ETLBox.TableColumn("Col1", "Int", true),
+                    new EtlKit.TableColumn("Id", "Int", false, true),
+                    new EtlKit.TableColumn("Col1", "Int", true),
                 }
             );
 

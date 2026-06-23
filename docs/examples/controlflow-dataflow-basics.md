@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This purpose of this example is to give you a brief overview of the basic concepts of ETLBox. It
+This purpose of this example is to give you a brief overview of the basic concepts of EtlKit. It
 demonstrates the basic idea of a very simple data flow and shows how to use the ControlFlow objects
 to manage your database metadata.
 [There is also a video demonstrating this example](https://www.youtube.com/watch?v=CsWZuRpl6PA).
@@ -36,13 +36,13 @@ just execute the following command:
 
 If this doesn't work, make sure you have the latest version of .NET Core installed.
 
-Now, add the current version of ETLBox as a package to your project.
+Now, add the current version of EtlKit as a package to your project.
 
 ```bash
-dotnet add package ETLBox
+dotnet add package EtlKit
 ```
 
-Now you will be able to use the full set of tools coming with ETLBox
+Now you will be able to use the full set of tools coming with EtlKit
 
 ## Start coding
 
@@ -76,7 +76,7 @@ CreateTableTask.Create(dbConnection, "Table1", new List<TableColumn>()
 
 ### Adding nlog.config
 
-Before we test our demo project, we want to have some logging output displayed. ETLBox logging is
+Before we test our demo project, we want to have some logging output displayed. EtlKit logging is
 build on nlog. Add the following lines as nlog.config to your project root. Make sure it is copied
 into the output directory.
 

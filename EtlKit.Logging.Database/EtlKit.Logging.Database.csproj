@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>EtlKit.Logging.Database</RootNamespace>
+    <PackageId>EtlKit.Logging.Database</PackageId>
+    <Authors>RapidSoft</Authors>
+    <Description>
+      EtlKit is a fully open-source (MIT) ETL library and data integration toolbox for .NET.
+      Build extract-transform-load pipelines programmatically in C# with async, in-memory
+      data flow components backed by TPL Dataflow.
+      EtlKit database logging support using NLog.
+    </Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NLog.Database" Version="5.2.7"/>
+    <PackageReference Include="NLog.Web.AspNetCore" Version="5.3.7"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EtlKit.Common\EtlKit.Common.csproj" />
+    <ProjectReference Include="..\EtlKit\EtlKit.csproj" />
+  </ItemGroup>
+
+</Project>

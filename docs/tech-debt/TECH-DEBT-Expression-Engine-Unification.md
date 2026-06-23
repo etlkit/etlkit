@@ -12,11 +12,11 @@ Two different engines exist for evaluating user-supplied expressions on a row:
 
 | Component | Package | Engine | What it can express |
 |-----------|---------|--------|---------------------|
-| `ScriptedRowTransformation` | `ETLBox.Scripting` | Roslyn | Full C# inside the body — method calls, async, statement blocks, custom helper types |
-| `ExpressionRowFiltration`   | `ETLBox.DynamicLinq` | `System.Linq.Dynamic.Core` | Comparisons, arithmetic, logical operators, member access, null checks, LINQ-style collection methods, **method calls on user types via `RegisterCustomTypes`** (added in Round 5) |
+| `ScriptedRowTransformation` | `EtlKit.Scripting` | Roslyn | Full C# inside the body — method calls, async, statement blocks, custom helper types |
+| `ExpressionRowFiltration`   | `EtlKit.DynamicLinq` | `System.Linq.Dynamic.Core` | Comparisons, arithmetic, logical operators, member access, null checks, LINQ-style collection methods, **method calls on user types via `RegisterCustomTypes`** (added in Round 5) |
 
 As of 2026-04-29 the two engines live in **separate NuGet packages** so consumers
-who need only predicate filtration pull `ETLBox.DynamicLinq` and avoid the transitive
+who need only predicate filtration pull `EtlKit.DynamicLinq` and avoid the transitive
 Roslyn cost.
 
 **After Round 5** (commit adding `RegisterCustomTypes` and exposing `ParsingConfig`):
@@ -27,7 +27,7 @@ without registration. None of these are blocking for the filtration use case the
 DynamicLinq package is positioned for.
 
 The deeper question — whether one engine can subsume the other for the full
-ETLBox surface — is still open and tracked below.
+EtlKit surface — is still open and tracked below.
 
 ## Why both exist today
 
@@ -104,7 +104,7 @@ This file documents the question. The decision is intentionally deferred:
 
 MR !116 (this Dynamic LINQ work) was developed in parallel with three
 merged Roslyn-side MRs under MLRSSL-1510. They share the
-`ETLBox.Scripting` package and influence the symmetric API choices on
+`EtlKit.Scripting` package and influence the symmetric API choices on
 the Dynamic LINQ side. Decisions to track:
 
 - **MR !113** — `ScriptedRowTransformation.PassThrough` — copies input
@@ -137,26 +137,26 @@ the Dynamic LINQ side. Decisions to track:
 
 Following the benchmark results below and reviewer feedback on MR !116, the
 Dynamic LINQ-based filtration was extracted into a dedicated package
-**`ETLBox.DynamicLinq`**.
+**`EtlKit.DynamicLinq`**.
 
 What landed:
 
-- `ETLBox.Scripting` keeps the Roslyn-based components (`ScriptedRowTransformation`,
-  `ScriptBuilder`, `TypedScriptBuilder`, `EtlBoxScriptingServiceCollectionExtensions`)
+- `EtlKit.Scripting` keeps the Roslyn-based components (`ScriptedRowTransformation`,
+  `ScriptBuilder`, `TypedScriptBuilder`, `EtlKitScriptingServiceCollectionExtensions`)
   and its `Microsoft.CodeAnalysis.CSharp.Scripting` dependency. The
   `System.Linq.Dynamic.Core` dependency was removed.
-- `ETLBox.DynamicLinq` (new) hosts `ExpressionRowFiltration<TInput>`,
+- `EtlKit.DynamicLinq` (new) hosts `ExpressionRowFiltration<TInput>`,
   `ExpressionRowFiltration` (non-generic), `ExpandoTypeMapper` (internal), and
-  `EtlBoxDynamicLinqServiceCollectionExtensions`. Depends on `ETLBox`,
-  `ETLBox.Common` and `System.Linq.Dynamic.Core`. Namespace: `ALE.ETLBox.DynamicLinq`.
+  `EtlKitDynamicLinqServiceCollectionExtensions`. Depends on `EtlKit`,
+  `EtlKit.Common` and `System.Linq.Dynamic.Core`. Namespace: `EtlKit.DynamicLinq`.
 - `ETLBox.DynamicLinq.Tests` (new) hosts `ExpressionRowFiltrationTests` (37 tests)
   and `FeatureParity/MethodCallSupportTests` (8 tests). Both moved from
   `ETLBox.Scripting.Tests`.
 - `ETLBox.Serialization.Tests/ExpressionRowFiltrationDeserializationTests.cs`
-  references `ALE.ETLBox.DynamicLinq` instead of `ALE.ETLBox.Scripting`.
+  references `EtlKit.DynamicLinq` instead of `EtlKit.Scripting`.
 - `ETLBox.DynamicLinq.Benchmarks` (renamed from `ETLBox.Scripting.Benchmarks`)
-  references both packages — Roslyn comparisons through `ETLBox.Scripting` and
-  Dynamic LINQ paths through `ETLBox.DynamicLinq`.
+  references both packages — Roslyn comparisons through `EtlKit.Scripting` and
+  Dynamic LINQ paths through `EtlKit.DynamicLinq`.
 
 Test counts after split:
 

@@ -1,15 +1,15 @@
 # A simple data flow
 
-The main part of ETLBox is the Data Flow library. It basically is the ETL part, and holds all
+The main part of EtlKit is the Data Flow library. It basically is the ETL part, and holds all
 components for extracting, transforming and loading data. All Data Flow components reside in the
-'ALE.ETLBox.DataFlow' namespace.
+'EtlKit.DataFlow' namespace.
 
 ## What is a data flow?
 
 You have some data somewhere - stored in some files or a database table or a web service. Now you
 want to define a pipeline which takes this data, transforms it "on the fly" and writes it into a
 target (this could be again a database, a file or anywhere else). This is the pure essence of an ETL
-process (extracting, transforming, loading). The building block to define such a data flow in ETLBox
+process (extracting, transforming, loading). The building block to define such a data flow in EtlKit
 are source components for extracting, transformations for modifications and destination components
 for loading.
 
@@ -23,7 +23,7 @@ connected to source. This is crucial when you operate with big amounts of data -
 process chunks of sources and avoid to load your whole source data into memory first. There are be
 some exceptions to this behaviour, depending on your transformation type.
 
-There are different build-in data sources in ETLBox, e.g.: `CsvSource`, `DbSource` or `ExcelSource`
+There are different build-in data sources in EtlKit, e.g.: `CsvSource`, `DbSource` or `ExcelSource`
 that can be easily use to connect to your data. If you are in need of another source component, you
 can extend the `CustomSource`.
 

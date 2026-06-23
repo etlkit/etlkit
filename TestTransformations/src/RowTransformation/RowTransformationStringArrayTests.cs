@@ -1,9 +1,9 @@
-using ALE.ETLBox.Common.DataFlow;
-using ALE.ETLBox.DataFlow;
-using TestShared.SharedFixtures;
-using TestTransformations.Fixtures;
+using EtlKit.Common.DataFlow;
+using EtlKit.DataFlow;
+using EtlKit.TestShared.SharedFixtures;
+using EtlKit.TestTransformations.Fixtures;
 
-namespace TestTransformations.RowTransformation
+namespace EtlKit.TestTransformations.RowTransformation
 {
     [Collection("Transformations")]
     public class RowTransformationStringArrayTests : TransformationsTestBase
@@ -21,12 +21,8 @@ namespace TestTransformations.RowTransformation
         public void RearrangeSwappedData()
         {
             //Arrange
-            var dest2Columns = new TwoColumnsTableFixture(
-                "DestinationRowTransformation"
-            );
-            var source = new CsvSource<string[]>(
-                "res/RowTransformation/TwoColumnsSwapped.csv"
-            );
+            var dest2Columns = new TwoColumnsTableFixture("DestinationRowTransformation");
+            var source = new CsvSource<string[]>("res/RowTransformation/TwoColumnsSwapped.csv");
 
             //Act
             var trans = new RowTransformation<string[]>(csvdata =>
@@ -34,10 +30,7 @@ namespace TestTransformations.RowTransformation
                 return new[] { csvdata[1], csvdata[0] };
             });
 
-            var dest = new DbDestination<string[]>(
-                SqlConnection,
-                "DestinationRowTransformation"
-            );
+            var dest = new DbDestination<string[]>(SqlConnection, "DestinationRowTransformation");
             source.LinkTo(trans);
             trans.LinkTo(dest);
             source.Execute();

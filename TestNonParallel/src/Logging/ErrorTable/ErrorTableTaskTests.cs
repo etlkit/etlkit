@@ -1,9 +1,9 @@
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.Logging;
-using ALE.ETLBoxTests.NonParallel.Fixtures;
-using ETLBox.Primitives;
+using EtlKit.ControlFlow;
+using EtlKit.Logging;
+using EtlKit.Primitives;
+using EtlKit.TestNonParallel.Fixtures;
 
-namespace ALE.ETLBoxTests.NonParallel.Logging.ErrorTable
+namespace EtlKit.TestNonParallel.Logging.ErrorTable
 {
     [Collection("Logging")]
     public sealed class ErrorTableTaskTests : NonParallelTestBase, IDisposable
@@ -13,7 +13,7 @@ namespace ALE.ETLBoxTests.NonParallel.Logging.ErrorTable
 
         public void Dispose()
         {
-            ALE.ETLBox.Common.ControlFlow.ControlFlow.ClearSettings();
+            EtlKit.Common.ControlFlow.ControlFlow.ClearSettings();
         }
 
         [Theory, MemberData(nameof(AllSqlConnections))]
@@ -21,14 +21,14 @@ namespace ALE.ETLBoxTests.NonParallel.Logging.ErrorTable
         {
             //Arrange
             //Act
-            CreateErrorTableTask.Create(connection, "etlbox_error");
+            CreateErrorTableTask.Create(connection, "etlkit_error");
 
             //Assert
-            IfTableOrViewExistsTask.IsExisting(connection, "etlbox_error");
-            var td = TableDefinition.GetDefinitionFromTableName(connection, "etlbox_error");
+            IfTableOrViewExistsTask.IsExisting(connection, "etlkit_error");
+            var td = TableDefinition.GetDefinitionFromTableName(connection, "etlkit_error");
             Assert.True(td.Columns.Count == 3);
             //Cleanup
-            DropTableTask.Drop(connection, "etlbox_error");
+            DropTableTask.Drop(connection, "etlkit_error");
         }
 
         [Theory, MemberData(nameof(AllSqlConnections))]
@@ -38,15 +38,15 @@ namespace ALE.ETLBoxTests.NonParallel.Logging.ErrorTable
             //Act
             CreateTableTask.Create(
                 connection,
-                "etlbox_error",
+                "etlkit_error",
                 new List<TableColumn> { new("Col1", "INT") }
             );
-            CreateErrorTableTask.DropAndCreate(connection, "etlbox_error");
+            CreateErrorTableTask.DropAndCreate(connection, "etlkit_error");
             //Assert
-            var td = TableDefinition.GetDefinitionFromTableName(connection, "etlbox_error");
+            var td = TableDefinition.GetDefinitionFromTableName(connection, "etlkit_error");
             Assert.True(td.Columns.Count == 3);
             //Cleanup
-            DropTableTask.Drop(connection, "etlbox_error");
+            DropTableTask.Drop(connection, "etlkit_error");
         }
     }
 }

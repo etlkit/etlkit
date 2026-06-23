@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <RootNamespace>EtlKit.Scripting</RootNamespace>
+    <PackageId>EtlKit.Scripting</PackageId>
+    <Description>
+      EtlKit is a fully open-source (MIT) ETL library and data integration toolbox for .NET.
+      Build extract-transform-load pipelines programmatically in C# with async, in-memory
+      data flow components backed by TPL Dataflow.
+      Support for C# scripting transformations.
+    </Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.8.0"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EtlKit\EtlKit.csproj" />
+    <ProjectReference Include="..\EtlKit.Common\EtlKit.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="EtlKit.DynamicLinq.Benchmarks"/>
+    <InternalsVisibleTo Include="EtlKit.Scripting.Tests"/>
+  </ItemGroup>
+</Project>

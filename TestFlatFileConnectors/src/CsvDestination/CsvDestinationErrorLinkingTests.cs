@@ -1,7 +1,7 @@
-using ALE.ETLBox.DataFlow;
-using ETLBox.Primitives;
+using EtlKit.DataFlow;
+using EtlKit.Primitives;
 
-namespace TestFlatFileConnectors.CsvDestination
+namespace EtlKit.TestFlatFileConnectors.CsvDestination
 {
     public class CsvDestinationErrorLinkingTests
     {
@@ -31,11 +31,11 @@ namespace TestFlatFileConnectors.CsvDestination
                     new() { Col1 = "1" },
                     new() { Col1 = "2" },
                     new() { Col1 = null },
-                    new() { Col1 = "3" }
-                }
+                    new() { Col1 = "3" },
+                },
             };
             var dest = new CsvDestination<MySimpleRow>("ErrorFile.csv");
-            var errorDest = new MemoryDestination<ETLBoxError>();
+            var errorDest = new MemoryDestination<EtlKitError>();
 
             //Act
             source.LinkTo(dest);
@@ -72,12 +72,10 @@ namespace TestFlatFileConnectors.CsvDestination
                 {
                     new() { Col1 = "X" },
                     new() { Col1 = "1" },
-                    new() { Col1 = null }
-                }
+                    new() { Col1 = null },
+                },
             };
-            var dest = new CsvDestination<MySimpleRow>(
-                "ErrorFileNoError.csv"
-            );
+            var dest = new CsvDestination<MySimpleRow>("ErrorFileNoError.csv");
 
             //Act
             //Assert

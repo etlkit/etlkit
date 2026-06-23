@@ -4,19 +4,19 @@
       "src": [
         {
           "files": [
-            "ETLBox/ETLBox.csproj",
-            "ETLBox.Common/ETLBox.Common.csproj",
-            "ETLBox.Primitives/ETLBox.Primitives.csproj",
-            "ETLBox.Json/ETLBox.Json.csproj",
-            "ETLBox.Kafka/ETLBox.Kafka.csproj",
-            "ETLBox.Rest/ETLBox.Rest.csproj",
-            "ETLBox.RabbitMq/ETLBox.RabbitMq.csproj",
-            "ETLBox.Serialization/ETLBox.Serialization.csproj",
-            "ETLBox.AI/ETLBox.AI.csproj",
-            "ETLBox.Logging.Database/ETLBox.Logging.Database.csproj",
-            "ETLBox.Scripting/ETLBox.Scripting.csproj",
-            "ETLBox.DynamicLinq/ETLBox.DynamicLinq.csproj",
-            "ETLBox.PostgresStreaming/ETLBox.PostgresStreaming.csproj"
+            "EtlKit/EtlKit.csproj",
+            "EtlKit.Common/EtlKit.Common.csproj",
+            "EtlKit.Primitives/EtlKit.Primitives.csproj",
+            "EtlKit.Json/EtlKit.Json.csproj",
+            "EtlKit.Kafka/EtlKit.Kafka.csproj",
+            "EtlKit.Rest/EtlKit.Rest.csproj",
+            "EtlKit.RabbitMq/EtlKit.RabbitMq.csproj",
+            "EtlKit.Serialization/EtlKit.Serialization.csproj",
+            "EtlKit.AI/EtlKit.AI.csproj",
+            "EtlKit.Logging.Database/EtlKit.Logging.Database.csproj",
+            "EtlKit.Scripting/EtlKit.Scripting.csproj",
+            "EtlKit.DynamicLinq/EtlKit.DynamicLinq.csproj",
+            "EtlKit.PostgresStreaming/EtlKit.PostgresStreaming.csproj"
           ],
           "src": ".."
         }
@@ -31,7 +31,7 @@
       "src": [
         {
           "files": [
-            "ETLBox.ClickHouse/ETLBox.ClickHouse.csproj"
+            "EtlKit.ClickHouse/EtlKit.ClickHouse.csproj"
           ],
           "src": ".."
         }
@@ -46,7 +46,7 @@
       "src": [
         {
           "files": [
-            "ETLBox.MongoDB/ETLBox.MongoDB.csproj"
+            "EtlKit.MongoDB/EtlKit.MongoDB.csproj"
           ],
           "src": ".."
         }
@@ -79,8 +79,8 @@
       "modern"
     ],
     "globalMetadata": {
-      "_appTitle": "ETLBox Documentation",
-      "_appFooter": "ETLBox \u2014 It's all in the box",
+      "_appTitle": "EtlKit Documentation",
+      "_appFooter": "EtlKit \u2014 It's all in the box",
       "_enableSearch": true
     }
   }

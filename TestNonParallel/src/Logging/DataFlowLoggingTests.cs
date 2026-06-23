@@ -1,14 +1,14 @@
 using System.Dynamic;
 using System.Threading;
 using System.Threading.Tasks;
-using ALE.ETLBox.Common.DataFlow;
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.DataFlow;
-using ALE.ETLBox.Logging;
-using ALE.ETLBoxTests.NonParallel.Fixtures;
-using EtlBox.Logging.Database;
+using EtlKit.Common.DataFlow;
+using EtlKit.ControlFlow;
+using EtlKit.DataFlow;
+using EtlKit.Logging;
+using EtlKit.Logging.Database;
+using EtlKit.TestNonParallel.Fixtures;
 
-namespace ALE.ETLBoxTests.NonParallel.Logging
+namespace EtlKit.TestNonParallel.Logging
 {
     [Collection("Logging")]
     public sealed class DataFlowLoggingTests : NonParallelTestBase, IDisposable
@@ -22,9 +22,9 @@ namespace ALE.ETLBoxTests.NonParallel.Logging
 
         public void Dispose()
         {
-            DropTableTask.Drop(SqlConnection, ALE.ETLBox.Common.ControlFlow.ControlFlow.LogTable);
-            ALE.ETLBox.Common.ControlFlow.ControlFlow.ClearSettings();
-            DataFlow.ClearSettings();
+            DropTableTask.Drop(SqlConnection, EtlKit.Common.ControlFlow.ControlFlow.LogTable);
+            EtlKit.Common.ControlFlow.ControlFlow.ClearSettings();
+            Common.DataFlow.DataFlow.ClearSettings();
         }
 
         private void CreateTestTable(string tableName)
@@ -72,7 +72,7 @@ namespace ALE.ETLBoxTests.NonParallel.Logging
             DbDestination dest = new DbDestination(SqlConnection, "DbDestination", batchSize: 3);
 
             //Act
-            DataFlow.LoggingThresholdRows = 3;
+            Common.DataFlow.DataFlow.LoggingThresholdRows = 3;
             source.LinkTo(dest);
             source.Execute();
             dest.Wait();
@@ -80,7 +80,7 @@ namespace ALE.ETLBoxTests.NonParallel.Logging
             //Assert
             Assert.Equal(
                 4,
-                new RowCountTask("etlbox_log", "task_type = 'DbSource' AND task_action = 'LOG'")
+                new RowCountTask("etlkit_log", "task_type = 'DbSource' AND task_action = 'LOG'")
                 {
                     DisableLogging = true,
                     ConnectionManager = SqlConnection,
@@ -91,7 +91,7 @@ namespace ALE.ETLBoxTests.NonParallel.Logging
             Assert.Equal(
                 4,
                 new RowCountTask(
-                    "etlbox_log",
+                    "etlkit_log",
                     "task_type = 'DbDestination' AND task_action = 'LOG'"
                 )
                 {
@@ -114,17 +114,17 @@ namespace ALE.ETLBoxTests.NonParallel.Logging
             DbDestination dest = new DbDestination(SqlConnection, "DbDestination", batchSize: 3);
 
             //Act
-            DataFlow.LoggingThresholdRows = 0;
+            Common.DataFlow.DataFlow.LoggingThresholdRows = 0;
             source.LinkTo(dest);
             source.Execute();
             dest.Wait();
-            DataFlow.LoggingThresholdRows = 0;
+            Common.DataFlow.DataFlow.LoggingThresholdRows = 0;
 
             //Assert
 
             Assert.Equal(
                 2,
-                new RowCountTask("etlbox_log", "task_type = 'DbSource'")
+                new RowCountTask("etlkit_log", "task_type = 'DbSource'")
                 {
                     ConnectionManager = SqlConnection,
                     DisableLogging = true,
@@ -134,7 +134,7 @@ namespace ALE.ETLBoxTests.NonParallel.Logging
             );
             Assert.Equal(
                 2,
-                new RowCountTask("etlbox_log", "task_type = 'DbDestination'")
+                new RowCountTask("etlkit_log", "task_type = 'DbDestination'")
                 {
                     ConnectionManager = SqlConnection,
                     DisableLogging = true,
@@ -156,7 +156,7 @@ namespace ALE.ETLBoxTests.NonParallel.Logging
             RowTransformation rowTrans = new RowTransformation(row => row);
 
             //Act
-            DataFlow.LoggingThresholdRows = 3;
+            Common.DataFlow.DataFlow.LoggingThresholdRows = 3;
             source.LinkTo(rowTrans);
             rowTrans.LinkTo(dest);
             source.Execute();
@@ -166,7 +166,7 @@ namespace ALE.ETLBoxTests.NonParallel.Logging
             Assert.Equal(
                 3,
                 new RowCountTask(
-                    "etlbox_log",
+                    "etlkit_log",
                     "task_type = 'RowTransformation' AND task_action = 'LOG'"
                 )
                 {
@@ -193,7 +193,7 @@ namespace ALE.ETLBoxTests.NonParallel.Logging
             );
 
             //Act
-            DataFlow.LoggingThresholdRows = 2;
+            Common.DataFlow.DataFlow.LoggingThresholdRows = 2;
             source.LinkTo(dest);
             source.Execute();
             dest.Wait();
@@ -201,7 +201,7 @@ namespace ALE.ETLBoxTests.NonParallel.Logging
             //Assert
             Assert.Equal(
                 4,
-                new RowCountTask("etlbox_log", "task_type LIKE 'CsvSource%' ")
+                new RowCountTask("etlkit_log", "task_type LIKE 'CsvSource%' ")
                 {
                     DisableLogging = true,
                     ConnectionManager = SqlConnection,
@@ -240,7 +240,7 @@ namespace ALE.ETLBoxTests.NonParallel.Logging
             //Assert
             Assert.Equal(
                 3,
-                new RowCountTask("etlbox_log", "task_type = 'CustomSource'")
+                new RowCountTask("etlkit_log", "task_type = 'CustomSource'")
                 {
                     ConnectionManager = SqlConnection,
                     DisableLogging = true,
@@ -250,7 +250,7 @@ namespace ALE.ETLBoxTests.NonParallel.Logging
             );
             Assert.Equal(
                 3,
-                new RowCountTask("etlbox_log", "task_type = 'DbDestination'")
+                new RowCountTask("etlkit_log", "task_type = 'DbDestination'")
                 {
                     ConnectionManager = SqlConnection,
                     DisableLogging = true,

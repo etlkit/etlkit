@@ -1,10 +1,10 @@
 using System.IO;
-using ALE.ETLBox;
-using ALE.ETLBox.ConnectionManager;
-using ETLBox.Primitives;
+using EtlKit;
+using EtlKit.ConnectionManager;
+using EtlKit.Primitives;
 using JetBrains.Annotations;
 
-namespace TestShared.Helper;
+namespace EtlKit.TestShared.Helper;
 
 /// <summary>
 /// Generates new database name for each connection.

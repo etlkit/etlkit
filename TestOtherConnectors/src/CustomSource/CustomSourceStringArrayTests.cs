@@ -1,6 +1,7 @@
-using TestShared.SharedFixtures;
+using EtlKit.TestOtherConnectors.Fixture;
+using EtlKit.TestShared.SharedFixtures;
 
-namespace TestOtherConnectors.CustomSource
+namespace EtlKit.TestOtherConnectors.CustomSource
 {
     [Collection("OtherConnectors")]
     public class CustomSourceStringArrayTests : OtherConnectorsTestBase

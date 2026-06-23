@@ -2,8 +2,8 @@
 
 Two transformations drop rows that should not continue down the flow:
 
-- `RowFiltration<TInput>` (in `ETLBox`) — filters by a `Func<TInput, bool>` delegate.
-- `ExpressionRowFiltration<TInput>` (in `ETLBox.DynamicLinq`) — filters by a string expression evaluated through `System.Linq.Dynamic.Core`. Suited for XML-defined flows where the predicate is configured in the package, not in C# code.
+- `RowFiltration<TInput>` (in `EtlKit`) — filters by a `Func<TInput, bool>` delegate.
+- `ExpressionRowFiltration<TInput>` (in `EtlKit.DynamicLinq`) — filters by a string expression evaluated through `System.Linq.Dynamic.Core`. Suited for XML-defined flows where the predicate is configured in the package, not in C# code.
 
 Both are non-blocking. Internally they wrap a `TransformManyBlock<TInput, TInput>` that returns a single-element collection on a passing row and an empty collection otherwise.
 
@@ -52,7 +52,7 @@ filtration.LinkErrorTo(errorDest);
 
 ## ExpressionRowFiltration
 
-`ExpressionRowFiltration` lives in `ETLBox.DynamicLinq` (separate package, no Roslyn dependency). The predicate is a string parsed by `System.Linq.Dynamic.Core` into an expression tree and compiled via `Expression.Compile()`. No Roslyn, no per-shape assembly emission, no `Assembly.Load`.
+`ExpressionRowFiltration` lives in `EtlKit.DynamicLinq` (separate package, no Roslyn dependency). The predicate is a string parsed by `System.Linq.Dynamic.Core` into an expression tree and compiled via `Expression.Compile()`. No Roslyn, no per-shape assembly emission, no `Assembly.Load`.
 
 Two forms:
 
@@ -195,7 +195,7 @@ Assembly resolution tries three strategies in order: (1) already loaded in the c
 
 ### Thread safety
 
-`ExpressionRowFiltration` is not thread-safe. Configure all of its public surface (`FilterExpression`, `AdditionalAssemblyNames`, `AdditionalImports`, `RegisterCustomTypes`, `ParsingConfig`) once before the dataflow starts. ETLBox runs each dataflow step on a single thread, so concurrent calls to `EvaluateExpression` from the same instance do not happen in normal usage. Sharing one instance across multiple parallel pipelines is unsupported.
+`ExpressionRowFiltration` is not thread-safe. Configure all of its public surface (`FilterExpression`, `AdditionalAssemblyNames`, `AdditionalImports`, `RegisterCustomTypes`, `ParsingConfig`) once before the dataflow starts. EtlKit runs each dataflow step on a single thread, so concurrent calls to `EvaluateExpression` from the same instance do not happen in normal usage. Sharing one instance across multiple parallel pipelines is unsupported.
 
 ### Limitations
 
@@ -236,10 +236,10 @@ Types are emitted into one shared persistent `AssemblyBuilder` (Reflection.Emit)
 
 ### File layout
 
-Implementation in `ETLBox.DynamicLinq/`:
+Implementation in `EtlKit.DynamicLinq/`:
 
 - `ExpressionRowFiltration.cs` — public surface. Generic `ExpressionRowFiltration<TInput>` and the non-generic `ExpressionRowFiltration : ExpressionRowFiltration<ExpandoObject>`. Holds the cached compiled predicate, the `EvaluateExpression` method, and the public properties (`FilterExpression`, `ParsingConfig`, `AdditionalAssemblyNames`, `AdditionalImports`).
 - `ExpandoTypeMapper.cs` — internal static class. Handles the fast/slow path routing for `Map(ExpandoObject)` plus the reflection-based recursive mapping for nested shapes.
 - `AssemblyResolver.cs` — internal static helper. `Load(string)` with the three-step resolution fallback (AppDomain → `Assembly.Load(AssemblyName)` → `Assembly.LoadFrom(path)`) and `GetExportedTypesSafe(Assembly)` for partial-load resilience.
 - `DynamicLinqTypeProvider.cs` — internal `IDynamicLinqCustomTypeProvider` implementation. Holds the registered custom types and the namespace imports, used as `ParsingConfig.CustomTypeProvider`.
-- `EtlBoxDynamicLinqServiceCollectionExtensions.cs` — DI registration helpers.
+- `EtlKitDynamicLinqServiceCollectionExtensions.cs` — DI registration helpers.

@@ -1,12 +1,12 @@
-using ALE.ETLBox;
-using ALE.ETLBox.ConnectionManager;
-using ALE.ETLBox.ControlFlow;
-using ETLBox.Primitives;
-using TestControlFlowTasks.Fixtures;
-using TestShared;
-using TestShared.SharedFixtures;
+using EtlKit;
+using EtlKit.ConnectionManager;
+using EtlKit.ControlFlow;
+using EtlKit.Primitives;
+using EtlKit.TestControlFlowTasks.Fixtures;
+using EtlKit.TestShared;
+using EtlKit.TestShared.SharedFixtures;
 
-namespace TestControlFlowTasks;
+namespace EtlKit.TestControlFlowTasks;
 
 [Collection(nameof(ControlFlowCollection))]
 public class SqlTaskBulkInsertTests : ControlFlowTestBase

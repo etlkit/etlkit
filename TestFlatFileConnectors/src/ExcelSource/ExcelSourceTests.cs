@@ -1,9 +1,9 @@
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.DataFlow;
-using TestFlatFileConnectors.Fixture;
-using TestShared.SharedFixtures;
+using EtlKit.ControlFlow;
+using EtlKit.DataFlow;
+using EtlKit.TestFlatFileConnectors.Fixture;
+using EtlKit.TestShared.SharedFixtures;
 
-namespace TestFlatFileConnectors.ExcelSource
+namespace EtlKit.TestFlatFileConnectors.ExcelSource
 {
     [Collection("FlatFilesToDatabase")]
     public class ExcelSourceTests : FlatFileConnectorsTestBase
@@ -27,17 +27,11 @@ namespace TestFlatFileConnectors.ExcelSource
             var dest2Columns = new TwoColumnsTableFixture("ExcelDestination1");
 
             //Act
-            var source = new ExcelSource<MySimpleRow>(
-                "res/Excel/TwoColumnData.xlsx"
-            )
+            var source = new ExcelSource<MySimpleRow>("res/Excel/TwoColumnData.xlsx")
             {
-                HasNoHeader = true
+                HasNoHeader = true,
             };
-            var dest = new DbDestination<MySimpleRow>(
-                SqlConnection,
-                "ExcelDestination1",
-                2
-            );
+            var dest = new DbDestination<MySimpleRow>(SqlConnection, "ExcelDestination1", 2);
 
             source.LinkTo(dest);
             source.Execute();
@@ -62,17 +56,11 @@ namespace TestFlatFileConnectors.ExcelSource
             var _ = new TwoColumnsTableFixture("ExcelDestination2");
 
             //Act
-            var source = new ExcelSource<OneExcelColumn>(
-                "res/Excel/TwoColumnData.xlsx"
-            )
+            var source = new ExcelSource<OneExcelColumn>("res/Excel/TwoColumnData.xlsx")
             {
-                HasNoHeader = true
+                HasNoHeader = true,
             };
-            var dest = new DbDestination<OneExcelColumn>(
-                SqlConnection,
-                "ExcelDestination2",
-                2
-            );
+            var dest = new DbDestination<OneExcelColumn>(SqlConnection, "ExcelDestination2", 2);
 
             source.LinkTo(dest);
             source.Execute();
@@ -110,19 +98,14 @@ namespace TestFlatFileConnectors.ExcelSource
             var _ = new FourColumnsTableFixture("ExcelDestination3");
 
             //Act
-            var source = new ExcelSource<ExcelDataSheet2>(
-                "res/Excel/DataOnSheet2.xlsx"
-            )
+            var source = new ExcelSource<ExcelDataSheet2>("res/Excel/DataOnSheet2.xlsx")
             {
                 Range = new ExcelRange(2, 4, 5, 9),
                 SheetName = "Sheet2",
-                HasNoHeader = true
+                HasNoHeader = true,
             };
 
-            var dest = new DbDestination<ExcelDataSheet2>(
-                SqlConnection,
-                "ExcelDestination3"
-            );
+            var dest = new DbDestination<ExcelDataSheet2>(SqlConnection, "ExcelDestination3");
 
             source.LinkTo(dest);
             source.Execute();
@@ -194,12 +177,10 @@ namespace TestFlatFileConnectors.ExcelSource
             //Arrange
 
             //Act
-            var source = new ExcelSource<Excel21Cols>(
-                "res/Excel/MoreThan20Cols.xlsx"
-            )
+            var source = new ExcelSource<Excel21Cols>("res/Excel/MoreThan20Cols.xlsx")
             {
                 Range = new ExcelRange(1, 2),
-                HasNoHeader = true
+                HasNoHeader = true,
             };
 
             var dest = new MemoryDestination<Excel21Cols>();

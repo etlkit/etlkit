@@ -1,9 +1,10 @@
 using System.Threading;
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.DataFlow;
-using ETLBox.Primitives;
+using EtlKit.ControlFlow;
+using EtlKit.DataFlow;
+using EtlKit.Primitives;
+using EtlKit.TestDatabaseConnectors.Fixtures;
 
-namespace TestDatabaseConnectors.DBMerge
+namespace EtlKit.TestDatabaseConnectors.DBMerge
 {
     [Collection(nameof(DataFlowSourceDestinationCollection))]
     public class DbMergeTests : DatabaseConnectorsTestBase
@@ -85,7 +86,7 @@ namespace TestDatabaseConnectors.DBMerge
             //Act
             DbMerge<MyMergeRow> dest = new DbMerge<MyMergeRow>(connection, "DBMergeDestination")
             {
-                DeltaMode = DeltaMode.NoDeletions
+                DeltaMode = DeltaMode.NoDeletions,
             };
             source.LinkTo(dest);
             source.Execute();
@@ -127,7 +128,7 @@ namespace TestDatabaseConnectors.DBMerge
             //Act
             DbMerge<MyMergeRow> dest = new DbMerge<MyMergeRow>(connection, "DBMergeDestination")
             {
-                UseTruncateMethod = true
+                UseTruncateMethod = true,
             };
             source.LinkTo(dest);
             source.Execute(CancellationToken.None);

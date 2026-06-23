@@ -1,10 +1,11 @@
-using ALE.ETLBox;
-using ALE.ETLBox.Common;
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.DataFlow;
-using ETLBox.Primitives;
+using EtlKit;
+using EtlKit.Common;
+using EtlKit.ControlFlow;
+using EtlKit.DataFlow;
+using EtlKit.Primitives;
+using EtlKit.TestDatabaseConnectors.Fixtures;
 
-namespace TestDatabaseConnectors.DBDestination
+namespace EtlKit.TestDatabaseConnectors.DBDestination
 {
     [Collection(nameof(DataFlowSourceDestinationCollection))]
     public class DbDestinationForeignKeyTests : DatabaseConnectorsTestBase
@@ -29,7 +30,7 @@ namespace TestDatabaseConnectors.DBDestination
                 new List<TableColumn>
                 {
                     new("Id", "INT", allowNulls: false, isPrimaryKey: true),
-                    new("Other", "VARCHAR(100)", allowNulls: true, isPrimaryKey: false)
+                    new("Other", "VARCHAR(100)", allowNulls: true, isPrimaryKey: false),
                 }
             );
             ObjectNameDescriptor tn = new ObjectNameDescriptor(
@@ -55,7 +56,7 @@ namespace TestDatabaseConnectors.DBDestination
                 {
                     new("Key1", "INT", allowNulls: false, isPrimaryKey: true),
                     new("Key2", "INT", allowNulls: false, isPrimaryKey: true),
-                    new("Value1", "VARCHAR(100)", allowNulls: true, isPrimaryKey: false)
+                    new("Value1", "VARCHAR(100)", allowNulls: true, isPrimaryKey: false),
                 }
             );
         }

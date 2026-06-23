@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <RootNamespace>EtlKit.TestTransformations</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,10 +21,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ETLBox.ClickHouse\ETLBox.ClickHouse.csproj" />
-    <ProjectReference Include="..\ETLBox.Rest\ETLBox.Rest.csproj" />
-    <ProjectReference Include="..\ETLBox.Serialization\ETLBox.Serialization.csproj" />
-    <ProjectReference Include="..\ETLBox\ETLBox.csproj" />
+    <ProjectReference Include="..\EtlKit.ClickHouse\EtlKit.ClickHouse.csproj" />
+    <ProjectReference Include="..\EtlKit.Rest\EtlKit.Rest.csproj" />
+    <ProjectReference Include="..\EtlKit.Serialization\EtlKit.Serialization.csproj" />
+    <ProjectReference Include="..\EtlKit\EtlKit.csproj" />
     <ProjectReference Include="..\TestHelper\TestHelper.csproj" />
     <ProjectReference Include="..\TestShared\TestShared.csproj" />
   </ItemGroup>

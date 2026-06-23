@@ -1,6 +1,6 @@
 # Scripted row transformation
 
-`ScriptedRowTransformation<TInput, TOutput>` (in `ETLBox.Scripting`) transforms each row by
+`ScriptedRowTransformation<TInput, TOutput>` (in `EtlKit.Scripting`) transforms each row by
 evaluating a C# expression per output field. Expressions are compiled at runtime by the Roslyn
 scripting engine, so every field mapping can use the full C# language: string interpolation,
 LINQ, method calls, null-conditional operators, custom types. The component is non-blocking — it
@@ -187,7 +187,7 @@ distinct row shape (for `ExpandoObject`) or input type (for typed pairs) causes 
 compilation and `Assembly.Load(bytes)`. Those assemblies are pinned in memory for the lifetime of
 the process.
 
-`ExpressionRowFiltration` (in `ETLBox.DynamicLinq`) covers the filter-only case with a lighter
+`ExpressionRowFiltration` (in `EtlKit.DynamicLinq`) covers the filter-only case with a lighter
 footprint: no Roslyn, no per-shape assembly, expression trees compiled via `Expression.Compile()`.
 It supports comparisons, arithmetic, null checks, member access, and common LINQ-style collection
 methods — but not arbitrary C# code.

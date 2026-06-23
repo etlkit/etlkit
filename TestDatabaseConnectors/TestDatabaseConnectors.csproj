@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
+    <RootNamespace>EtlKit.TestDatabaseConnectors</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,8 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ETLBox.Primitives\ETLBox.Primitives.csproj" />
-    <ProjectReference Include="..\ETLBox\ETLBox.csproj" />
+    <ProjectReference Include="..\EtlKit.Primitives\EtlKit.Primitives.csproj" />
+    <ProjectReference Include="..\EtlKit\EtlKit.csproj" />
     <ProjectReference Include="..\TestShared\TestShared.csproj" />
   </ItemGroup>
 

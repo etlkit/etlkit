@@ -5,7 +5,7 @@
     <PackageAuthors>RapidSoft</PackageAuthors>
     <PackageOwners>RapidSoft</PackageOwners>
     <PackageProjectUrl>https://rapidsoft.ru/</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/rpsft/etlbox.git</RepositoryUrl>
+    <RepositoryUrl>https://github.com/etlkit/etlkit.git</RepositoryUrl>
     <PackageCopyright>$(Copyright)</PackageCopyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <IncludeSymbols>true</IncludeSymbols>

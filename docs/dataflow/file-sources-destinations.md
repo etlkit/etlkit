@@ -43,7 +43,7 @@ for each column in your csv file. The first row of your file is supposed to be a
 rows needs to be skipped before your header starts). The header will define the property names of the ExpandoObject.
 
 You can now use a `RowTransformation` to transform it into the data type you need, or just stick with the ExpandoObject. (All other components
-in ETLBox will also support this).
+in EtlKit will also support this).
 
 This is an example to transform the dynamic object into a regular .NET object:
 
@@ -74,7 +74,7 @@ public class MyCsvData {
 CsvSource<MyCsvData> source = new CsvSource<MyCsvData>("Demo.csv");
 ```
 
-ETLBox will find the right property by the equivalent header column in your file. Therefore, the order of the columns doesn't matter, as long
+EtlKit will find the right property by the equivalent header column in your file. Therefore, the order of the columns doesn't matter, as long
 as the column has an equivalent header. If the header name is different, you can use attributes or a ClassMap to find the right column.
 Here is an example for using the Name and index attribute:
 
@@ -94,7 +94,7 @@ read more [about class maps](https://joshclose.github.io/CsvHelper/examples/conf
 #### Using arrays
 
 Sometimes it can be easier to use a string array (or object array) to read from a csv file, e.g. if your Csv file doesn't have a header.
-ETLBox will support arrays as well - just define your CsvSource like this
+EtlKit will support arrays as well - just define your CsvSource like this
 
 ```csharp
 CsvSource<string[]> source = new CsvSource<string[]>("Demo.csv");
@@ -193,7 +193,7 @@ Like this:
 }
 ```
 
-ETLBox automatically scans the incoming json file and starts reading (and deserializing) after the
+EtlKit automatically scans the incoming json file and starts reading (and deserializing) after the
 first occurence of the begin of an array (which is the "[" symbol).
 
 ### Working with JsonSerializer
@@ -233,7 +233,7 @@ Sometimes you don't want to specify all objects that would map your json structu
 this the underlying JsonSerializer object that is used for deserialization
 is exposed by the JsonSource. [`JsonSerializer` belongs to Newtonsoft.Json](https://www.newtonsoft.com/json/help/html/SerializingJSON.htm)  
 You could add your own JsonConverter so that you could use JsonPath within your JsonProperty attributes.
-(Please note that the example JsonPathConverter is also part of ETLBox).
+(Please note that the example JsonPathConverter is also part of EtlKit).
 
 ```csharp
 [JsonConverter(typeof(JsonPathConverter))]
@@ -368,7 +368,7 @@ XmlSource<MyRow> source = new XmlSource<MyRow>("source.xml", ResourceType.File);
 #### Using dynamic objects
 
 XmlSource does also support the dynamic ExpandoObject. If you want to use it, you can define an ElementName that contains the data you actually
-want to parse - as you normally are not interested in your root element. ETLBox then will look for this Element and parse every occurence of
+want to parse - as you normally are not interested in your root element. EtlKit then will look for this Element and parse every occurence of
 it into an ExpandoObject and send it into the connected components.
 
 Here is an example. If your xml looks like this:

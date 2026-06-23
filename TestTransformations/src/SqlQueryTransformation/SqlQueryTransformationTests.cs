@@ -1,7 +1,7 @@
-using ALE.ETLBox.DataFlow;
-using TestTransformations.Fixtures;
+using EtlKit.DataFlow;
+using EtlKit.TestTransformations.Fixtures;
 
-namespace TestTransformations.SqlQueryTransformation
+namespace EtlKit.TestTransformations.SqlQueryTransformation
 {
     [Collection("Transformations")]
     public class SqlQueryTransformationTests : TransformationsTestBase
@@ -52,7 +52,7 @@ namespace TestTransformations.SqlQueryTransformation
 
             var settings = new MemorySource<ExpandoObject>(new[] { (ExpandoObject)obj });
 
-            var query = new ALE.ETLBox.DataFlow.SqlQueryTransformation
+            var query = new EtlKit.DataFlow.SqlQueryTransformation
             {
                 ConnectionManager = SqlConnection,
                 SqlTemplate = "select {{lastId}} as LastId",
@@ -82,7 +82,7 @@ namespace TestTransformations.SqlQueryTransformation
 
             var settings = new MemorySource<ExpandoObject>(new[] { (ExpandoObject)obj });
 
-            var query = new ALE.ETLBox.DataFlow.SqlQueryTransformation
+            var query = new EtlKit.DataFlow.SqlQueryTransformation
             {
                 ConnectionManager = SqlConnection,
                 SqlTemplate =
@@ -91,13 +91,9 @@ namespace TestTransformations.SqlQueryTransformation
                     select 1 as id, '{{value}}' as value
                 )
                 select * from data",
-                SourceTableDefinition = new ALE.ETLBox.TableDefinition(
+                SourceTableDefinition = new EtlKit.TableDefinition(
                     "source",
-                    new List<ALE.ETLBox.TableColumn>
-                    {
-                        new("id", "int"),
-                        new("value", "varchar(16)"),
-                    }
+                    new List<EtlKit.TableColumn> { new("id", "int"), new("value", "varchar(16)") }
                 ),
             };
 

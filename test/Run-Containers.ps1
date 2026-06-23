@@ -165,22 +165,40 @@ if ($clear) {
   }
 }
 
-# Start SQL Server - use full SQL Server for Apple Silicon with x86_64 emulation, Azure SQL Edge for others
-if ($isMac -and $isAppleSilicon -and $isProperAMD64Emulation) {
-  & docker run -d --cap-add SYS_PTRACE -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=YourStrong@Passw0rd" -e "MSSQL_PID=Developer" -p 1433:1433 --name localmssql mcr.microsoft.com/mssql/server:2025-latest
-} else {
+# Verify Docker is accessible before proceeding
+try {
+  $null = docker ps 2>&1
+  if ($LASTEXITCODE -ne 0) {
+    throw "Docker is not running or not accessible (exit code: $LASTEXITCODE)"
+  }
+} catch {
+  Write-Host "Docker is not running or not accessible. Please start Docker Desktop and try again." -ForegroundColor Red
+  throw "Docker is not accessible: $($_.Exception.Message)"
+}
+
+# Start SQL Server
+# - Apple Silicon without x86_64 emulation: use Azure SQL Edge (native ARM64 support)
+# - All other platforms (Windows, Intel Mac, Apple Silicon with emulation): use full SQL Server
+if ($isMac -and $isAppleSilicon -and -not $isProperAMD64Emulation) {
   & docker run -d --cap-add SYS_PTRACE -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=YourStrong@Passw0rd" -e "MSSQL_PID=Developer" -p 1433:1433 --name localmssql mcr.microsoft.com/azure-sql-edge
+} else {
+  & docker run -d --cap-add SYS_PTRACE -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=YourStrong@Passw0rd" `
+      -e "MSSQL_PID=Developer" `
+      -e "MSSQL_MEMORY_LIMIT_MB=1024" `
+      -e "MSSQL_AGENT_ENABLED=False" `
+      -e "MSSQL_TELEMETRY_CUSTOMERFEEDBACK=False" `
+      -p 1433:1433 --name localmssql mcr.microsoft.com/mssql/server:2022-latest
 }
 if ($LASTEXITCODE -ne 0) {
   throw "Failed to start SQL Server container. Exit code: $LASTEXITCODE"
 }
 
-& docker run -d -e "MYSQL_ROOT_HOST=%" -e "MYSQL_ROOT_PASSWORD=etlboxpassword" -p 3306:3306 --name localmysql mysql/mysql-server
+& docker run -d -e "MYSQL_ROOT_HOST=%" -e "MYSQL_ROOT_PASSWORD=etlkitpassword" -p 3306:3306 --name localmysql mysql/mysql-server
 if ($LASTEXITCODE -ne 0) {
   throw "Failed to start MySQL container. Exit code: $LASTEXITCODE"
 }
 
-& docker run -d -e "POSTGRES_PASSWORD=etlboxpassword" -e "LANG=en_US.utf8" -p 5432:5432 --name localpostgres postgres
+& docker run -d -e "POSTGRES_PASSWORD=etlkitpassword" -e "LANG=en_US.utf8" -p 5432:5432 --name localpostgres postgres
 if ($LASTEXITCODE -ne 0) {
   throw "Failed to start PostgreSQL container. Exit code: $LASTEXITCODE"
 }

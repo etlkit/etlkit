@@ -1,6 +1,6 @@
-using ALE.ETLBox.DataFlow;
+using EtlKit.DataFlow;
 
-namespace TestTransformations.AggregationTests
+namespace EtlKit.TestTransformations.AggregationTests
 {
     public class AggregationDynamicObjectTests
     {

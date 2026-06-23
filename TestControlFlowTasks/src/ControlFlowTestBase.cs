@@ -1,9 +1,9 @@
-using ALE.ETLBox.ConnectionManager;
-using ETLBox.ClickHouse.ConnectionManager;
-using ETLBox.Primitives;
-using TestControlFlowTasks.Fixtures;
+using EtlKit.ClickHouse.ConnectionManager;
+using EtlKit.ConnectionManager;
+using EtlKit.Primitives;
+using EtlKit.TestControlFlowTasks.Fixtures;
 
-namespace TestControlFlowTasks
+namespace EtlKit.TestControlFlowTasks
 {
     [Collection(nameof(ControlFlowCollection))]
     public class ControlFlowTestBase

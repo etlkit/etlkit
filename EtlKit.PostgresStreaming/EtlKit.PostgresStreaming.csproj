@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>EtlKit.DataFlow</RootNamespace>
+    <PackageId>EtlKit.PostgresStreaming</PackageId>
+    <Nullable>enable</Nullable>
+    <Description>
+      EtlKit is a fully open-source (MIT) ETL library and data integration toolbox for .NET.
+      Build extract-transform-load pipelines programmatically in C# with async, in-memory
+      data flow components backed by TPL Dataflow.
+      PostgreSQL tail-reading source with xmin-frontier polling for safe event stream consumption.
+    </Description>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EtlKit.Common\EtlKit.Common.csproj" />
+    <ProjectReference Include="..\EtlKit.Primitives\EtlKit.Primitives.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="JetBrains.Annotations" Version="2023.3.0" />
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="7.0.0" />
+  </ItemGroup>
+
+</Project>

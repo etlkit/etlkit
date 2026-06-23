@@ -1,9 +1,9 @@
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.DataFlow;
-using TestShared.SharedFixtures;
-using TestTransformations.Fixtures;
+using EtlKit.ControlFlow;
+using EtlKit.DataFlow;
+using EtlKit.TestShared.SharedFixtures;
+using EtlKit.TestTransformations.Fixtures;
 
-namespace TestTransformations.MergeJoin
+namespace EtlKit.TestTransformations.MergeJoin
 {
     [Collection("Transformations")]
     public class MergeJoinTests : TransformationsTestBase
@@ -27,25 +27,12 @@ namespace TestTransformations.MergeJoin
             source2Table.InsertTestDataSet2();
             var _ = new TwoColumnsTableFixture("MergeJoinDestination");
 
-            var source1 = new DbSource<MySimpleRow>(
-                SqlConnection,
-                "MergeJoinSource1"
-            );
-            var source2 = new DbSource<MySimpleRow>(
-                SqlConnection,
-                "MergeJoinSource2"
-            );
-            var dest = new DbDestination<MySimpleRow>(
-                SqlConnection,
-                "MergeJoinDestination"
-            );
+            var source1 = new DbSource<MySimpleRow>(SqlConnection, "MergeJoinSource1");
+            var source2 = new DbSource<MySimpleRow>(SqlConnection, "MergeJoinSource2");
+            var dest = new DbDestination<MySimpleRow>(SqlConnection, "MergeJoinDestination");
 
             //Act
-            var join = new MergeJoin<
-                MySimpleRow,
-                MySimpleRow,
-                MySimpleRow
-            >(
+            var join = new MergeJoin<MySimpleRow, MySimpleRow, MySimpleRow>(
                 (inputRow1, inputRow2) =>
                 {
                     inputRow1.Col1 += inputRow2.Col1;

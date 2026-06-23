@@ -8,9 +8,9 @@
     <AnalysisLevel>latest</AnalysisLevel>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <PackageProjectUrl>https://www.rapidsoft.ru</PackageProjectUrl>
-    <RepositoryUrl>https://git.rapidsoft.ru/open-source/etlbox</RepositoryUrl>
-    <PackageTags>etl elt ssis dataflow controlflow data integration etlbox</PackageTags>
-    <PackageIcon>logo_bw.png</PackageIcon>
+    <RepositoryUrl>https://git.rapidsoft.ru/open-source/etlkit</RepositoryUrl>
+    <PackageTags>etl elt ssis dataflow controlflow data integration etlkit</PackageTags>
+    <PackageIcon>icon.png</PackageIcon>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   
@@ -38,7 +38,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="$(MSBuildThisFileDirectory)docs/images/logo_bw.png" Pack="true" PackagePath="">
+    <None Include="$(MSBuildThisFileDirectory)docs/images/logo/icon.png" Pack="true" PackagePath="">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <Content Include="$(MSBuildThisFileDirectory)/README.md" Pack="true" PackagePath="" />

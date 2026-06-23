@@ -1,8 +1,8 @@
 using System.Data;
-using ALE.ETLBox.ConnectionManager;
+using EtlKit.ConnectionManager;
 using Moq;
 
-namespace TestConnectionManager.ConnectionManager
+namespace EtlKit.TestConnectionManager.ConnectionManager
 {
     /// <summary>
     /// Unit tests for DisposableDataReader class

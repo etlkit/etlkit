@@ -5,7 +5,7 @@ repository.
 
 ## Project Overview
 
-ETLBox.Classic (NuGet: `EtlBox.Classic`) is an open-source .NET ETL library for building data
+EtlKit (NuGet: `EtlKit`) is an open-source .NET ETL library for building data
 integration pipelines. Fork of original ETLBox by Andreas Lennartz, maintained by RapidSoft. Targets
 `netstandard2.0` (libraries) and `net8.0` (tests).
 
@@ -13,13 +13,13 @@ integration pipelines. Fork of original ETLBox by Andreas Lennartz, maintained b
 
 ```bash
 # Build entire solution
-dotnet build ETLBox.sln
+dotnet build EtlKit.sln
 
 # Build a specific project
-dotnet build ETLBox/ETLBox.csproj
+dotnet build EtlKit/EtlKit.csproj
 
 # Run all tests (requires Docker databases running)
-dotnet test ETLBox.sln
+dotnet test EtlKit.sln
 
 # Run a specific test project
 dotnet test TestTransformations/TestTransformations.csproj
@@ -36,11 +36,11 @@ pwsh ./test/Run-Containers.ps1
 ```
 
 Test databases (Docker): SQL Server (:1433, sa/YourStrong@Passw0rd), PostgreSQL (:5432,
-postgres/etlboxpassword), MySQL (:3306, root/etlboxpassword), ClickHouse (:9000).
+postgres/etlkitpassword), MySQL (:3306, root/etlkitpassword), ClickHouse (:9000).
 
 ## Architecture
 
-Two main subsystems inside `ETLBox/src/`:
+Two main subsystems inside `EtlKit/src/`:
 
 - **Data Flow** (`Toolbox/DataFlow/`) - Sources, transformations, destinations connected via
   `LinkTo()` pattern. Built on TPL Dataflow (`ActionBlock`, `BatchBlock`). Async-first with
@@ -55,12 +55,12 @@ Key abstractions in `Definitions/`:
 - `IConnectionManager` - database connection abstraction (`Toolbox/ConnectionManager/`)
 - `ITask` / `GenericTask` - base for all tasks
 
-Root namespace: `ALE.ETLBox` with sub-namespaces (`ALE.ETLBox.DataFlow`, `ALE.ETLBox.ControlFlow`,
+Root namespace: `EtlKit` with sub-namespaces (`EtlKit.DataFlow`, `EtlKit.ControlFlow`,
 etc.).
 
-Extension libraries follow the pattern `ETLBox.<Feature>/` (e.g., ETLBox.Kafka, ETLBox.Json,
-ETLBox.Rest, ETLBox.Serialization, ETLBox.Scripting, ETLBox.DynamicLinq) with corresponding
-`ETLBox.<Feature>.Tests/` projects.
+Extension libraries follow the pattern `EtlKit.<Feature>/` (e.g., EtlKit.Kafka, EtlKit.Json,
+EtlKit.Rest, EtlKit.Serialization, EtlKit.Scripting, EtlKit.DynamicLinq) with corresponding
+`EtlKit.<Feature>.Tests/` projects.
 
 Shared test utilities live in `TestShared/`. Tests that cannot run in parallel are in
 `TestNonParallel/`.

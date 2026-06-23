@@ -1,4 +1,4 @@
-﻿namespace TestOtherConnectors.Fixture
+﻿namespace EtlKit.TestOtherConnectors.Fixture
 {
     public sealed class OtherConnectorsDatabaseFixture : IDisposable
     {

@@ -1,19 +1,19 @@
 using System.Data;
 using System.Dynamic;
-using ALE.ETLBox;
-using ALE.ETLBox.ConnectionManager;
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.DataFlow;
+using EtlKit;
+using EtlKit.ConnectionManager;
+using EtlKit.ControlFlow;
+using EtlKit.DataFlow;
+using EtlKit.TestConnectionManager.Fixtures;
 using Npgsql;
-using TestConnectionManager.Fixtures;
 
-namespace TestConnectionManager.ConnectionManager
+namespace EtlKit.TestConnectionManager.ConnectionManager
 {
     [Collection("Connection Manager")]
     public class PostgresConnectionManagerTests : ConnectionManagerTestBase
     {
         public PostgresConnectionManagerTests(ConnectionManagerFixture fixture)
-            : base(ETLBox.Primitives.ConnectionManagerType.Postgres, fixture) { }
+            : base(EtlKit.Primitives.ConnectionManagerType.Postgres, fixture) { }
 
         private static int? GetOpenConnections(string connectionString)
         {

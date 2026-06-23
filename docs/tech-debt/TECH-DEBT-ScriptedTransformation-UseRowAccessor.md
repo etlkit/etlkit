@@ -160,7 +160,7 @@ File: `ETLBox.Scripting.Tests/ScriptedRowTransformationTests.cs`
 Before closing the implementation PR, update `CHANGELOG.md` with the following entries:
 
 - **Added** — `ScriptedRowTransformation.UseRowAccessor` property (opt-in, default `false`).
-- **Added** — `ScriptGlobals` and `ScriptGlobals<T>` public types (`ETLBox.Scripting` namespace).
+- **Added** — `ScriptGlobals` and `ScriptGlobals<T>` public types (`EtlKit.Scripting` namespace).
 - **Added** — `TypedScriptBuilder<TGlobals>` — generic form of `TypedScriptBuilder`, usable with
   custom globals types outside `ScriptedRowTransformation`.
 - **Fixed** — scripts with Roslyn warnings (e.g. CS0472) were incorrectly rejected; now only

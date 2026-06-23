@@ -1,9 +1,9 @@
-using ALE.ETLBox;
-using ALE.ETLBox.ConnectionManager;
-using ALE.ETLBox.ControlFlow;
+using EtlKit;
+using EtlKit.ConnectionManager;
+using EtlKit.ControlFlow;
 using Microsoft.Data.SqlClient;
 
-namespace TestConnectionManager.ConnectionManager
+namespace EtlKit.TestConnectionManager.ConnectionManager
 {
     /// <summary>
     /// Надёжный подсчёт открытых соединений SQL Server для тестов.
@@ -29,7 +29,7 @@ namespace TestConnectionManager.ConnectionManager
         /// тестов/сборок и с «хвостами» прошлых прогонов на общем сервере.
         /// </summary>
         public static string NewApplicationName(string label) =>
-            $"ETLBoxTest-{label}-{Guid.NewGuid():N}";
+            $"EtlKitTest-{label}-{Guid.NewGuid():N}";
 
         /// <summary>
         /// Возвращает строку подключения с проставленным <c>Application Name</c>, чтобы соединения,

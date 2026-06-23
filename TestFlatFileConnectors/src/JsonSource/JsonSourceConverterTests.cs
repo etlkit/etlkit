@@ -1,11 +1,11 @@
-using ALE.ETLBox.Common.DataFlow;
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.DataFlow;
-using ALE.ETLBox.Helper;
-using TestFlatFileConnectors.Fixture;
-using TestShared.SharedFixtures;
+using EtlKit.Common.DataFlow;
+using EtlKit.ControlFlow;
+using EtlKit.DataFlow;
+using EtlKit.Helper;
+using EtlKit.TestFlatFileConnectors.Fixture;
+using EtlKit.TestShared.SharedFixtures;
 
-namespace TestFlatFileConnectors.JsonSource
+namespace EtlKit.TestFlatFileConnectors.JsonSource
 {
     [Collection("FlatFilesToDatabase")]
     public class JsonSourceConverterTests : FlatFileConnectorsTestBase
@@ -57,8 +57,8 @@ namespace TestFlatFileConnectors.JsonSource
                 {
                     JsonPropertyName = "Column2",
                     JsonPath = "Value",
-                    NewPropertyName = "Col2"
-                }
+                    NewPropertyName = "Col2",
+                },
             };
             source.JsonSerializer.Converters.Add(new ExpandoJsonPathConverter(pathLookups));
 
@@ -97,14 +97,14 @@ namespace TestFlatFileConnectors.JsonSource
                     {
                         JsonPropertyName = "Object",
                         JsonPath = "Number[0]",
-                        NewPropertyName = "Col4"
+                        NewPropertyName = "Col4",
                     },
                     new()
                     {
                         JsonPropertyName = "Array",
                         JsonPath = "[1].Value",
-                        NewPropertyName = "Col3"
-                    }
+                        NewPropertyName = "Col3",
+                    },
                 };
                 source.JsonSerializer.Converters.Add(new ExpandoJsonPathConverter(pathLookups));
 

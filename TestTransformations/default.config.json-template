@@ -1,9 +1,9 @@
 {
     "DataFlow": {
-        "SqlConnectionString": "Data Source=${CFG_MSSQL_IP};TrustServerCertificate=true;User Id=sa;Password=YourStrong@Passw0rd;Initial Catalog=ETLBox_TestTransformation",
+        "SqlConnectionString": "Data Source=${CFG_MSSQL_IP};TrustServerCertificate=true;User Id=sa;Password=YourStrong@Passw0rd;Initial Catalog=EtlKit_TestTransformation",
         "SQLiteConnectionString": "Data Source=.${CFG_PD}db${CFG_PD}SQLiteDataFlow.db;",
-        "MySqlConnectionString": "Server=${CFG_MYSQL_IP};Database=ETLBox_TestTransformation;Uid=root;Pwd=etlboxpassword;",
-        "PostgresConnectionString": "Server=${CFG_POSTGRES_IP};Database=ETLBox_TestTransformation;User Id=postgres;Password=etlboxpassword;",
+        "MySqlConnectionString": "Server=${CFG_MYSQL_IP};Database=EtlKit_TestTransformation;Uid=root;Pwd=etlkitpassword;",
+        "PostgresConnectionString": "Server=${CFG_POSTGRES_IP};Database=EtlKit_TestTransformation;User Id=postgres;Password=etlkitpassword;",
 		"ClickHouseConnectionString": "Host=${CFG_CLICKHOUSE_IP};Port=9000;Database=default;User=clickhouse;Password=Qwe123456;"
     }
 }

@@ -1,8 +1,8 @@
-using ALE.ETLBox.DataFlow;
-using TestFlatFileConnectors.Fixture;
-using TestShared.SharedFixtures;
+using EtlKit.DataFlow;
+using EtlKit.TestFlatFileConnectors.Fixture;
+using EtlKit.TestShared.SharedFixtures;
 
-namespace TestFlatFileConnectors.CsvDestination
+namespace EtlKit.TestFlatFileConnectors.CsvDestination
 {
     [Collection("FlatFilesToDatabase")]
     public class CsvDestinationTests : FlatFileConnectorsTestBase
@@ -27,15 +27,10 @@ namespace TestFlatFileConnectors.CsvDestination
             //Arrange
             var s2C = new TwoColumnsTableFixture("CSVDestSimple");
             s2C.InsertTestDataSet3();
-            var source = new DbSource<MySimpleRow>(
-                SqlConnection,
-                "CSVDestSimple"
-            );
+            var source = new DbSource<MySimpleRow>(SqlConnection, "CSVDestSimple");
 
             //Act
-            var dest = new CsvDestination<MySimpleRow>(
-                "./SimpleWithObject.csv"
-            );
+            var dest = new CsvDestination<MySimpleRow>("./SimpleWithObject.csv");
             source.LinkTo(dest);
             source.Execute();
             dest.Wait();

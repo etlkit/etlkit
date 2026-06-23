@@ -1,9 +1,9 @@
-using ALE.ETLBox.Common.DataFlow;
-using ALE.ETLBox.DataFlow;
-using TestShared.SharedFixtures;
-using TestTransformations.Fixtures;
+using EtlKit.Common.DataFlow;
+using EtlKit.DataFlow;
+using EtlKit.TestShared.SharedFixtures;
+using EtlKit.TestTransformations.Fixtures;
 
-namespace TestTransformations.RowTransformation
+namespace EtlKit.TestTransformations.RowTransformation
 {
     [Collection("Transformations")]
     public class RowTransformationTests : TransformationsTestBase
@@ -21,18 +21,15 @@ namespace TestTransformations.RowTransformation
         public void ConvertIntoObject()
         {
             //Arrange
-            var dest2Columns = new TwoColumnsTableFixture(
-                "DestinationRowTransformation"
-            );
-            var source = new CsvSource<string[]>(
-                "res/RowTransformation/TwoColumns.csv"
-            );
+            var dest2Columns = new TwoColumnsTableFixture("DestinationRowTransformation");
+            var source = new CsvSource<string[]>("res/RowTransformation/TwoColumns.csv");
 
             //Act
-            var trans = new RowTransformation<
-                string[],
-                MySimpleRow
-            >(csvdata => new MySimpleRow { Col1 = int.Parse(csvdata[0]), Col2 = csvdata[1] });
+            var trans = new RowTransformation<string[], MySimpleRow>(csvdata => new MySimpleRow
+            {
+                Col1 = int.Parse(csvdata[0]),
+                Col2 = csvdata[1],
+            });
             var dest = new DbDestination<MySimpleRow>(
                 SqlConnection,
                 "DestinationRowTransformation"
@@ -50,19 +47,12 @@ namespace TestTransformations.RowTransformation
         public void InitAction()
         {
             //Arrange
-            var dest2Columns = new TwoColumnsTableFixture(
-                "DestinationRowTransformation"
-            );
-            var source = new CsvSource<MySimpleRow>(
-                "res/RowTransformation/TwoColumnsIdMinus1.csv"
-            );
+            var dest2Columns = new TwoColumnsTableFixture("DestinationRowTransformation");
+            var source = new CsvSource<MySimpleRow>("res/RowTransformation/TwoColumnsIdMinus1.csv");
 
             //Act
             var IdOffset = 0;
-            var trans = new RowTransformation<
-                MySimpleRow,
-                MySimpleRow
-            >(
+            var trans = new RowTransformation<MySimpleRow, MySimpleRow>(
                 "RowTransformation testing init Action",
                 row =>
                 {

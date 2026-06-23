@@ -1,8 +1,8 @@
-﻿using ALE.ETLBox.DataFlow;
-using ALE.ETLBoxTests.Performance.Helper;
-using TestShared.Helper;
+﻿using EtlKit.DataFlow;
+using EtlKit.TestPerformance.Helper;
+using EtlKit.TestShared.Helper;
 
-namespace ALE.ETLBoxTests.Performance
+namespace EtlKit.TestPerformance
 {
     public class MemoryDestinationTests
     {
@@ -39,9 +39,9 @@ namespace ALE.ETLBoxTests.Performance
             sourceGeneric.ReleaseGCPressureRowCount = 500;
             sourceDynamic.ReleaseGCPressureRowCount = 500;
             //Act
-            var teNonGeneric = GetETLBoxTime(numberOfRows, sourceNonGeneric, destNonGeneric);
-            var teGeneric = GetETLBoxTime(numberOfRows, sourceGeneric, destGeneric);
-            var teDynamic = GetETLBoxTime(numberOfRows, sourceDynamic, destDynamic);
+            var teNonGeneric = GetEtlKitTime(numberOfRows, sourceNonGeneric, destNonGeneric);
+            var teGeneric = GetEtlKitTime(numberOfRows, sourceGeneric, destGeneric);
+            var teDynamic = GetEtlKitTime(numberOfRows, sourceDynamic, destDynamic);
 
             //Assert
             Assert.Equal(numberOfRows, destNonGeneric.Data.Count);
@@ -52,26 +52,26 @@ namespace ALE.ETLBoxTests.Performance
                 {
                     teGeneric.TotalMilliseconds,
                     teNonGeneric.TotalMilliseconds,
-                    teDynamic.TotalMilliseconds
+                    teDynamic.TotalMilliseconds,
                 }.Max()
                     < new[]
                     {
                         teGeneric.TotalMilliseconds,
                         teNonGeneric.TotalMilliseconds,
-                        teDynamic.TotalMilliseconds
+                        teDynamic.TotalMilliseconds,
                     }.Max() * (deviation + 1)
             );
         }
 
-        private TimeSpan GetETLBoxTime<T>(
+        private TimeSpan GetEtlKitTime<T>(
             int numberOfRows,
             CsvSource<T> source,
             MemoryDestination<T> dest
         )
         {
             source.LinkTo(dest);
-            var timeElapsedETLBox = BigDataHelper.LogExecutionTime(
-                $"Copying Csv into Memory Destination with {numberOfRows} rows of data using ETLBox",
+            var timeElapsedEtlKit = BigDataHelper.LogExecutionTime(
+                $"Copying Csv into Memory Destination with {numberOfRows} rows of data using EtlKit",
                 () =>
                 {
                     source.Execute();
@@ -81,14 +81,14 @@ namespace ALE.ETLBoxTests.Performance
             if (typeof(T) == typeof(string[]))
                 _output.WriteLine(
                     "Elapsed "
-                        + timeElapsedETLBox.TotalSeconds
-                        + " seconds for ETLBox (Non generic)."
+                        + timeElapsedEtlKit.TotalSeconds
+                        + " seconds for EtlKit (Non generic)."
                 );
             else
                 _output.WriteLine(
-                    "Elapsed " + timeElapsedETLBox.TotalSeconds + " seconds for ETLBox (Generic)."
+                    "Elapsed " + timeElapsedEtlKit.TotalSeconds + " seconds for EtlKit (Generic)."
                 );
-            return timeElapsedETLBox;
+            return timeElapsedEtlKit;
         }
     }
 }

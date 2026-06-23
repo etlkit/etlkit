@@ -1,7 +1,8 @@
-using ALE.ETLBox.DataFlow;
-using ETLBox.Primitives;
+using EtlKit.DataFlow;
+using EtlKit.Primitives;
+using EtlKit.TestDatabaseConnectors.Fixtures;
 
-namespace TestDatabaseConnectors.DBDestination
+namespace EtlKit.TestDatabaseConnectors.DBDestination
 {
     [Collection(nameof(DataFlowSourceDestinationCollection))]
     public class DbDestinationMultipleSourcesTests : DatabaseConnectorsTestBase
@@ -27,11 +28,11 @@ namespace TestDatabaseConnectors.DBDestination
             source1.DataAsList = new List<MySimpleRow>
             {
                 new() { Col1 = 1, Col2 = "Test1" },
-                new() { Col1 = 2, Col2 = "Test2" }
+                new() { Col1 = 2, Col2 = "Test2" },
             };
             source2.DataAsList = new List<MySimpleRow>
             {
-                new() { Col1 = 3, Col2 = "Test3" }
+                new() { Col1 = 3, Col2 = "Test3" },
             };
             TwoColumnsTableFixture dest2Columns = new TwoColumnsTableFixture(
                 connection,

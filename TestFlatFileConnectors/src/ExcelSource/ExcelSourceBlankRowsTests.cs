@@ -1,9 +1,9 @@
 using System.Linq;
-using ALE.ETLBox.DataFlow;
-using TestFlatFileConnectors.Fixture;
-using TestShared.SharedFixtures;
+using EtlKit.DataFlow;
+using EtlKit.TestFlatFileConnectors.Fixture;
+using EtlKit.TestShared.SharedFixtures;
 
-namespace TestFlatFileConnectors.ExcelSource
+namespace EtlKit.TestFlatFileConnectors.ExcelSource
 {
     [Collection("FlatFilesToDatabase")]
     public class ExcelSourceBlankRowsTests : FlatFileConnectorsTestBase
@@ -50,7 +50,7 @@ namespace TestFlatFileConnectors.ExcelSource
             var source = new ExcelSource<MyDataRow>(filename)
             {
                 Range = new ExcelRange(1, 3),
-                HasNoHeader = true
+                HasNoHeader = true,
             };
 
             source.LinkTo(dest);
@@ -73,17 +73,13 @@ namespace TestFlatFileConnectors.ExcelSource
         public void IgnoreBlankRows()
         {
             //Arrange
-            var dest2Columns = new TwoColumnsTableFixture(
-                "ExcelDestinationBlankRows"
-            );
+            var dest2Columns = new TwoColumnsTableFixture("ExcelDestinationBlankRows");
 
             //Act
-            var source = new ExcelSource<MySimpleRow>(
-                "res/Excel/TwoColumnBlankRow.xlsx"
-            )
+            var source = new ExcelSource<MySimpleRow>("res/Excel/TwoColumnBlankRow.xlsx")
             {
                 IgnoreBlankRows = true,
-                HasNoHeader = true
+                HasNoHeader = true,
             };
             var dest = new DbDestination<MySimpleRow>(
                 SqlConnection,

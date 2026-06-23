@@ -1,13 +1,14 @@
 using System.Threading;
 using System.Threading.Tasks;
-using ALE.ETLBox;
-using ALE.ETLBox.Common;
-using ALE.ETLBox.ConnectionManager;
-using ALE.ETLBox.ControlFlow;
-using ALE.ETLBox.DataFlow;
-using ETLBox.Primitives;
+using EtlKit;
+using EtlKit.Common;
+using EtlKit.ConnectionManager;
+using EtlKit.ControlFlow;
+using EtlKit.DataFlow;
+using EtlKit.Primitives;
+using EtlKit.TestDatabaseConnectors.Fixtures;
 
-namespace TestDatabaseConnectors.DBSource
+namespace EtlKit.TestDatabaseConnectors.DBSource
 {
     [Collection(nameof(DataFlowSourceDestinationCollection))]
     public class DbSourceErrorLinkingTests : DatabaseConnectorsTestBase
@@ -50,7 +51,7 @@ namespace TestDatabaseConnectors.DBSource
                 connection,
                 "DbDestinationErrorLinking"
             );
-            MemoryDestination<ETLBoxError> errorDest = new MemoryDestination<ETLBoxError>();
+            MemoryDestination<EtlKitError> errorDest = new MemoryDestination<EtlKitError>();
             source.LinkTo(dest);
             source.LinkErrorTo(errorDest);
             await source.ExecuteAsync(CancellationToken.None);

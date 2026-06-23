@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <PackageId>EtlKit.Primitives</PackageId>
+    <Description>
+      EtlKit is a fully open-source (MIT) ETL library and data integration toolbox for .NET.
+      Build extract-transform-load pipelines programmatically in C# with async, in-memory
+      data flow components backed by TPL Dataflow.
+      Common types and interfaces for use in other EtlKit packages.
+      This package is not to be installed as direct dependency unless you want to write extensions to EtlKit.
+    </Description>
+    <RootNamespace>EtlKit.Primitives</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="JetBrains.Annotations" Version="2023.3.0"/>
+    <PackageReference Include="System.Threading.Tasks.Dataflow" Version="7.0.0"/>
+  </ItemGroup>
+
+</Project>

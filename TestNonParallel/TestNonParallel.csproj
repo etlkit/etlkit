@@ -3,8 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <IsPackable>false</IsPackable>
-    <AssemblyName>ALE.ETLBoxTestsNonParallel</AssemblyName>
-    <RootNamespace>ALE.ETLBoxTests.NonParallel</RootNamespace>
+    <AssemblyName>EtlKit.TestNonParallel</AssemblyName>
+    <RootNamespace>EtlKit.TestNonParallel</RootNamespace>
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 
@@ -29,8 +29,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ETLBox.Logging.Database\ETLBox.Logging.Database.csproj" />
-    <ProjectReference Include="..\ETLBox\ETLBox.csproj" />
+    <ProjectReference Include="..\EtlKit.Logging.Database\EtlKit.Logging.Database.csproj" />
+    <ProjectReference Include="..\EtlKit\EtlKit.csproj" />
     <ProjectReference Include="..\TestShared\TestShared.csproj" />
   </ItemGroup>
 

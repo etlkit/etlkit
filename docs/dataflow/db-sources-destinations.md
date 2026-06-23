@@ -1,6 +1,6 @@
 # Database integration
 
-There a numerous database sources and destinations that come with ETLBox. In short, you can extract
+There a numerous database sources and destinations that come with EtlKit. In short, you can extract
 data from and load data into the following databases: Sql Server, MySql, Postgres, SQLite and
 Microsoft Access.
 
@@ -32,7 +32,7 @@ DbSource source = new DbSource() {
 
 ### Working with types
 
-In the examples above we used a object without a type. This will let ETLBox work internally with an
+In the examples above we used a object without a type. This will let EtlKit work internally with an
 `ExpandoObject` which is a dynamic .NET object type. Let's assume that SouceTable has two columns:
 
 | ColumnName | Data Type |
@@ -61,18 +61,18 @@ Now we can read the data from the source with a generic object:
 DbSource<MySimpleRow> source = new DbSource<MySimpleRow>("SourceTable");
 ```
 
-ETLBox will autamtically extract missing meta information during runtime from the source table and
+EtlKit will autamtically extract missing meta information during runtime from the source table and
 the involved types. In our example, the source table has the exact same columns as the object -
-ETLBox will check this and write data from the Id column into the Id property, and data from the
+EtlKit will check this and write data from the Id column into the Id property, and data from the
 column Value into the Value property. Each record in the source will be a new object that is created
 and then passed to the connected components.
 
-Of course the properties in the object and the columsn can differ - ETLBox will only load columns
-from a source where it can find the right property. If the data type is different, ETLBox will try
+Of course the properties in the object and the columsn can differ - EtlKit will only load columns
+from a source where it can find the right property. If the data type is different, EtlKit will try
 to automatically convert the data. If the names are different, you can use the attribute ColumnMap
 to define the matching columns name for a property. In our example, we could replace the property Id
 with a property Key - in order to still read data from the Id column, we add the ColumnMap
-attribute. Also, if we change the data type to string, ETLBox will automatically convert the integer
+attribute. Also, if we change the data type to string, EtlKit will automatically convert the integer
 values into a string.
 
 ```csharp
@@ -120,7 +120,7 @@ Here is an example creating a connection manager for Sql Server and pass it to a
 
 ```csharp
 DbSource source = DbSource (
-    new SqlConnectionManager("Data Source=.;Integrated Security=SSPI;Initial Catalog=ETLBox;")
+    new SqlConnectionManager("Data Source=.;Integrated Security=SSPI;Initial Catalog=EtlKit;")
     , "SourceTable"
 );
 ```
@@ -131,13 +131,13 @@ look different.
 This is how you create a connection manager for MySql:
 
 ```csharp
-MySqlConnectionManager connectionManager = new MySqlConnectionManager("Server=10.37.128.2;Database=ETLBox_ControlFlow;Uid=etlbox;Pwd=etlboxpassword;";
+MySqlConnectionManager connectionManager = new MySqlConnectionManager("Server=10.37.128.2;Database=EtlKit_ControlFlow;Uid=etlbox;Pwd=etlkitpassword;";
 ```
 
 Here the example code for creating a connection manager for Postgres:
 
 ```csharp
-PostgresConnectionManager connectionManager = new PostgresConnectionManager("Server=10.37.128.2;Database=ETLBox_DataFlow;User Id=postgres;Password=etlboxpassword;");
+PostgresConnectionManager connectionManager = new PostgresConnectionManager("Server=10.37.128.2;Database=EtlKit_DataFlow;User Id=postgres;Password=etlkitpassword;");
 ```
 
 Creation of a connection manager for SQLite:
@@ -155,7 +155,7 @@ property `DefaultDbConnection`. If you define a connection manager here, this wi
 a fallback value if no other connection manager property was defined.
 
 ```csharp
-ControlFlow.DefaultDbConnection = new SqlConnectionManager("Data Source=.;Integrated Security=SSPI;Initial Catalog=ETLBox;");
+ControlFlow.DefaultDbConnection = new SqlConnectionManager("Data Source=.;Integrated Security=SSPI;Initial Catalog=EtlKit;");
 //Now you can just create a DbSource like this
 var source = new DbSource("SourceTable");
 ```
@@ -170,7 +170,7 @@ connection string into the appropriate ConnectionStringBuilder object and also o
 functionalities, e.g. like getting a connection string for the database storing system information.
 
 ```csharp
-SqlConnectionString etlboxConnString = new SqlConnectionString("Data Source=.;Integrated Security=SSPI;Initial Catalog=ETLBox;");
+SqlConnectionString etlboxConnString = new SqlConnectionString("Data Source=.;Integrated Security=SSPI;Initial Catalog=EtlKit;");
 SqlConnectionString masterConnString = etlboxConnString.GetMasterConnection();
 
 //masterConnString is equal to "Data Source=.;Integrated Security=SSPI;"
@@ -187,7 +187,7 @@ Here is how you can connect via ODBC:
 
 ```csharp
 DbSource source = DbSource (
-    new SqlODBCConnectionManager("Driver={SQL Server};Server=.;Database=ETLBox_ControlFlow;Trusted_Connection=Yes"),
+    new SqlODBCConnectionManager("Driver={SQL Server};Server=.;Database=EtlKit_ControlFlow;Trusted_Connection=Yes"),
     "SourceTable"
 );
 ```
@@ -198,7 +198,7 @@ VALUES (..),(..),(..)
 
 #### Access DB Connections
 
-The ODBC connection to Microsoft Access databases have more restrictions. ETLBox is based .NET Core
+The ODBC connection to Microsoft Access databases have more restrictions. EtlKit is based .NET Core
 and will run in your application as dependency. It now depends if you compile your application with
 32bit or 64bit (some version of .NET Core only support 64bit). You will need the right Microsoft
 Access driver installed - either 32bit or 64bit. You can only install the 32bit driver if you have a
@@ -234,7 +234,7 @@ underlying connection pooling.
 This means that this actually can increase your performance, and in most scenarios you never have
 more connections open that you actually need for your application.
 
-You don't need to explicitly open a connection. ETLBox will call the `Open()` method on a connection
+You don't need to explicitly open a connection. EtlKit will call the `Open()` method on a connection
 manager whenever needed - where it relies on the underlying ADO.NET connection pooling that either
 creates a new connection or re-uses an existing one. Whenever the work of a component or task is
 done, the connection manager will return the connection back to the pool so that it can be reused by
@@ -251,9 +251,9 @@ scenario you can use the `LeaveOpen` property on the connection managers.
 ### Table Definitions
 
 If you pass a table name to a `DBsource` or `DbDestination` or a Sql statement to a `DbSource`, the
-meta data of the table is automatically derived from that table or sql statement by ETLBox. For
+meta data of the table is automatically derived from that table or sql statement by EtlKit. For
 table or views this is done via a Sql statement that queries system information, and for the Sql
-statement this is done via parsing the statement. If you don't want ETLBox to read this information,
+statement this is done via parsing the statement. If you don't want EtlKit to read this information,
 or if you want to provide your own meta information, you can pass a `TableDefinition` instead.
 
 This could look like this:
@@ -270,4 +270,4 @@ var DbSource<type> = new DbSource<type>() {
 }
 ```
 
-ETLBox will use this meta data instead to get the right column names.
+EtlKit will use this meta data instead to get the right column names.

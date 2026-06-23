@@ -1,6 +1,6 @@
-using ALE.ETLBox.DataFlow;
+using EtlKit.DataFlow;
 
-namespace TestTransformations.RowFiltration
+namespace EtlKit.TestTransformations.RowFiltration
 {
     public class RowFiltrationDynamicObjectTests
     {
@@ -23,7 +23,7 @@ namespace TestTransformations.RowFiltration
             source.DataAsList.Add(row3);
 
             // Filter: only rows where ratios differ
-            var filtration = new ALE.ETLBox.DataFlow.RowFiltration(row =>
+            var filtration = new EtlKit.DataFlow.RowFiltration(row =>
             {
                 var dict = (IDictionary<string, object>)row;
                 return !Equals(dict["AdminReserveRatio"], dict["AdminReserveRatioToday"]);
@@ -59,7 +59,7 @@ namespace TestTransformations.RowFiltration
             source.DataAsList.Add(row3);
 
             // Filter: only rows where accrual > burn (positive reserve)
-            var filtration = new ALE.ETLBox.DataFlow.RowFiltration(row =>
+            var filtration = new EtlKit.DataFlow.RowFiltration(row =>
             {
                 var dict = (IDictionary<string, object>)row;
                 return (decimal)dict["AccrualByDaySum"] > (decimal)dict["BurnByDaySum"];
@@ -81,7 +81,7 @@ namespace TestTransformations.RowFiltration
         {
             // Arrange
             var source = new MemorySource();
-            var filtration = new ALE.ETLBox.DataFlow.RowFiltration(row => true);
+            var filtration = new EtlKit.DataFlow.RowFiltration(row => true);
             var dest = new MemoryDestination();
 
             // Act

@@ -1,10 +1,10 @@
-using ALE.ETLBox.Common;
-using ALE.ETLBox.ConnectionManager;
-using ALE.ETLBox.ControlFlow;
-using ETLBox.Primitives;
-using TestControlFlowTasks.Fixtures;
+using EtlKit.Common;
+using EtlKit.ConnectionManager;
+using EtlKit.ControlFlow;
+using EtlKit.Primitives;
+using EtlKit.TestControlFlowTasks.Fixtures;
 
-namespace TestControlFlowTasks
+namespace EtlKit.TestControlFlowTasks
 {
     [Collection(nameof(ControlFlowCollection))]
     public class CreateSchemaTaskTests : ControlFlowTestBase

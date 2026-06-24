@@ -74,7 +74,7 @@ done together with the `ScriptBuilder` ALC work.
 
 ## References
 
-- Note 84542 in MR !116 (`ETLBox.DynamicLinq/AssemblyResolver.cs:42`)
+- Note 84542 in MR !116 (`EtlKit.DynamicLinq/AssemblyResolver.cs:42`)
 - [TECH-DEBT-ScriptBuilder-AssemblyLoadContext.md](TECH-DEBT-ScriptBuilder-AssemblyLoadContext.md)
 - `System.Linq.Dynamic.Core.DynamicClassFactory.CreateType` - upstream type emission entry point
-- `ETLBox.DynamicLinq/ExpandoTypeMapper.cs` - per-shape cache and emission boundary
+- `EtlKit.DynamicLinq/ExpandoTypeMapper.cs` - per-shape cache and emission boundary

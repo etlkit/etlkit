@@ -2,7 +2,7 @@
 
 > **Status: COMPLETED** (2026-04-07) — shipped in 1.16.0. `IDataFlowActivator` plus
 > `DefaultDataFlowActivator` and `ServiceProviderActivator` are in
-> `ETLBox.Serialization/DataFlow/`. `IServiceCollection` registration extensions
+> `EtlKit.Serialization/DataFlow/`. `IServiceCollection` registration extensions
 > (`AddEtlKitCore`, `AddEtlKitJson`, `AddEtlKitKafka`, `AddEtlKitRabbitMq`,
 > `AddEtlKitRest`, `AddEtlKitScripting`, `AddEtlKitAI`, `AddEtlKitSerialization`) are
 > registered per library, and `ILogger<T>` constructor overloads were added to every
@@ -14,8 +14,8 @@ Implement an alternative activation mode for `DataFlowXmlReader` that uses Micro
 
 ## Current Implementation
 
-- **File**: `ETLBox.Serialization/DataFlow/DataFlowXmlReader.cs`
-- **Activator**: `ETLBox.Serialization/DataFlow/DataFlowActivator.cs`
+- **File**: `EtlKit.Serialization/DataFlow/DataFlowXmlReader.cs`
+- **Activator**: `EtlKit.Serialization/DataFlow/DataFlowActivator.cs`
 
 Currently, `DataFlowXmlReader` uses `DataFlowActivator.CreateInstance(type)` to instantiate types during XML deserialization. The `DataFlowActivator` relies on `Activator.CreateInstance()` which only supports parameterless constructors (with special cases for known types like `CsvConfiguration`).
 
@@ -362,8 +362,8 @@ Medium - This is an enhancement that improves extensibility but doesn't block cu
 
 ## Related Files
 
-- `ETLBox.Serialization/DataFlow/DataFlowXmlReader.cs`
-- `ETLBox.Serialization/DataFlow/DataFlowActivator.cs`
+- `EtlKit.Serialization/DataFlow/DataFlowXmlReader.cs`
+- `EtlKit.Serialization/DataFlow/DataFlowActivator.cs`
 - All source, transformation, and destination classes across EtlKit libraries
 
 ## Dependencies

@@ -131,7 +131,7 @@ look different.
 This is how you create a connection manager for MySql:
 
 ```csharp
-MySqlConnectionManager connectionManager = new MySqlConnectionManager("Server=10.37.128.2;Database=EtlKit_ControlFlow;Uid=etlbox;Pwd=etlkitpassword;";
+MySqlConnectionManager connectionManager = new MySqlConnectionManager("Server=10.37.128.2;Database=EtlKit_ControlFlow;Uid=etlkit;Pwd=etlkitpassword;";
 ```
 
 Here the example code for creating a connection manager for Postgres:
@@ -170,8 +170,8 @@ connection string into the appropriate ConnectionStringBuilder object and also o
 functionalities, e.g. like getting a connection string for the database storing system information.
 
 ```csharp
-SqlConnectionString etlboxConnString = new SqlConnectionString("Data Source=.;Integrated Security=SSPI;Initial Catalog=EtlKit;");
-SqlConnectionString masterConnString = etlboxConnString.GetMasterConnection();
+SqlConnectionString etlkitConnString = new SqlConnectionString("Data Source=.;Integrated Security=SSPI;Initial Catalog=EtlKit;");
+SqlConnectionString masterConnString = etlkitConnString.GetMasterConnection();
 
 //masterConnString is equal to "Data Source=.;Integrated Security=SSPI;"
 SqlConnectionManager conectionToMaster = new SqlConnectionManager(masterConnString);

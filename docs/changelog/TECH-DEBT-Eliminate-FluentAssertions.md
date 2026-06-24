@@ -24,22 +24,22 @@ across 5 projects (~208 assertion calls), making this a contained migration.
 
 | Project | File |
 |---------|------|
-| ETLBox.AI.Tests | `ETLBox.AI.Tests/ETLBox.AI.Tests.csproj` |
-| ETLBox.Rest.Tests | `ETLBox.Rest.Tests/ETLBox.Rest.Tests.csproj` |
-| ETLBox.Serialization.Tests | `ETLBox.Serialization.Tests/ETLBox.Serialization.Tests.csproj` |
+| EtlKit.AI.Tests | `EtlKit.AI.Tests/EtlKit.AI.Tests.csproj` |
+| EtlKit.Rest.Tests | `EtlKit.Rest.Tests/EtlKit.Rest.Tests.csproj` |
+| EtlKit.Serialization.Tests | `EtlKit.Serialization.Tests/EtlKit.Serialization.Tests.csproj` |
 | TestHelper | `TestShared/TestHelper/TestHelper.csproj` |
 | TestTransformations | `TestTransformations/TestTransformations.csproj` |
 
 ### Files Using FluentAssertions (9 files)
 
-1. `ETLBox.Rest.Tests/RestTransformationTests.cs`
-2. `ETLBox.Serialization.Tests/DataFlowTests.cs`
-3. `ETLBox.Serialization.Tests/DataFlowXmlReaderDITests.cs`
-4. `ETLBox.Serialization.Tests/DefaultDataFlowActivatorTests.cs`
-5. `ETLBox.Serialization.Tests/LoggerInjectionTests.cs`
-6. `ETLBox.Serialization.Tests/ServiceCollectionExtensionsTests.cs`
-7. `ETLBox.Serialization.Tests/ServiceProviderActivatorTests.cs`
-8. `ETLBox.Serialization.Tests/TypeExtensionsTests.cs`
+1. `EtlKit.Rest.Tests/RestTransformationTests.cs`
+2. `EtlKit.Serialization.Tests/DataFlowTests.cs`
+3. `EtlKit.Serialization.Tests/DataFlowXmlReaderDITests.cs`
+4. `EtlKit.Serialization.Tests/DefaultDataFlowActivatorTests.cs`
+5. `EtlKit.Serialization.Tests/LoggerInjectionTests.cs`
+6. `EtlKit.Serialization.Tests/ServiceCollectionExtensionsTests.cs`
+7. `EtlKit.Serialization.Tests/ServiceProviderActivatorTests.cs`
+8. `EtlKit.Serialization.Tests/TypeExtensionsTests.cs`
 9. `TestTransformations/src/SqlQueryTransformation/SqlQueryTransformationTests.cs`
 
 ### Assertion Pattern Inventory (~208 total calls)
@@ -65,7 +65,7 @@ across 5 projects (~208 assertion calls), making this a contained migration.
 
 ## Migration Plan
 
-### Phase 1: Migrate ETLBox.Serialization.Tests (7 files, largest scope)
+### Phase 1: Migrate EtlKit.Serialization.Tests (7 files, largest scope)
 
 This project has the most FluentAssertions usage. Migrate all 7 files:
 
@@ -80,8 +80,8 @@ This project has the most FluentAssertions usage. Migrate all 7 files:
 **Steps:**
 - Replace `using FluentAssertions;` with xUnit `Assert` calls per the mapping table above
 - Remove `<PackageReference Include="FluentAssertions" Version="6.12.0" />` from
-  `ETLBox.Serialization.Tests.csproj`
-- Run `dotnet test ETLBox.Serialization.Tests/` to verify all tests pass
+  `EtlKit.Serialization.Tests.csproj`
+- Run `dotnet test EtlKit.Serialization.Tests/` to verify all tests pass
 
 ### Phase 2: Migrate TestTransformations (1 file)
 
@@ -90,25 +90,25 @@ This project has the most FluentAssertions usage. Migrate all 7 files:
   `TestTransformations/TestTransformations.csproj`
 - Run `dotnet test TestTransformations/` to verify
 
-### Phase 3: Migrate ETLBox.Rest.Tests (1 file)
+### Phase 3: Migrate EtlKit.Rest.Tests (1 file)
 
 - Migrate `RestTransformationTests.cs`
 - Remove `<PackageReference Include="FluentAssertions" ... />` from
-  `ETLBox.Rest.Tests/ETLBox.Rest.Tests.csproj`
-- Run `dotnet test ETLBox.Rest.Tests/` to verify
+  `EtlKit.Rest.Tests/EtlKit.Rest.Tests.csproj`
+- Run `dotnet test EtlKit.Rest.Tests/` to verify
 
 ### Phase 4: Clean up remaining references
 
 - Remove `<PackageReference Include="FluentAssertions" ... />` from
-  `ETLBox.AI.Tests/ETLBox.AI.Tests.csproj` (package referenced but not yet used in code)
+  `EtlKit.AI.Tests/EtlKit.AI.Tests.csproj` (package referenced but not yet used in code)
 - Remove `<PackageReference Include="FluentAssertions" ... />` from
   `TestShared/TestHelper/TestHelper.csproj` (package referenced but not yet used in code)
-- Verify full solution build: `dotnet build ETLBox.sln`
+- Verify full solution build: `dotnet build EtlKit.sln`
 - Run full test suite to confirm no regressions
 
 ### Phase 5: Verification
 
-- `dotnet build ETLBox.sln` succeeds with no FluentAssertions references
+- `dotnet build EtlKit.sln` succeeds with no FluentAssertions references
 - Grep the solution for any remaining `FluentAssertions` references:
   `Should()`, `using FluentAssertions`, `PackageReference.*FluentAssertions`
 - All tests pass

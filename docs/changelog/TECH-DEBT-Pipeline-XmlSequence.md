@@ -213,11 +213,11 @@ In XML mode, `_linkAllErrorsTo` on `DataFlowXmlReader` already auto-wires each s
 
 | File | Change |
 |------|--------|
-| `ETLBox.Common/DataFlow/DataFlowTransformation.cs` | Modify — mark all 6 `LinkTo` overloads and `LinkErrorTo` as `virtual` |
-| `ETLBox.Serialization/DataFlow/IDataFlowXmlContext.cs` | New |
-| `ETLBox.Serialization/DataFlow/IDataFlowXmlSerializable.cs` | New |
-| `ETLBox.Serialization/DataFlow/Pipeline.cs` | New (both classes) |
-| `ETLBox.Serialization/DataFlow/DataFlowXmlReader.cs` | Modify — implement context + delegate |
+| `EtlKit.Common/DataFlow/DataFlowTransformation.cs` | Modify — mark all 6 `LinkTo` overloads and `LinkErrorTo` as `virtual` |
+| `EtlKit.Serialization/DataFlow/IDataFlowXmlContext.cs` | New |
+| `EtlKit.Serialization/DataFlow/IDataFlowXmlSerializable.cs` | New |
+| `EtlKit.Serialization/DataFlow/Pipeline.cs` | New (both classes) |
+| `EtlKit.Serialization/DataFlow/DataFlowXmlReader.cs` | Modify — implement context + delegate |
 
 ---
 
@@ -517,7 +517,7 @@ if (instance is IDataFlowXmlSerializable xmlSerializable)
 
 ## Tests to add
 
-File: `ETLBox.Serialization.Tests/DataFlowPipelineTests.cs`
+File: `EtlKit.Serialization.Tests/DataFlowPipelineTests.cs`
 
 1. **Transformation pipeline** — source → `<Pipeline>` with 2 transforms + destination runs correctly.
 2. **Internal source** — `<Pipeline>` at root level with source as first child executes and produces output.
@@ -537,6 +537,6 @@ File: `ETLBox.Serialization.Tests/DataFlowPipelineTests.cs`
 ## Verification
 
 ```bash
-dotnet build ETLBox.Serialization/ETLBox.Serialization.csproj
-dotnet test ETLBox.Serialization.Tests/ETLBox.Serialization.Tests.csproj --filter "Pipeline"
+dotnet build EtlKit.Serialization/EtlKit.Serialization.csproj
+dotnet test EtlKit.Serialization.Tests/EtlKit.Serialization.Tests.csproj --filter "Pipeline"
 ```

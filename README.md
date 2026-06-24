@@ -141,8 +141,8 @@ value and then store the modified data in a Sql Server table and a csv file, dep
 Step 1 is to create a source, the transformations and destinations:
 
 ```C#
-var sourceCon = new MySqlConnectionManager("Server=10.37.128.2;Database=ETLBox_ControlFlow;Uid=etlbox;Pwd=etlkitpassword;");
-var destCon = new SqlConnectionManager("Data Source=.;Integrated Security=SSPI;Initial Catalog=ETLBox;");
+var sourceCon = new MySqlConnectionManager("Server=10.37.128.2;Database=EtlKit_ControlFlow;Uid=etlkit;Pwd=etlkitpassword;");
+var destCon = new SqlConnectionManager("Data Source=.;Integrated Security=SSPI;Initial Catalog=EtlKit;");
 
 DbSource<MySimpleRow> source = new DbSource<MySimpleRow>(sourceCon, "SourceTable");
 RowTransformation<MySimpleRow, MySimpleRow> rowTrans = new RowTransformation<MySimpleRow, MySimpleRow>(
@@ -210,7 +210,7 @@ performance). Partially blocking transformations will load some data in the memo
 Blocking transformations will wait until all data has arrived at the component before it starts processing all records
 subsequently.
 
-The following table is an overview of the most common transformations in ETLBox:
+The following table is an overview of the most common transformations in EtlKit:
 
 | Non-blocking              | Partially blocking   | Blocking            |
 | ------------------------- | -------------------- | ------------------- |
@@ -261,7 +261,7 @@ code. This improves the readability of your code a lot, and gives you more time 
 Code tells - here is some example code, without writing the whole "boilerplate" code by ADO.NET.
 
 ```C#
-var conn = new SqlConnectionManager("Server=10.37.128.2;Database=ETLBox_ControlFlow;Uid=etlbox;Pwd=etlkitpassword;");
+var conn = new SqlConnectionManager("Server=10.37.128.2;Database=EtlKit_ControlFlow;Uid=etlkit;Pwd=etlkitpassword;");
 //Execute some Sql
 SqlTask.ExecuteNonQuery(conn, "Do some sql",$@"EXEC myProc");
 //Count rows

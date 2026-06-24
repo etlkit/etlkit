@@ -133,4 +133,4 @@ the V1/V2 needs are met by `PostgresXminTailSource` (polling) and, for low-laten
 `LISTEN/NOTIFY` layered on top of polling.
 
 No work is required on the existing components to enable this — it is a net-new, additive source in
-`ETLBox.PostgresStreaming`.
+`EtlKit.PostgresStreaming`.

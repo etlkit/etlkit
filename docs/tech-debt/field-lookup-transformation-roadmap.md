@@ -1,58 +1,58 @@
-# Roadmap: FieldLookupTransformation — декларативный lookup с поддержкой XML-сериализации
+# Roadmap: FieldLookupTransformation — declarative lookup with XML serialization support
 
-## Описание проблемы
+## Problem Description
 
-`LookupTransformation<TInput, TSourceOutput>` (`ETLBox/src/Toolbox/DataFlow/LookupTransformation.cs`)
-уже поддерживает загрузку словаря из произвольного `IDataFlowSource<TSourceOutput>`, однако конфигурация
-сопоставления и обогащения **не поддаётся XML-сериализации**:
+`LookupTransformation<TInput, TSourceOutput>` (`EtlKit/src/Toolbox/DataFlow/LookupTransformation.cs`)
+already supports loading a dictionary from any `IDataFlowSource<TSourceOutput>`, but the match and
+enrichment configuration **cannot be XML-serialized**:
 
-- **Атрибутный режим** (`[MatchColumn]` / `[RetrieveColumn]`) требует декорирования C#-типов на этапе
-  компиляции — не применим в динамических или конфигурационных сценариях.
-- **Func-режим** (`TransformationFunc: Func<TInput, TInput>`) — делегат, который нельзя сериализовать
-  в XML или JSON.
+- **Attribute mode** (`[MatchColumn]` / `[RetrieveColumn]`) requires decorating C# types at compile
+  time — not applicable in dynamic or configuration-driven scenarios.
+- **Func mode** (`TransformationFunc: Func<TInput, TInput>`) — a delegate that cannot be serialized
+  to XML or JSON.
 
-Это делает `LookupTransformation` непригодным для использования в сериализованных DataFlow через
-`DataFlowXmlReader` (`ETLBox.Serialization/DataFlow/DataFlowXmlReader.cs`).
-
----
-
-## Предлагаемое решение
-
-Новый компонент `FieldLookupTransformation`, у которого:
-
-1. Конфигурация match/retrieve — обычные POCO-списки со строковыми именами полей (сериализуемы).
-2. Свойство `DictionarySource` типа `IDataFlowSource<TSourceOutput>` — deseriализуется через существующий
-   механизм `DataFlowXmlReader.SetInterfaceProperty` с атрибутом `type="ConcreteType"` в XML.
-3. Опционально: Roslyn-скрипт в виде строки (`EnrichmentScript`) для сложного обогащения — в проекте
-   `ETLBox.Scripting`.
+This makes `LookupTransformation` unsuitable for use in serialized DataFlow via
+`DataFlowXmlReader` (`EtlKit.Serialization/DataFlow/DataFlowXmlReader.cs`).
 
 ---
 
-## Архитектура
+## Proposed Solution
 
-### Фаза 1 — Ядро (проект ETLBox)
+A new component `FieldLookupTransformation` that:
 
-**Новые файлы:**
+1. Match/retrieve configuration — plain POCO lists with string field names (serializable).
+2. `DictionarySource` property of type `IDataFlowSource<TSourceOutput>` — deserialized through the
+   existing `DataFlowXmlReader.SetInterfaceProperty` mechanism with a `type="ConcreteType"` attribute in XML.
+3. Optional: Roslyn script as a string (`EnrichmentScript`) for complex enrichment — in the
+   `EtlKit.Scripting` project.
 
-- `ETLBox/src/Definitions/DataFlow/Type/LookupMatchColumn.cs`
-- `ETLBox/src/Definitions/DataFlow/Type/LookupRetrieveColumn.cs`
-- `ETLBox/src/Toolbox/DataFlow/FieldLookupTransformation.cs`
+---
 
-**Сигнатура ключевого класса:**
+## Architecture
+
+### Phase 1 — Core (EtlKit project)
+
+**New files:**
+
+- `EtlKit/src/Definitions/DataFlow/Type/LookupMatchColumn.cs`
+- `EtlKit/src/Definitions/DataFlow/Type/LookupRetrieveColumn.cs`
+- `EtlKit/src/Toolbox/DataFlow/FieldLookupTransformation.cs`
+
+**Key class signature:**
 
 ```csharp
 public class FieldLookupTransformation<TInput, TSourceOutput>
     : DataFlowTransformation<TInput, TInput>
 {
-    // Конфигурация — сериализуемые POCO
+    // Configuration — serializable POCOs
     public List<LookupMatchColumn>    MatchColumns    { get; set; } = new();
     public List<LookupRetrieveColumn> RetrieveColumns { get; set; } = new();
 
-    // Кэш загруженных строк словаря
+    // Cache of loaded dictionary rows
     public List<TSourceOutput> LookupData { get; set; } = new();
 
-    // Интерфейсное свойство — DataFlowXmlReader десериализует через type="MemorySource" и т.п.
-    // setter вызывает DictionarySource.LinkTo(LookupBuffer) — как в LookupTransformation.Source
+    // Interface property — DataFlowXmlReader deserializes via type="MemorySource" etc.
+    // setter calls DictionarySource.LinkTo(LookupBuffer) — like LookupTransformation.Source
     public IDataFlowSource<TSourceOutput> DictionarySource { get; set; }
 }
 
@@ -60,46 +60,46 @@ public class FieldLookupTransformation<TInput, TSourceOutput>
 public class FieldLookupTransformation : FieldLookupTransformation<ExpandoObject, ExpandoObject> { }
 ```
 
-**POCO для конфигурации:**
+**POCOs for configuration:**
 
 ```csharp
 public class LookupMatchColumn
 {
-    public string InputField  { get; set; }  // поле на входном ряду (TInput)
-    public string LookupField { get; set; }  // поле в строке словаря (TSourceOutput)
+    public string InputField  { get; set; }  // field on the input row (TInput)
+    public string LookupField { get; set; }  // field in the dictionary row (TSourceOutput)
 }
 
 public class LookupRetrieveColumn
 {
-    public string LookupField { get; set; }  // поле словаря — источник значения
-    public string OutputField { get; set; }  // поле входного ряда — цель записи
+    public string LookupField { get; set; }  // dictionary field — value source
+    public string OutputField { get; set; }  // input row field — write target
 }
 ```
 
-**Внутренняя механика** (зеркало `LookupTransformation`):
-- `CustomDestination<TSourceOutput> LookupBuffer` — собирает строки из `DictionarySource` в `LookupData`.
-- `RowTransformation<TInput, TInput>` с `InitAction = LoadLookupData` — ленивая загрузка при первой строке.
-- `protected virtual TInput EnrichRow(TInput row)` — виртуальный для переопределения в scripted-варианте.
-- Два пути: `EnrichTyped` (reflection, кэш `PropertyInfo`) и `EnrichDynamic` (`IDictionary<string,object?>`,
-  сравнение через `.ToString()` — значения из XML всегда строки).
-- `protected TSourceOutput? FindMatch(TInput row)` — вынесен как helper для переиспользования в subclass.
+**Internal mechanics** (mirroring `LookupTransformation`):
+- `CustomDestination<TSourceOutput> LookupBuffer` — collects rows from `DictionarySource` into `LookupData`.
+- `RowTransformation<TInput, TInput>` with `InitAction = LoadLookupData` — lazy load on first row.
+- `protected virtual TInput EnrichRow(TInput row)` — virtual for overriding in the scripted variant.
+- Two paths: `EnrichTyped` (reflection, `PropertyInfo` cache) and `EnrichDynamic` (`IDictionary<string,object?>`,
+  comparison via `.ToString()` — values from XML are always strings).
+- `protected TSourceOutput? FindMatch(TInput row)` — extracted as a helper for reuse in subclasses.
 
-### Фаза 2 — Scripted вариант (проект ETLBox.Scripting)
+### Phase 2 — Scripted variant (EtlKit.Scripting project)
 
-**Новый файл:** `ETLBox.Scripting/ScriptedFieldLookupTransformation.cs`
+**New file:** `EtlKit.Scripting/ScriptedFieldLookupTransformation.cs`
 
 ```csharp
 public class ScriptedFieldLookupTransformation
     : FieldLookupTransformation<ExpandoObject, ExpandoObject>
 {
-    // Строковый C# Roslyn-скрипт. Globals: dynamic row (мутабельный), dynamic? lookup (null если нет совпадения)
+    // String C# Roslyn script. Globals: dynamic row (mutable), dynamic? lookup (null if no match)
     public string? EnrichmentScript { get; set; }
 
     protected override ExpandoObject EnrichRow(ExpandoObject row)
     {
         if (string.IsNullOrWhiteSpace(EnrichmentScript))
-            return base.EnrichRow(row);  // fallback на field-mapping
-        // компиляция и выполнение через ScriptBuilder/ScriptRunner (как в ScriptedRowTransformation)
+            return base.EnrichRow(row);  // fallback to field-mapping
+        // compilation and execution via ScriptBuilder/ScriptRunner (as in ScriptedRowTransformation)
         ...
     }
 }
@@ -107,16 +107,16 @@ public class ScriptedFieldLookupTransformation
 
 ---
 
-## XML-сериализация
+## XML Serialization
 
-### Изменения в DataFlowXmlReader
+### Changes to DataFlowXmlReader
 
-**Не требуются.** Механизм `SetInterfaceProperty` (строки 437–468) уже обрабатывает интерфейсные
-свойства: читает атрибут `type="..."`, резолвит конкретный тип через `GetTypeByName`, создаёт экземпляр
-и вызывает setter свойства. `MatchColumns` / `RetrieveColumns` — конкретные `List<T>` — идут через
-`CreateList` → `CreateInstance` без доп. логики.
+**Not required.** The `SetInterfaceProperty` mechanism (lines 437–468) already handles interface
+properties: reads the `type="..."` attribute, resolves the concrete type via `GetTypeByName`, creates an instance
+and calls the property setter. `MatchColumns` / `RetrieveColumns` — concrete `List<T>` — go through
+`CreateList` → `CreateInstance` without additional logic.
 
-### Пример XML
+### Example XML
 
 ```xml
 <FieldLookupTransformation>
@@ -143,7 +143,7 @@ public class ScriptedFieldLookupTransformation
 </FieldLookupTransformation>
 ```
 
-Для scripted-варианта:
+For the scripted variant:
 
 ```xml
 <ScriptedFieldLookupTransformation>
@@ -155,38 +155,38 @@ public class ScriptedFieldLookupTransformation
 
 ---
 
-## Известные ограничения
+## Known Limitations
 
-| Ситуация | Поведение |
+| Situation | Behavior |
 |---|---|
-| `<DictionarySource>` без атрибута `type` | `InvalidDataException` (то же, что и для других интерфейсных свойств) |
-| Типизированный source (`MemorySource<MyPoco>`) из XML | Не поддерживается — reader резолвит к `ExpandoObject`; только из кода API |
-| Сравнение в dynamic-режиме | `ToString()` на обеих сторонах — значения из XML всегда строки |
-| Порядок элементов в XML | `<DictionarySource>` может стоять до `<MatchColumns>` — MatchColumns читаются только при выполнении потока |
+| `<DictionarySource>` without `type` attribute | `InvalidDataException` (same as for other interface properties) |
+| Typed source (`MemorySource<MyPoco>`) from XML | Not supported — reader resolves to `ExpandoObject`; API code only |
+| Comparison in dynamic mode | `ToString()` on both sides — values from XML are always strings |
+| Element order in XML | `<DictionarySource>` can appear before `<MatchColumns>` — MatchColumns are read only at stream execution time |
 
 ---
 
-## План тестирования
+## Test Plan
 
-### Фаза 1 — `TestTransformations/src/FieldLookupTransformation/`
+### Phase 1 — `TestTransformations/src/FieldLookupTransformation/`
 
-- `FieldLookupTypedPocoTests.cs` — typed POCO: одна колонка, составной ключ, нет совпадения (проход без изменений)
-- `FieldLookupDynamicTests.cs` — ExpandoObject: базовый случай, строковое сравнение типов, нет `DictionarySource`
-- `ETLBox.Serialization.Tests/FieldLookupSerializationTests.cs` — XML round-trip с MemorySource и CsvSource
+- `FieldLookupTypedPocoTests.cs` — typed POCO: single column, composite key, no match (pass-through unchanged)
+- `FieldLookupDynamicTests.cs` — ExpandoObject: basic case, string type comparison, no `DictionarySource`
+- `EtlKit.Serialization.Tests/FieldLookupSerializationTests.cs` — XML round-trip with MemorySource and CsvSource
 
-### Фаза 2 — `ETLBox.Scripting.Tests/`
+### Phase 2 — `EtlKit.Scripting.Tests/`
 
-- `ScriptedFieldLookupTransformationTests.cs` — скрипт обогащения, fallback на field-mapping, null-lookup, XML round-trip
+- `ScriptedFieldLookupTransformationTests.cs` — enrichment script, fallback to field-mapping, null-lookup, XML round-trip
 
 ---
 
-## Критические файлы для реализации
+## Critical Files for Implementation
 
-| Файл | Роль |
+| File | Role |
 |---|---|
-| `ETLBox/src/Toolbox/DataFlow/LookupTransformation.cs` | Образец для копирования паттернов |
-| `ETLBox.Common/DataFlow/RowTransformation.cs` | Базовый класс для обёртки функции обогащения |
-| `ETLBox.Common/DataFlow/CustomDestination.cs` | Паттерн LookupBuffer |
-| `ETLBox.Serialization/DataFlow/DataFlowXmlReader.cs` строки 343–491 | Пути десериализации (изменений не требует) |
-| `ETLBox.Scripting/ScriptedRowTransformation.cs` | Паттерн ScriptBuilder/Runner для Фазы 2 |
-| `ETLBox.Scripting/ScriptBuilder.cs` | Roslyn-инфраструктура компиляции |
+| `EtlKit/src/Toolbox/DataFlow/LookupTransformation.cs` | Template for copying patterns |
+| `EtlKit.Common/DataFlow/RowTransformation.cs` | Base class for enrichment function wrapper |
+| `EtlKit.Common/DataFlow/CustomDestination.cs` | LookupBuffer pattern |
+| `EtlKit.Serialization/DataFlow/DataFlowXmlReader.cs` lines 343–491 | Deserialization paths (no changes required) |
+| `EtlKit.Scripting/ScriptedRowTransformation.cs` | ScriptBuilder/Runner pattern for Phase 2 |
+| `EtlKit.Scripting/ScriptBuilder.cs` | Roslyn compilation infrastructure |

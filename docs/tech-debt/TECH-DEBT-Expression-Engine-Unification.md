@@ -149,12 +149,12 @@ What landed:
   `ExpressionRowFiltration` (non-generic), `ExpandoTypeMapper` (internal), and
   `EtlKitDynamicLinqServiceCollectionExtensions`. Depends on `EtlKit`,
   `EtlKit.Common` and `System.Linq.Dynamic.Core`. Namespace: `EtlKit.DynamicLinq`.
-- `ETLBox.DynamicLinq.Tests` (new) hosts `ExpressionRowFiltrationTests` (37 tests)
+- `EtlKit.DynamicLinq.Tests` (new) hosts `ExpressionRowFiltrationTests` (37 tests)
   and `FeatureParity/MethodCallSupportTests` (8 tests). Both moved from
-  `ETLBox.Scripting.Tests`.
-- `ETLBox.Serialization.Tests/ExpressionRowFiltrationDeserializationTests.cs`
+  `EtlKit.Scripting.Tests`.
+- `EtlKit.Serialization.Tests/ExpressionRowFiltrationDeserializationTests.cs`
   references `EtlKit.DynamicLinq` instead of `EtlKit.Scripting`.
-- `ETLBox.DynamicLinq.Benchmarks` (renamed from `ETLBox.Scripting.Benchmarks`)
+- `EtlKit.DynamicLinq.Benchmarks` (renamed from `EtlKit.Scripting.Benchmarks`)
   references both packages — Roslyn comparisons through `EtlKit.Scripting` and
   Dynamic LINQ paths through `EtlKit.DynamicLinq`.
 
@@ -163,9 +163,9 @@ Test counts after split:
 | Project | Pass | Notes |
 |---------|------|-------|
 | `TestTransformations` | 11/11 | Core `RowFiltration` (no Dynamic LINQ) |
-| `ETLBox.DynamicLinq.Tests` | 45/45 | 37 expression filtration + 8 feature-parity |
-| `ETLBox.Scripting.Tests` | 13/13 | Roslyn (`ScriptBuilder`, `ScriptedRowTransformation`) |
-| `ETLBox.Serialization.Tests` (filter) | 4/4 | XML deserialization + end-to-end pipeline |
+| `EtlKit.DynamicLinq.Tests` | 45/45 | 37 expression filtration + 8 feature-parity |
+| `EtlKit.Scripting.Tests` | 13/13 | Roslyn (`ScriptBuilder`, `ScriptedRowTransformation`) |
+| `EtlKit.Serialization.Tests` (filter) | 4/4 | XML deserialization + end-to-end pipeline |
 | **Total** | **73/73** | |
 
 The unification question — whether one engine can replace the other — remains
@@ -196,7 +196,7 @@ Surfaced during the Round 8 self-review. These improve the slow path and are tra
 ## Benchmark Results (2026-04-28)
 
 Full report:
-[`ETLBox.DynamicLinq.Benchmarks/BENCHMARK-RESULTS-2026-04-28.md`](../../ETLBox.DynamicLinq.Benchmarks/BENCHMARK-RESULTS-2026-04-28.md).
+[`EtlKit.DynamicLinq.Benchmarks/BENCHMARK-RESULTS-2026-04-28.md`](../../EtlKit.DynamicLinq.Benchmarks/BENCHMARK-RESULTS-2026-04-28.md).
 Status: final. All three benchmarks completed with full BenchmarkDotNet
 warmup + iterations.
 

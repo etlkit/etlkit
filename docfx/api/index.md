@@ -1,3 +1,3 @@
 # API Reference
 
-Auto-generated API documentation for ETLBox.
+Auto-generated API documentation for EtlKit.

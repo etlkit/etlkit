@@ -6,7 +6,7 @@ repository.
 ## Project Overview
 
 EtlKit (NuGet: `EtlKit`) is an open-source .NET ETL library for building data
-integration pipelines. Fork of original ETLBox by Andreas Lennartz, maintained by RapidSoft. Targets
+integration pipelines. Fork of original ETLBox by Andreas Lennartz. Targets
 `netstandard2.0` (libraries) and `net8.0` (tests).
 
 ## Build & Test Commands

@@ -40,7 +40,7 @@ issue #3194 while still dispatching member access through `DynamicObject.TryGetM
 
 ### New Files
 
-**`ETLBox.Scripting/ScriptRow.cs`** — internal `DynamicObject` wrapper:
+**`EtlKit.Scripting/ScriptRow.cs`** — internal `DynamicObject` wrapper:
 
 ```csharp
 internal sealed class ScriptRow : DynamicObject
@@ -56,7 +56,7 @@ internal sealed class ScriptRow : DynamicObject
 }
 ```
 
-**`ETLBox.Scripting/ScriptGlobals.cs`** — public globals classes:
+**`EtlKit.Scripting/ScriptGlobals.cs`** — public globals classes:
 
 ```csharp
 public sealed class ScriptGlobals
@@ -139,7 +139,7 @@ for workloads with many distinct ExpandoObject schemas.
 
 ## Tests to Add
 
-File: `ETLBox.Scripting.Tests/ScriptedRowTransformationTests.cs`
+File: `EtlKit.Scripting.Tests/ScriptedRowTransformationTests.cs`
 
 - Update `ShouldHandleNullAndMissingFieldInMapping` — add `UseRowAccessor=true`, change expression
   to `Row.Score + 1`, assert null is returned gracefully (no exception).

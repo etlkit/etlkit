@@ -14,19 +14,19 @@ tooltips for consumers of the NuGet packages.
 
 | Project                  | Types | Documented | Missing | Coverage |
 |--------------------------|------:|----------:|---------:|----------|
-| ETLBox (main)            |   166 |       117 |       49 | 70%      |
-| ETLBox.Common            |    21 |         6 |       15 | 28%      |
-| ETLBox.Primitives        |    19 |         5 |       14 | 26%      |
-| ETLBox.Kafka             |     7 |         4 |        3 | 57%      |
-| ETLBox.Rest              |     3 |         2 |        1 | 66%      |
-| ETLBox.Scripting         |     7 |         5 |        2 | 71%      |
-| ETLBox.DynamicLinq        |     3 |         3 |        0 | 100%     |
-| ETLBox.AI                |     8 |         6 |        2 | 75%      |
-| ETLBox.RabbitMq          |     5 |         4 |        1 | 80%      |
-| ETLBox.Json              |     2 |         2 |        0 | 100%     |
-| ETLBox.Serialization     |     7 |         7 |        0 | 100%     |
-| ETLBox.ClickHouse        |     3 |         0 |        3 | 0%       |
-| ETLBox.Logging.Database  |     2 |         0 |        2 | 0%       |
+| EtlKit (main)            |   166 |       117 |       49 | 70%      |
+| EtlKit.Common            |    21 |         6 |       15 | 28%      |
+| EtlKit.Primitives        |    19 |         5 |       14 | 26%      |
+| EtlKit.Kafka             |     7 |         4 |        3 | 57%      |
+| EtlKit.Rest              |     3 |         2 |        1 | 66%      |
+| EtlKit.Scripting         |     7 |         5 |        2 | 71%      |
+| EtlKit.DynamicLinq        |     3 |         3 |        0 | 100%     |
+| EtlKit.AI                |     8 |         6 |        2 | 75%      |
+| EtlKit.RabbitMq          |     5 |         4 |        1 | 80%      |
+| EtlKit.Json              |     2 |         2 |        0 | 100%     |
+| EtlKit.Serialization     |     7 |         7 |        0 | 100%     |
+| EtlKit.ClickHouse        |     3 |         0 |        3 | 0%       |
+| EtlKit.Logging.Database  |     2 |         0 |        2 | 0%       |
 | **Total**                | **249** | **148** | **101** | **59%** |
 
 ## Implementation Plan
@@ -34,7 +34,7 @@ tooltips for consumers of the NuGet packages.
 Work is organized into 4 phases by priority. Each phase can be done independently. Within each
 phase, items are listed by project.
 
-### Phase 1: Core Interfaces (ETLBox.Primitives) — 14 types
+### Phase 1: Core Interfaces (EtlKit.Primitives) — 14 types
 
 These interfaces define the entire framework contract. Every user and every component depends on
 them. Documenting these has the highest impact on API reference quality.
@@ -57,11 +57,11 @@ them. Documenting these has the highest impact on API reference quality.
 - [ ] `ChangeAction` — merge change type enum
 - [ ] `ConnectionManagerType` — database type enum
 
-### Phase 2: Abstract Base Classes (ETLBox.Common + main ETLBox) — 13 types
+### Phase 2: Abstract Base Classes (EtlKit.Common + main EtlKit) — 13 types
 
 These are the classes users inherit from or interact with directly. They form the runtime backbone.
 
-**ETLBox.Common (6):**
+**EtlKit.Common (6):**
 - [ ] `DataFlowSource<TOutput>` — base class for all sources
 - [ ] `DataFlowDestination<TInput>` — base class for all destinations
 - [ ] `DataFlowBatchDestination<TInput>` — base class for batch destinations
@@ -69,7 +69,7 @@ These are the classes users inherit from or interact with directly. They form th
 - [ ] `DataFlowTask` — base class for dataflow tasks
 - [ ] `GenericTask` — base class for control flow tasks
 
-**ETLBox.Common utilities (9):**
+**EtlKit.Common utilities (9):**
 - [ ] `DataFlowLinker<TOutput>` — linking helper
 - [ ] `ErrorHandler` — error routing
 - [ ] `HashHelper` — hashing utility
@@ -80,7 +80,7 @@ These are the classes users inherit from or interact with directly. They form th
 - [ ] `RowTransformation<TInput>` (single-type variant)
 - [ ] `CustomDestination` (non-generic variant)
 
-**ETLBox main base classes (7):**
+**EtlKit main base classes (7):**
 - [ ] `DataFlowStreamSource<TOutput>` — base for file/stream sources
 - [ ] `DataFlowStreamDestination<TInput>` — base for file/stream destinations
 - [ ] `DbConnectionManager<TConnection>` — base for DB connection managers
@@ -93,16 +93,16 @@ These are the classes users inherit from or interact with directly. They form th
 
 Small scope, quick wins — brings two projects from 0% to 100%.
 
-**ETLBox.ClickHouse (3):**
+**EtlKit.ClickHouse (3):**
 - [ ] `ClickHouseConnectionManager` — ClickHouse connection manager
 - [ ] `ClickHouseConnectionString` — connection string wrapper
 - [ ] `ClickHouseConnectionStringBuilder` — connection string builder
 
-**ETLBox.Logging.Database (2):**
+**EtlKit.Logging.Database (2):**
 - [ ] `DatabaseLoggingConfiguration` — database logging setup
 - [ ] `ETLLogLayoutRenderer` — NLog layout renderer for ETL logs
 
-### Phase 4: Main ETLBox Library Gaps — 42 types
+### Phase 4: Main EtlKit Library Gaps — 42 types
 
 Remaining gaps in the main library, grouped by category.
 
@@ -157,13 +157,13 @@ Remaining gaps in the main library, grouped by category.
 - [ ] `TableColumnExtensions` — table column helpers
 
 **Extension library gaps (7):**
-- [ ] `KafkaTransformation` — Kafka produce transformation (ETLBox.Kafka)
-- [ ] `KafkaStringTransformation<TInput>` — string variant (ETLBox.Kafka)
-- [ ] `ExpandoObjectConverter` — JSON converter (ETLBox.Kafka)
-- [ ] `RestMethodInfo` — REST method metadata (ETLBox.Rest)
-- [ ] `PublicationAddress` — RabbitMQ address (ETLBox.RabbitMq)
-- [ ] `ExpandoObjectConverter` — JSON converter (ETLBox.AI)
-- [ ] `CustomLiquidFilters` — Liquid template filters (ETLBox.AI)
+- [ ] `KafkaTransformation` — Kafka produce transformation (EtlKit.Kafka)
+- [ ] `KafkaStringTransformation<TInput>` — string variant (EtlKit.Kafka)
+- [ ] `ExpandoObjectConverter` — JSON converter (EtlKit.Kafka)
+- [ ] `RestMethodInfo` — REST method metadata (EtlKit.Rest)
+- [ ] `PublicationAddress` — RabbitMQ address (EtlKit.RabbitMq)
+- [ ] `ExpandoObjectConverter` — JSON converter (EtlKit.AI)
+- [ ] `CustomLiquidFilters` — Liquid template filters (EtlKit.AI)
 
 ## Guidelines
 
@@ -182,7 +182,7 @@ When writing XML docs for these types:
 After each phase:
 
 ```bash
-dotnet build ETLBox.sln -c Release
+dotnet build EtlKit.sln -c Release
 cd docfx && dotnet docfx docfx.json --serve
 ```
 

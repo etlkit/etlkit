@@ -87,7 +87,7 @@ depending on a filter expression.
 Step 1 is to create a source, the transformations and destinations:
 
 ```csharp
-var sourceCon = new MySqlConnectionManager("Server=10.37.128.2;Database=EtlKit_ControlFlow;Uid=etlbox;Pwd=etlkitpassword;");
+var sourceCon = new MySqlConnectionManager("Server=10.37.128.2;Database=EtlKit_ControlFlow;Uid=etlkit;Pwd=etlkitpassword;");
 var destCon = new SqlConnectionManager("Data Source=.;Integrated Security=SSPI;Initial Catalog=EtlKit;");
 
 DbSource<MySimpleRow> source = new DbSource<MySimpleRow>(sourceCon, "SourceTable");
@@ -184,7 +184,7 @@ your code a lot, and gives you more time to focus on your business logic.
 Code tells - here is some example code, without writing the whole "boilerplate" code by ADO.NET.
 
 ```csharp
-var conn = new SqlConnectionManager("Server=10.37.128.2;Database=EtlKit_ControlFlow;Uid=etlbox;Pwd=etlkitpassword;");
+var conn = new SqlConnectionManager("Server=10.37.128.2;Database=EtlKit_ControlFlow;Uid=etlkit;Pwd=etlkitpassword;");
 //Execute some Sql
 SqlTask.ExecuteNonQuery(conn, "Do some sql",$@"EXEC myProc");
 //Count rows
@@ -203,7 +203,6 @@ as dependency - so you don't need to include additional packages from nuget. In 
 logging activating, you just have to set up a nlog configuration called `nlog.config`, and create a
 target and a logger rule. After adding this, you will already get logging output for all tasks and
 components in EtlKit.
-[Read more about logging here](https://etlbox.net/articles/overview_logging.html).
 
 ## Getting EtlKit
 

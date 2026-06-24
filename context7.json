@@ -1,5 +1,24 @@
 {
-    "$schema": "https://context7.com/schema/context7.json",
-    "url": "https://context7.com/etlkit/etlkit",
-    "public_key": "pk_3D4TqhGVb5upGcDHgqoWa"
+  "$schema": "https://context7.com/schema/context7.json",
+  "projectTitle": "EtlKit",
+  "description": "Open-source .NET ETL library for building data integration pipelines with Data Flow and Control Flow components.",
+  "url": "https://context7.com/etlkit/etlkit",
+  "public_key": "pk_3D4TqhGVb5upGcDHgqoWa",
+  "rules": [
+    "Build a data flow in three steps: instantiate components, connect them with LinkTo(), then call source.ExecuteAsync() and await destination.WaitAsync()",
+    "LinkTo() returns a link source so you can chain calls; pass a Predicate<T> to filter/route rows to specific destinations",
+    "Data flow runs asynchronously on TPL Dataflow blocks; each component has its own buffer so only the current row (plus buffer) is held in memory",
+    "Use CustomSource<T> / CustomDestination<T> to integrate any system not supported out of the box",
+    "Non-generic component variants (e.g. Multicast, CustomSource) operate on ExpandoObject/dynamic",
+    "Transformations are non-blocking (RowTransformation, Aggregation, MergeJoin, Multicast), partially blocking (Lookup, CrossJoin), or blocking (BlockTransformation, Sort) - choose based on memory needs",
+    "Use ControlFlow tasks for one-line DDL/DML: CreateTableTask.Create, SqlTask.ExecuteNonQuery, RowCountTask.Count, etc.",
+    "Connect via IConnectionManager implementations (SqlConnectionManager, MySqlConnectionManager, PostgresConnectionManager, SQLiteConnectionManager) - never raw ADO.NET",
+    "Logging uses Microsoft.Extensions.Logging; inject an ILogger<T> via the component constructor to log from any data flow or control flow component, and plug in any standard logging provider (Console, Serilog, etc.)",
+    "To persist ETL log events into a database table, add the optional EtlKit.Logging.Database package and call DatabaseLoggingConfiguration.AddDatabaseLoggingConfiguration(connectionManager)",
+    "EtlKit.Serialization provides XML pipeline configuration via DataFlowXmlReader; use component C# class names as XML element names and C# property names as child element names inside an IDataFlow wrapper class (e.g., EtlDataFlowStep)",
+    "In XML: use <Pipeline> to sequence steps — first child may be a source, remaining children are transformations; add a <LinkTo> child inside <Pipeline> to route output to an external destination; steps inside <Pipeline> must not contain their own <LinkTo>",
+    "EtlKit.Kafka package: use KafkaJsonSource<T> for JSON Kafka messages (XML element: <KafkaJsonSource>); properties are <Topic> and <ConsumerConfig> (with <BootstrapServers> and <GroupId>)",
+    "EtlKit.AI package: use AIBatchTransformation (XML element: <AIBatchTransformation>); properties are <ApiSettings> (with <ApiKey>, <ApiModel>, <ApiBaseUrl>) and <Prompt> (DotLiquid template; batch available as 'input')",
+    "EtlKit.Rest package: use RestTransformation (XML element: <RestTransformation>); property is <RestMethodInfo> (with <Url>, <Method>, <Body>, <Headers>)"
+  ]
 }

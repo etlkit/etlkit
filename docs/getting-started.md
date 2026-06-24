@@ -119,4 +119,4 @@ As there are advanced logging capabilities in EtlKit, logging itself is treated 
 All Control Flow and Data Flow Tasks come with the ability to produce log.
 There are also some special task that enables you to create or query the log tables easily.
 To get an introduction into logging, [please have a look at the Overview Logging](controlflow/logging.md)
-All logging capabilities are based on nlog. You can [visit the NLog homepage](https://nlog-project.org) if you are interested in more details how to set up and configure NLog.
+All logging capabilities are based on [Microsoft.Extensions.Logging](https://learn.microsoft.com/dotnet/core/extensions/logging), so you can use any standard .NET logging provider (console, file, Serilog, and so on).

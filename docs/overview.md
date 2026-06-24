@@ -14,8 +14,8 @@ EtlKit is a comprehensive C# class library that is able to manage your whole
 [ELT](https://en.wikipedia.org/wiki/Extract,_load,_transform). You can use it to create your own
 dataflow pipelines programmatically in .NET, e.g. with C#. Besides a big set of dataflow components
 it comes which some control flow task that let you easily manage your database or simple execute Sql
-code without any boilerplate code. It also offers extended logging capabilites based on NLog to
-monitor and anlayze your ETL job runs.
+code without any boilerplate code. It also offers extended logging capabilities based on
+Microsoft.Extensions.Logging to monitor and analyze your ETL job runs.
 
 EtlKit is a fully functional alternative to other ETL tools like Sql Server Integrations Services
 (SSIS). Creating your ETL processes programatically has some advantages:
@@ -198,11 +198,18 @@ CreateTableTask.Create(conn, "Table1", new List<TableColumn>() {
 
 ### Logging
 
-By default, EtlKit uses and extends [NLog](https://nlog-project.org). EtlKit already comes with NLog
-as dependency - so you don't need to include additional packages from nuget. In order to have the
-logging activating, you just have to set up a nlog configuration called `nlog.config`, and create a
-target and a logger rule. After adding this, you will already get logging output for all tasks and
-components in EtlKit.
+EtlKit logs through [Microsoft.Extensions.Logging](https://learn.microsoft.com/dotnet/core/extensions/logging),
+so you can use any logging provider you already know (console, file, Serilog, and so on). By default
+nothing is logged; to activate logging you assign a configured `ILoggerFactory` to the static
+`ControlFlow.LoggerFactory` property:
+
+```csharp
+ControlFlow.LoggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+```
+
+After that you get logging output for all tasks and components in EtlKit. EtlKit can also write log
+entries into a database table via the optional `EtlKit.Logging.Database` package. See the
+[logging documentation](controlflow/logging.md) for details.
 
 ## Getting EtlKit
 

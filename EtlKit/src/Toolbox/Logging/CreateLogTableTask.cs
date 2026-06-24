@@ -5,10 +5,10 @@ using EtlKit.Primitives;
 namespace EtlKit.Logging
 {
     /// <summary>
-    /// Will create the default log table for the default database logging
-    /// You can use `ControlFlow.SetLoggingDatabase(IConnectionManager connectionManager, string logTableName) to let EtlKit
-    /// update your nlog.config add this table as database target automatically.
-    /// Or you can update your nlog.config manually.
+    /// Creates the default log table used for storing log entries in a database.
+    /// First call <c>CreateLogTableTask.Create(connection)</c> to create the table, then
+    /// <c>DatabaseLoggingConfiguration.AddDatabaseLoggingConfiguration(connection)</c> from the
+    /// <c>EtlKit.Logging.Database</c> package to route logging into it.
     /// </summary>
     [PublicAPI]
     public sealed class CreateLogTableTask : GenericTask

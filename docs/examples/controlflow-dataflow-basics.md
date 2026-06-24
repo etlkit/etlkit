@@ -74,24 +74,21 @@ CreateTableTask.Create(dbConnection, "Table1", new List<TableColumn>()
 });
 ```
 
-### Adding nlog.config
+### Enabling logging
 
-Before we test our demo project, we want to have some logging output displayed. EtlKit logging is
-build on nlog. Add the following lines as nlog.config to your project root. Make sure it is copied
-into the output directory.
+Before we test our demo project, we want to have some logging output displayed. EtlKit logs through
+`Microsoft.Extensions.Logging`, so we just point it at a console logger. Add the
+`Microsoft.Extensions.Logging.Console` package and set the logger factory once at startup, before
+running any task:
 
 ```csharp
-<?xml version="1.0" encoding="utf-8"?>
-<nlog xmlns="http://www.nlog-project.org/schemas/NLog.xsd"
-      xsi:schemaLocation="NLog NLog.xsd"
-      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <rules>
-    <logger name="*" minlevel="Debug" writeTo="console" />
-  </rules>
-  <targets>
-    <target name="console" xsi:type="Console" />
-  </targets>
-</nlog>
+using EtlKit.Common.ControlFlow;
+using Microsoft.Extensions.Logging;
+
+ControlFlow.LoggerFactory = LoggerFactory.Create(builder =>
+    builder
+        .SetMinimumLevel(LogLevel.Debug)
+        .AddConsole());
 ```
 
 ### Running the project

@@ -1,46 +1,5 @@
 {
     "$schema": "https://context7.com/schema/context7.json",
     "url": "https://context7.com/etlkit/etlkit",
-    "public_key": "pk_3D4TqhGVb5upGcDHgqoWa",
-    "projectTitle": "EtlKit",
-    "description": "EtlKit is a lightweight ETL (extract · transform · load) library and data integration toolbox for .NET. Build your own data pipelines programmatically in C# — readable, testable, and tracked in source control like the rest of your code.",
-    "folders": [
-        "docs",
-        "EtlKit",
-        "EtlKit.AI",
-        "EtlKit.ClickHouse",
-        "EtlKit.Common",
-        "EtlKit.DynamicLinq",
-        "EtlKit.Json",
-        "EtlKit.Kafka",
-        "EtlKit.Logging.Database",
-        "EtlKit.MongoDB",
-        "EtlKit.PostgresStreaming",
-        "EtlKit.Primitives",
-        "EtlKit.RabbitMq",
-        "EtlKit.Rest",
-        "EtlKit.Scripting",
-        "EtlKit.Serialization"
-    ],
-    "excludeFolders": [
-        "bin",
-        "obj",
-        "Test.*",
-        ".*Tests",
-        "_site",
-        "\\.husky",
-        "\\.nuget",
-        "node_modules"
-    ],
-    "excludeFiles": [
-        "CHANGELOG.md",
-        ".gitignore"
-    ],
-    "rules": [
-        "Use LinkTo() pattern to connect dataflow components",
-        "Call Execute() on sources and Wait() on destinations to run a dataflow",
-        "Use IConnectionManager implementations for database access",
-        "Prefer generic typed components (e.g. DbSource<T>) over non-generic variants",
-        "All dataflow components support async execution via TPL Dataflow"
-    ]
+    "public_key": "pk_3D4TqhGVb5upGcDHgqoWa"
 }

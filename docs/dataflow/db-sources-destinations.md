@@ -146,6 +146,19 @@ Creation of a connection manager for SQLite:
 SQLiteConnectionManager connectionManager = new SQLiteConnectionManager("Data Source=.\\db\\SQLiteControlFlow.db;Version=3;");
 ```
 
+Creation of a connection manager for ClickHouse (requires the `EtlKit.ClickHouse` package):
+
+```csharp
+ClickHouseConnectionManager connectionManager = new ClickHouseConnectionManager("Host=localhost;Port=9000;Database=demo;User=default;");
+```
+
+For Sql Server Analysis Services (SSAS), the `AdomdConnectionManager` connects via ADOMD - typically
+used to run XMLA statements:
+
+```csharp
+AdomdConnectionManager connectionManager = new AdomdConnectionManager("Data Source=localhost;Catalog=AdventureWorks;");
+```
+
 ### Default ConnectionManager
 
 Every component or task related to a database operation needs to have a connection managers set in

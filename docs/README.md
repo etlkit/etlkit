@@ -14,11 +14,20 @@ For API reference documentation, see the [hosted API docs](https://etlkit.github
 - [Integrate flat files and web services](dataflow/file-sources-destinations.md)
 - [Transformations](dataflow/transformations.md)
 - [Row filtration](dataflow/row-filtration.md)
+- [Scripted transformations](dataflow/scripted-transformation.md)
 - [Linking and execution](dataflow/linking-execution.md)
 - [Working with data types](dataflow/data-types.md)
 - [Syncing tables with Merge](dataflow/db-merge.md)
 - [Streaming sources](dataflow/streaming-sources.md)
 - [Other sources and destinations](dataflow/other-sources-destinations.md)
+- [Defining data flows in XML](dataflow/xml-configuration.md)
+
+## Integrations
+
+- [Reading from Kafka](dataflow/kafka.md)
+- [Calling REST services](dataflow/rest.md)
+- [AI transformations](dataflow/ai.md)
+- [Publishing to RabbitMQ](dataflow/rabbitmq.md)
 
 ## ControlFlow and Logging
 

@@ -164,6 +164,36 @@ source.LinkTo(multiplication);
 multiplication.LinkTo(dest);
 ```
 
+### SQL transformations
+
+Two transformations run a SQL statement for **each input row**. The statement is a
+[DotLiquid](https://github.com/dotliquid/dotliquid) `SqlTemplate` whose placeholders are filled from
+the row's fields.
+
+- `SqlQueryTransformation` runs a **query** and emits its result rows into the flow. Because one
+  input row can yield many result rows, it is a `RowMultiplication`.
+- `SqlCommandTransformation` runs a **non-query** command (INSERT/UPDATE/DELETE/DDL), passes the
+  input row through, and exposes the affected-row count via an optional `TransformResult` function.
+
+```csharp
+//Query: read order lines for each order id flowing through
+var lookup = new SqlQueryTransformation
+{
+    ConnectionManager = connection,
+    SqlTemplate = "SELECT * FROM order_lines WHERE order_id = {{ Id }}"
+};
+
+//Command: mark each incoming row as processed
+var markDone = new SqlCommandTransformation
+{
+    ConnectionManager = connection,
+    SqlTemplate = "UPDATE orders SET processed = 1 WHERE id = {{ Id }}"
+};
+```
+
+Both have generic variants (`SqlQueryTransformation<TInput, TOutput>`,
+`SqlCommandTransformation<TInput, TOutput>`) for strongly-typed rows.
+
 ### RowFiltration
 
 The RowFiltration component drops rows from the flow based on a predicate. It accepts an input type and a `Func<TInput, bool>`. Rows for which the predicate returns true are forwarded to the output, the rest are silently discarded. RowFiltration is a non-blocking transformation. If the predicate throws and an error destination is linked via `LinkErrorTo`, the failing row is sent there; otherwise the exception propagates.
@@ -305,6 +335,22 @@ MergeJoin<MyInputRowType1, MyInputRowType2, MyOutputRowType> join = new MergeJoi
 source1.LinkTo(join.Target1);
 source2.LinkTo(join.Target2);
 join.LinkTo(dest);
+```
+
+#### CrossJoin
+
+A `CrossJoin` combines two inputs by joining **every** row of one with every row of the other. The
+first input (`InMemoryTarget`) is loaded fully into memory; then each row arriving at the second
+input (`PassingTarget`) is joined against every buffered row via `CrossJoinFunc`. Make the smaller
+data set the in-memory (first) input to keep memory use down.
+
+```csharp
+CrossJoin<Category, Product, CatalogEntry> crossJoin = new CrossJoin<Category, Product, CatalogEntry>(
+    (category, product) => new CatalogEntry { Category = category.Name, Product = product.Name });
+
+categorySource.LinkTo(crossJoin.InMemoryTarget);
+productSource.LinkTo(crossJoin.PassingTarget);
+crossJoin.LinkTo(dest);
 ```
 
 ### Aggregation

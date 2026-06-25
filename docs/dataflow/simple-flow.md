@@ -137,7 +137,7 @@ Notice that the destination is typed with the `Order` object. We also need to pa
 manager to the DbDestination so that connection to our Sql Server can be used, and we provide the
 table name for the destination table.
 
-The Order object is a POCO (Plain Old Component Object) and looks like this:
+The Order object is a POCO (Plain Old CLR Object) and looks like this:
 
 ```csharp
 public class Order
@@ -192,7 +192,7 @@ for further handling.
 await dest.Completion;
 ```
 
-\*If you are new to the .NET Task parallel library (TPL) and asynchronous programming, I recommend
-to use the `Execute()` & `Wait()` pattern to run your data flows. If you want to use `ExecuteAsny()`
+If you are new to the .NET Task parallel library (TPL) and asynchronous programming, I recommend
+to use the `Execute()` & `Wait()` pattern to run your data flows. If you want to use `ExecuteAsync()`
 and `Completion`, learn more about
 [Asynchronous programming with async and await here.](https://docs.microsoft.com/en-us/dotnet/csharp/programming-guide/concepts/async/)

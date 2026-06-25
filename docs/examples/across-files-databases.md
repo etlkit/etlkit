@@ -168,7 +168,7 @@ To do so, we will also need a new connection manager that can connect with Sql S
 
 ```csharp
 string SqlServerConnectionString = @"Data Source=.;Initial Catalog=EtlKit_DataFlow;Integrated Security=false;User=sa;password=reallyStrongPwd123";
-SqlConnectionManager conMan = new SqlConnectionManager(SqlServerConnectionString);#
+SqlConnectionManager conMan = new SqlConnectionManager(SqlServerConnectionString);
 
 List<TableColumn> tc = new List<TableColumn>()
 {

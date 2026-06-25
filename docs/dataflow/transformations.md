@@ -46,7 +46,7 @@ public class MySimpleRow
     public string Col2 { get; set; }
 }
 
-RowTransformation&lt;string[], MySimpleRow&gt; trans = new RowTransformation&lt;string[], MySimpleRow&gt;(
+RowTransformation<string[], MySimpleRow> trans = new RowTransformation<string[], MySimpleRow>(
     csvdata =>
     {
         return new MySimpleRow()
@@ -84,9 +84,9 @@ public class InputDataRow
 }
 
 MemorySource<InputDataRow> source = new MemorySource<InputDataRow>();
-source.Data.Add(new InputDataRow() { LookupId = 1 });
+source.Data = new List<InputDataRow> { new InputDataRow() { LookupId = 1 } };
 MemorySource<LookupData> lookupSource = new MemorySource<LookupData>();
-lookupSource.Data.Add(new LookupData() { Id = 1, Value = "Test1" });
+lookupSource.Data = new List<LookupData> { new LookupData() { Id = 1, Value = "Test1" } };
 
 var lookup = new LookupTransformation<InputDataRow, LookupData>();
 lookup.Source = lookupSource;
@@ -99,18 +99,16 @@ If you don't want to use attributes, you can define your own lookup functions.
 
 ```csharp
 DbSource<MyLookupRow> lookupSource = new DbSource<MyLookupRow>(connection, "Lookup");
-List<MyLookupRow> LookupTableData = new List<MyLookupRow>();
-LookupTransformation<MyInputDataRow, MyLookupRow> lookup = new Lookup<MyInputDataRow, MyLookupRow>(
+List<MyLookupRow> lookupTableData = new List<MyLookupRow>();
+LookupTransformation<MyInputDataRow, MyLookupRow> lookup = new LookupTransformation<MyInputDataRow, MyLookupRow>(
     lookupSource,
     row =>
     {
-        Col1 = row.Col1,
-        Col2 = row.Col2,
-        Col3 = LookupTableData.Where(ld => ld.Key == row.Col1).Select(ld => ld.LookupValue1).FirstOrDefault(),
-        Col4 = LookupTableData.Where(ld => ld.Key == row.Col1).Select(ld => ld.LookupValue2).FirstOrDefault(),
+        row.Col3 = lookupTableData.Where(ld => ld.Key == row.Col1).Select(ld => ld.LookupValue1).FirstOrDefault();
+        row.Col4 = lookupTableData.Where(ld => ld.Key == row.Col1).Select(ld => ld.LookupValue2).FirstOrDefault();
         return row;
-    }
-    , LookupTableData
+    },
+    lookupTableData
 );
 ```
 
@@ -316,7 +314,7 @@ are sum, min, max and count. This means that you can calculate a total sum, the 
 in your flow. Also, you can define your own aggregation function.
 The aggregation does not necessarily be calculated on your whole data. You can specify that your calculation is grouped by a particular property or function.
 
-There are two ways to use the Aggregation. The easier way is to make use of the attributes `AggregationColumn` and `GroupColumn`. The first parameter is the
+There are two ways to use the Aggregation. The easier way is to make use of the attributes `AggregateColumn` and `GroupColumn`. The first parameter is the
 property name of target property.
 
 ```csharp

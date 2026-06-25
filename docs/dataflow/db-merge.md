@@ -27,17 +27,17 @@ no straight-forward solution how to manage deleted records here. One way could b
 the record was deleted (including the deletion time as "update" timestamp).
 Or it could be that deletions are not transferred at all, either because they don't happen or for other reasons.
 
-### DBMerge
+### DbMerge
 
-Both scenarios are supported with EtlKit. The `DBMerge` component can be used to tackle this problem
+Both scenarios are supported with EtlKit. The `DbMerge` component can be used to tackle this problem
 
-The `DBMerge` is a destination component and is created on a destination table in your dataflow.
+The `DbMerge` is a destination component and is created on a destination table in your dataflow.
 It will wait for all data from the flow to arrive, and then either insert,
 update or delete the data in the destination table.
-Deletion is optional (by default turned on) , and can be disabled with the property
-`DisableDeletion` set to true.
+Deletion is optional (by default turned on), and can be disabled by setting the property
+`DeltaMode` to `DeltaMode.NoDeletions`.
 
-The DBMerge was designed for scenario 1 and scenario 2. For scenario 2, the property DeltaMode has
+The DbMerge was designed for scenario 1 and scenario 2. For scenario 2, the property DeltaMode has
 to be set to DeltaMode.Delta: `DeltaMode = DeltaMode.Delta`.
 
 ## Example
@@ -48,15 +48,15 @@ To implement an example sync between two tables, we will need a `DbSource` point
 In our case we just pass a table name for the source table, but you could also define a sql query
 (e.g. which gives you only the delta records).
 
-The source is then connected to the DBMerge, and data from the source will then be inserted,
+The source is then connected to the DbMerge, and data from the source will then be inserted,
 updated or deleted in the destination.
 
-The DBMerge is a generic object and expect as type an object that implements the interface `IMergeableRow`.
+The DbMerge is a generic object and expect as type an object that implements the interface `IMergeableRow`.
 This interface needs to have a ChangeDate and ChangeAction defines on your object, as well a UniqueId property
 to describe how objects are compared.
 
 The easiest (and recommended) way to implement is the interface is to inherit from the class `MergeableRow`.
-You will automatically have all the necessary implementation details to pass the object to a `DBMerge`.
+You will automatically have all the necessary implementation details to pass the object to a `DbMerge`.
 Only two things are left to do here:
 
 1. You need to flag the properties that identify the unique Id columns with the attribute `IdColumn`
@@ -99,14 +99,14 @@ No we can already set up a data flow. It would look like this:
 
 ```csharp
 DbSource<MyMergeRow> source = new DbSource<MyMergeRow>(connection, "SourceTable");
-DBMerge<MyMergeRow> merge = new DBMerge<MyMergeRow>(connection, "DestinationTable");
-source.LinkTo(dest);
+DbMerge<MyMergeRow> merge = new DbMerge<MyMergeRow>(connection, "DestinationTable");
+source.LinkTo(merge);
 source.Execute();
 merge.Wait();
 ```
 
 Now what happens if we let this flow run? First of all, all records will be loaded from the destination
-into a memory object and compared with the source data. Within the memory object, the DBMerge
+into a memory object and compared with the source data. Within the memory object, the DbMerge
 will identify:
 
 * which records need to inserted (ChangeAction: Insert)
@@ -128,7 +128,7 @@ First, it will delete all records marked as 'D' (Deleted) or 'U' (Updated) from 
 Then it will write the updated records 'I' and 'U' back into the destination table. (As you can see, updates are done
 by deleting and inserting the record again). Records that doesn't need to be updated are left in the destination table.
 
-In our example after doing the `DBMerge`, our destination table now looks like this:
+In our example after doing the `DbMerge`, our destination table now looks like this:
 
 | Key | Value |
 | --- | --- |
@@ -136,16 +136,17 @@ In our example after doing the `DBMerge`, our destination table now looks like t
 | 2 | Test - Update |
 | 3 | Test - Exists |
 
-Please note that if you connect the DBMerge to a source that provide you with delta information only,
+Please note that if you connect the DbMerge to a source that provide you with delta information only,
 you need to disable the deletions - in that case, deletions need to be handled manually. If we would have
 deletions disable, there would be an additional row in our destination table:
 
------|---------------
-4 |Test - Deleted
+| Key | Value |
+| --- | --- |
+| 4 | Test - Deleted |
 
 ### Delta table
 
-The DBMerge has a property `DeltaTable` which is a List containing additionally information what records
+The DbMerge has a property `DeltaTable` which is a List containing additionally information what records
 where updated, existing, inserted or deleted. The operation and change-date is stored in the corresponding
 `ChangeDate`/ `ChangeAction` properties.
 
@@ -154,11 +155,11 @@ table. In this example, it would contain the information, that 1 row was inserte
 , 1 was updated (Key: 2), one column wasn't changed (Key:3) and one column was deleted (Key: 4).
 
 This information can be used as a source for further processing in the data flow,
-simple by connecting the DBMerge to a transformation or another Destination. So our complete flow could look like this:
+simple by connecting the DbMerge to a transformation or another Destination. So our complete flow could look like this:
 
 ```csharp
 DbSource<MyMergeRow> source = new DbSource<MyMergeRow>(connection, "SourceTable");
-DBMerge<MyMergeRow> merge = new DBMerge<MyMergeRow>(connection, "DestinationTable");
+DbMerge<MyMergeRow> merge = new DbMerge<MyMergeRow>(connection, "DestinationTable");
 DbDestination<MyMergeRow> delta = new DbDestination<MyMergeRow>(connection, "DeltaTable");
 source.LinkTo(merge);
 merge.LinkTo(delta);
@@ -180,9 +181,9 @@ The DeltaTable now will look like this:
 
 ### Truncate instead delete
 
-Because the DBMerge does delete records that need to be deleted or updated using a `DELETE` sql statement,
+Because the DbMerge does delete records that need to be deleted or updated using a `DELETE` sql statement,
 this method can sometimes be a performance bottleneck if you expect a lot of deletions to happen. The
-`DBMerge` does support a Truncate-approach by setting the property `UseTruncateMethod` to true.
+`DbMerge` does support a Truncate-approach by setting the property `UseTruncateMethod` to true.
 It will then read all existing data from the destination into the memory, identify the changes,
 truncate the destination table and then write all changes back into the database. This approach can be much faster
 if you expect a lot of deletions, but you will always read all data from the destination table and write it back.
@@ -195,7 +196,7 @@ Also, if you don't specify any Id columns with teh `IdColumn` attribute, the DbM
 If the source transfer delta information, then you can set the DbMerge delta mode:
 
 ```csharp
-DbMerge<MyMergeRow> dest = new DbMerge<MyMergeRow>(connection, "DBMergeDeltaDestination")
+DbMerge<MyMergeRow> dest = new DbMerge<MyMergeRow>(connection, "DbMergeDeltaDestination")
 {
     DeltaMode = DeltaMode.Delta
 };
@@ -232,7 +233,7 @@ public class MyMergeRow : MergeableRow
     public int Key { get; set; }
 
     [CompareColumn]
-    [ColumnMap("Col1")]
+    [ColumnMap("Col2")]
     public string Value { get; set; }
 }
 ```
@@ -263,7 +264,7 @@ public class MyMergeRow : MergeableRow
 As you can see, you can also use the `CompareColumn` attribute on each property that you want to use for identifying
 existing records.
 
-### Using the IMergabeRow interface
+### Using the IMergeableRow interface
 
 Sometimes, you want do the implementation of the IMergeableRow interface yourself. Here is an example implementation:
 

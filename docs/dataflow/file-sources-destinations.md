@@ -52,10 +52,10 @@ This is an example to transform the dynamic object into a regular .NET object:
 RowTransformation<ExpandoObject,MyDataObject> trans = new RowTransformation<ExpandoObject,MyDataObject>(
     csvdata =>
     {
-        dynamic csvrow = csvdata as ExpandoObject;
+        dynamic csvRow = csvdata as ExpandoObject;
         MyDataObject myData = new MyDataObject() {
-            myData.Id = csvRow.Row_Nr;
-            myData.Value = csvRow.Value;
+            Id = csvRow.Row_Nr,
+            Value = csvRow.Value
         };
         return myData;
     });
@@ -169,7 +169,7 @@ public class MySimpleRow
     public string Col2 { get; set; }
 }
 
-JsonSource<MySimpleRow> source = new JsonSource<Todo>("http://test.com/");
+JsonSource<MySimpleRow> source = new JsonSource<MySimpleRow>("http://test.com/");
 ```
 
 This code would then read the three entries from the source and post it into it's connected component.

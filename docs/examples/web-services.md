@@ -60,7 +60,7 @@ So a full example where you read data from a webservice e.g. into a memory data 
 
 ```csharp
 JsonSource<Todo> source = new JsonSource<Todo>("https://jsonplaceholder.typicode.com/todos");
-MemoryDestination<Todo> dest = new MemoryDestination<Todo>(200);
+MemoryDestination<Todo> dest = new MemoryDestination<Todo>();
 
 source.LinkTo(dest);
 source.Execute();
@@ -104,7 +104,7 @@ JsonSource<MySimpleRow> source = new JsonSource<MySimpleRow>("file.json", Resour
 
 ### Write into json file
 
-To get your data outputted as json, you can use the `JSonDestination`:
+To get your data outputted as json, you can use the `JsonDestination`:
 
 ```csharp
 JsonDestination<MySimpleRow> dest = new JsonDestination<MySimpleRow>("file.json");
@@ -112,7 +112,7 @@ JsonDestination<MySimpleRow> dest = new JsonDestination<MySimpleRow>("file.json"
 
 ## Using JsonProperty
 
-Sometimes, you don't want to create a full C# Poco (Plain old component object).
+Sometimes, you don't want to create a full C# POCO (Plain Old CLR Object).
 If you leave out some properties, you will see that the Json Deserializer just will ignore these properties.
 
 You can even use the JsonProperty attribute to add specific JsonPath expressions that the JsonDeserializer uses

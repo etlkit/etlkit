@@ -168,7 +168,7 @@ Finally, we check if the data was successfully loaded into the table and write i
 output. We use the SQLTask for this and write the result into the output.
 
 ```csharp
-SqlTask.ExecuteReader("Read all data from Table1",
+SqlTask.ExecuteReader(dbConnection, "Read all data from Table1",
     "select Col1, Col2 from Table1",
     col1 => Console.WriteLine(col1.ToString() + ","),
     col2 => Console.WriteLine(col2.ToString())

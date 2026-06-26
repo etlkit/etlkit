@@ -1,4 +1,4 @@
-# Exceution, Linking and Completion
+# Execution, Linking and Completion
 
 ## Linking components
 
@@ -15,8 +15,8 @@ RowTransformation rowTrans = new RowTransformation( row => row );
 DbDestination dest = new DbDestination("DestTable");
 
 //Link the components
-source.LinkTo(row);
-row.LinkTo(dest);
+source.LinkTo(rowTrans);
+rowTrans.LinkTo(dest);
 ```
 
 This will result in a flow which looks like this:
@@ -29,7 +29,7 @@ There is also a chained notation available, which give you the same result:
 
 ```csharp
 //Link the components
-source.LinkTo(row).LinkTo(dest);
+source.LinkTo(rowTrans).LinkTo(dest);
 ```
 
 This notation can be used most of the time - please note that it won't work with `Multicast` or `MergeJoin` as these
@@ -72,9 +72,9 @@ Unfortunately, your DataFlow won't finish until all rows where written into any 
 there is a `VoidDestination` in EtlKit. Use this destination for all records for that you don't wish any further processing.
 
 ```csharp
-VoidDestination voidDest = new VoidDestination(); 
+VoidDestination voidDest = new VoidDestination();
 source.LinkTo(dest, row => row.Value > 0);
-souce.Link(voidDest, row => row.Value <= 0);
+source.LinkTo(voidDest, row => row.Value <= 0);
 ```
 
 #### Implicit use of VoidDestination
@@ -170,7 +170,7 @@ debugging a lot easier, as you don't have to deal with async programming and the
 handling with tasks.
 
 Please note: In the background, the dataflow is always executed asynchronous! The underlying dataflow engine
-is based on `Microsoft.TPL.Dataflow`. EtlKit will wrap this behavior into synchronous methods.
+is based on TPL Dataflow (`System.Threading.Tasks.Dataflow`). EtlKit will wrap this behavior into synchronous methods.
 
 ### Example sync execution
 
@@ -179,9 +179,10 @@ is based on `Microsoft.TPL.Dataflow`. EtlKit will wrap this behavior into synchr
 DbSource source = new DbSource("SourceTable");
 RowTransformation rowTrans = new RowTransformation( row => row );
 DbDestination dest = new DbDestination("DestTable");
-source.LinkTo(row);
+source.LinkTo(rowTrans);
+rowTrans.LinkTo(dest);
 
-//Execute the source 
+//Execute the source
 source.Execute();
 
 //Wait for the destination
@@ -206,7 +207,7 @@ DbSource source = new DbSource("SourceTable");
 RowTransformation rowTrans = new RowTransformation( row => row );
 DbDestination dest = new DbDestination("DestTable");
 
-source.LinkTo(row).LinkTo(dest);
+source.LinkTo(rowTrans).LinkTo(dest);
 
 Task sourceTask = source.ExecuteAsync();
 Task destTask = dest.Completion;

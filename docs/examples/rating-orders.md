@@ -43,7 +43,8 @@ We need to create the destination table `orders` and customer_rating as empty ta
 can use the following ControlFlow Tasks to create these tables:
 
 ```csharp
-ControlFlow.DefaultDbConnection = new SqlConnectionManager("Data Source=.;Initial Catalog=demo;Integrated Security=false;User=sa;password=YourStrong@Passw0rd");
+var connection = new SqlConnectionManager("Data Source=.;Initial Catalog=demo;Integrated Security=false;User=sa;password=YourStrong@Passw0rd");
+ControlFlow.DefaultDbConnection = connection;
 
 TableDefinition OrderDataTableDef = new TableDefinition("orders",
     new List<TableColumn>() {
@@ -69,16 +70,16 @@ TableDefinition CustomerRatingTableDef = new TableDefinition("customer_rating",
 });
 
 //Create demo tables & fill with demo data
-OrderDataTableDef.CreateTable();
-CustomerTableDef.CreateTable();
-CustomerRatingTableDef.CreateTable();
+OrderDataTableDef.CreateTable(connection);
+CustomerTableDef.CreateTable(connection);
+CustomerRatingTableDef.CreateTable(connection);
 SqlTask.ExecuteNonQuery("Fill customer table", "INSERT INTO customer values('Sandra Kettler')");
 SqlTask.ExecuteNonQuery("Fill customer table", "INSERT INTO customer values('Nick Thiemann')");
 SqlTask.ExecuteNonQuery("Fill customer table", "INSERT INTO customer values('Zoe Rehbein')");
 SqlTask.ExecuteNonQuery("Fill customer table", "INSERT INTO customer values('Margit Gries')");
 ```
 
-Let's define some POCOs (Plain old component objects) that can hold the data when it goes through
+Let's define some POCOs (Plain Old CLR Objects) that can hold the data when it goes through
 the data flow pipeline.
 
 ```csharp
@@ -93,15 +94,15 @@ public class Order
 
 public class Customer
 {
-    [RetrieveColumn(nameof(Order.CustomerKey)]
+    [RetrieveColumn(nameof(Order.CustomerKey))]
     public int Key { get; set; }
-    [MatchColumn(nameof(Order.CustomerName)]
+    [MatchColumn(nameof(Order.CustomerName))]
     public string Name { get; set; }
 }
 
 public class Rating
 {
-    [GroupColumn(nameof(Order.CustomerKey)]
+    [GroupColumn(nameof(Order.CustomerKey))]
     public int CustomerKey { get; set; }
     [AggregateColumn(nameof(Order.Amount), AggregationMethod.Sum)]
     public decimal TotalAmount { get; set; }
@@ -112,7 +113,7 @@ public class Rating
 ```
 
 Please note that there are attributes above the properties. The attributes
-MatchColumn/RetrieveColumn are used for the LookupTransformation and GroupColumn/AggregationColumn
+MatchColumn/RetrieveColumn are used for the LookupTransformation and GroupColumn/AggregateColumn
 for the Aggregation. They will be explained later.
 
 The `ColumnMap` attribute above the property `RatingValue` will map the table column `Rating` in the
@@ -158,7 +159,7 @@ RowTransformation<ExpandoObject, Order> transIntoObject = new RowTransformation<
             //Header in Csv: OrderNumber;OrderItem;OrderAmount;CustomerName
             Number = order.OrderNumber,
             Item = order.OrderItem,
-            Amount = decimal.Parse(order.OrderAmount.ToString().Replace("€",""), CultureInfo.GetCultureInfo("en-US")),
+            Amount = decimal.Parse(order.OrderAmount.ToString().Replace("$",""), CultureInfo.GetCultureInfo("en-US")),
             CustomerName =  order.CustomerName
         };
     });
@@ -171,7 +172,7 @@ _Note_: Normally when reading data from a source, you don't necessarily need use
 and then convert it into a regular object using a RowTransformation. Normally, you can do something
 like `CsvSource<Order> source = new CsvSource<Order>("DemoData.csv");`. All sources and most
 transformations will always try to convert the incoming data into the right data types. In our
-example, it would work if we would remove the "€"-sign from the amount column in the csv file. Then
+example, it would work if we would remove the "$"-sign from the amount column in the csv file. Then
 EtlKit would have been to automatically convert the data into the right data type.
 
 ### Retrieving the customer key
@@ -192,10 +193,10 @@ transIntoObject.LinkTo(lookupCustomerKey);
 
 The lookup works because it can gather the required information from the attributes in the Customer
 object. There, we did define a MatchColumn and a RetrieveColumn attribute. The MatchColumn looked
-like this: `[MatchColumn(nameof(Order.CustomerName)]` and was set on the property "Name". The lookup
+like this: `[MatchColumn(nameof(Order.CustomerName))]` and was set on the property "Name". The lookup
 now knows that any value in the Name must match the property CustomerName in the incoming Order
 data. If the values of these two properties matches, the attribute
-`[RetrieveColumn(nameof(Order.CustomerKey)]` tells the LookupTransformation to push the retrieved
+`[RetrieveColumn(nameof(Order.CustomerKey))]` tells the LookupTransformation to push the retrieved
 value from the source into the property CustomerKey in the Order.
 
 After an Order row has been processed by the lookup, the property CustomerKey holds the value from
@@ -243,7 +244,7 @@ again:
 ```csharp
 public class Rating
 {
-    [GroupColumn(nameof(Order.CustomerKey)]
+    [GroupColumn(nameof(Order.CustomerKey))]
     public int CustomerKey { get; set; }
     [AggregateColumn(nameof(Order.Amount), AggregationMethod.Sum)]
     public decimal TotalAmount { get; set; }
@@ -253,8 +254,8 @@ public class Rating
 }
 ```
 
-The aggrgation gather it's information from the attributes GroupColumn and AggregationColumn. The
-attribute `[GroupColumn(nameof(Order.CustomerKey)]` on the property CustomerKey tells the
+The aggrgation gather it's information from the attributes GroupColumn and AggregateColumn. The
+attribute `[GroupColumn(nameof(Order.CustomerKey))]` on the property CustomerKey tells the
 aggregation to the Orders by the CustomerKey and store the grouping value in the Rating result as
 well. The attribute `[AggregateColumn(nameof(Order.Amount), AggregationMethod.Sum)]` tells the
 aggregation to do a sum of Amount for each group.

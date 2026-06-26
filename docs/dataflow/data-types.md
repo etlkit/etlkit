@@ -2,7 +2,7 @@
 
 ## Generic approach
 
-Almost all components in EtlKit can be defined with a POCO (Plain old component object), which is a very simple
+Almost all components in EtlKit can be defined with a POCO (Plain Old CLR Object), which is a very simple
 object describing your data and data types. This object can be used to store your data in your data flow.
 
 Almost all sources provide a column name for every data column. In a CSV file, you nomrally have a header at the top row
@@ -51,7 +51,7 @@ SqlTask.ExecuteNonQuery(@"CREATE TABLE demotable (
 
 public class MyNewRow {
     public int Value1 { get; set; }
-    public string AnotherValue { get; set }
+    public string AnotherValue { get; set; }
 }
 DbSource<MyNewRow> source = new DbSource<MyNewRow>("demotable");
 ```
@@ -74,7 +74,7 @@ SqlTask.ExecuteNonQuery(@"CREATE TABLE demotable (
 
 public class MyNewRow {
     public int Value1 { get; set; }
-    public string AnotherValue { get; set }
+    public string AnotherValue { get; set; }
 }
 DbSource<MyNewRow> source = new DbSource<MyNewRow>() {
     Sql = "SELECT Value1, Value2 AS AnotherValue FROM demotable"
@@ -95,15 +95,13 @@ Here the getter - method is used to get data from the property.
 For example, if you have a property `Key`, and you add the `ColumnMap` Attribute to it:
 
 ```csharp
-[ColumnMap("Id")]
-public string Key { 
-    get {
-        return _key;
-    set {
-        _key = value.ToString();
-    }
+public string _key;
 
-public int _key;
+[ColumnMap("Id")]
+public string Key {
+    get => _key;
+    set => _key = value.ToString();
+}
 ```
 
 If you use this object within a `DbSource`, it will read the data from the database column "Id" and then call the `ToString` method on every record
@@ -134,7 +132,7 @@ into the right type.
 
 ## Dynamic object approach
 
-Sometimes you don't want (or can) create an object during design-time for your data flow components. #
+Sometimes you don't want (or can) create an object during design-time for your data flow components.
 You want the properties (and perhaps methods etc.) created during run-time. With .NET and .NET Core,
 there you can have dynamic objects, which basically means that you can define object where
 no type checks are executed when you compile you program. The keyword here is `dynamic`.
@@ -215,11 +213,12 @@ Here is an example for reading data from a file.
 
 ```csharp
 CsvSource<string[]> source = new CsvSource<string[]>("text.csv");
-RowTransformation<string[], row = new RowTransformation( 
+RowTransformation<string[], string[]> trans = new RowTransformation<string[], string[]>(
     row => {
         row[0] = row[0] + ".test";
-        row[2] = row[2] * 7;
-        }
+        row[2] = (int.Parse(row[2]) * 7).ToString();
+        return row;
+    }
 );
 DbDestination<string[]> dest = new DbDestination<string[]>("DestinationTable");
 ```
@@ -234,11 +233,12 @@ This approach is very useful when reading from a source where you get only strin
 You can use a `RowTransformation` if you want to convert your string array into an object.
 
 ```csharp
-RowTransformation<string[], MySimpleRow> = new RowTransformation<string[], MySimpleRow>( 
+RowTransformation<string[], MySimpleRow> trans = new RowTransformation<string[], MySimpleRow>(
     row => {
-        new MySimpleRow() {
-            Col1 = row[0];
-            Value2 = int.Parse(row[1]);
-        }
+        return new MySimpleRow() {
+            Col1 = row[0],
+            Value2 = int.Parse(row[1])
+        };
+    }
 );
 ```

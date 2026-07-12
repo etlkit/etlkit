@@ -48,6 +48,14 @@
 - [Split `DataTypeConverter` driver conventions before moving type-mapping to Common](docs/tech-debt/TECH-DEBT-DataTypeConverter-Driver-Split.md)
   - Pure type-mapping → Common/Primitives; per-driver SQL-type conventions → driver packages behind a DI abstraction (drop the central `switch (ConnectionManagerType)`)
   - Unblocks moving `QueryParameter` to Common (and `ITableColumn` to Primitives); ride along with broader driver-package/DI modularization
+- [UseRowAccessor mode for ScriptedRowTransformation](docs/tech-debt/TECH-DEBT-ScriptedTransformation-UseRowAccessor.md)
+  - Fixes a real bug: scripts with Roslyn warnings only (e.g. CS0472) are incorrectly rejected outright
+  - Opt-in `Row.Field` accessor sidesteps the compile errors that null/missing fields currently cause, which today produce a silently-null output instead
+- [EtlKit.DynamicLinq AssemblyLoadContext unloading](docs/tech-debt/TECH-DEBT-DynamicLinq-AssemblyLoadContext.md)
+  - Multi-target to `net6.0` and wrap `DynamicClassFactory.CreateType` in a collectible ALC, with eviction added to `ExpandoTypeMapper._fastPathCache`
+  - Deferred until it can land together with the sibling `ScriptBuilder` ALC work
+- [Expression Engine Unification — Roslyn vs Dynamic LINQ follow-up](docs/tech-debt/TECH-DEBT-Expression-Engine-Unification.md)
+  - Package split (`EtlKit.Scripting` vs `EtlKit.DynamicLinq`) already shipped; remaining: audit real `ScriptedRowTransformation` usage, build `ExpressionRowTransformation<TInput,TOutput>`, then decide keep-both vs. drop-one
 
 ## Other
 

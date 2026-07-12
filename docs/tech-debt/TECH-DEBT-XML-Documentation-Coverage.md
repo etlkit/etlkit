@@ -16,7 +16,7 @@ tooltips for consumers of the NuGet packages.
 |--------------------------|------:|----------:|---------:|----------|
 | EtlKit (main)            |   166 |       117 |       49 | 70%      |
 | EtlKit.Common            |    21 |         6 |       15 | 28%      |
-| EtlKit.Primitives        |    19 |         5 |       14 | 26%      |
+| EtlKit.Primitives        |    19 |        19 |        0 | 100%     |
 | EtlKit.Kafka             |     7 |         4 |        3 | 57%      |
 | EtlKit.Rest              |     3 |         2 |        1 | 66%      |
 | EtlKit.Scripting         |     7 |         5 |        2 | 71%      |
@@ -27,7 +27,7 @@ tooltips for consumers of the NuGet packages.
 | EtlKit.Serialization     |     7 |         7 |        0 | 100%     |
 | EtlKit.ClickHouse        |     3 |         3 |        0 | 100%     |
 | EtlKit.Logging.Database  |     2 |         2 |        0 | 100%     |
-| **Total**                | **249** | **153** | **96** | **61%** |
+| **Total**                | **249** | **167** | **82** | **67%** |
 
 ## Implementation Plan
 
@@ -40,22 +40,22 @@ These interfaces define the entire framework contract. Every user and every comp
 them. Documenting these has the highest impact on API reference quality.
 
 **Interfaces:**
-- [ ] `ITask` — base interface for all tasks
-- [ ] `IConnectionManager` — database connection abstraction
-- [ ] `IDataFlowSource<TOutput>` — source component contract
-- [ ] `IDataFlowDestination<TInput>` — destination component contract
-- [ ] `IDataFlowBatchDestination<TInput>` — batch destination contract
-- [ ] `IDataFlowLinkSource<TOutput>` — linking source-side contract
-- [ ] `IDataFlowLinkTarget<TInput>` — linking target-side contract
-- [ ] `IDataFlowTransformation<TInput, TOutput>` — transformation contract
-- [ ] `ILinkErrorSource` — error linking contract
-- [ ] `IHttpClient` — HTTP abstraction for web sources
-- [ ] `IQueryParameter` — SQL query parameter contract
-- [ ] `ITableData` — table data abstraction
+- [x] `ITask` — base interface for all tasks
+- [x] `IConnectionManager` — database connection abstraction
+- [x] `IDataFlowSource<TOutput>` — source component contract
+- [x] `IDataFlowDestination<TInput>` — destination component contract
+- [x] `IDataFlowBatchDestination<TInput>` — batch destination contract
+- [x] `IDataFlowLinkSource<TOutput>` — linking source-side contract
+- [x] `IDataFlowLinkTarget<TInput>` — linking target-side contract
+- [x] `IDataFlowTransformation<TInput, TOutput>` — transformation contract
+- [x] `ILinkErrorSource` — error linking contract
+- [x] `IHttpClient` — HTTP abstraction for web sources
+- [x] `IQueryParameter` — SQL query parameter contract
+- [x] `ITableData` — table data abstraction
 
 **Enums:**
-- [ ] `ChangeAction` — merge change type enum
-- [ ] `ConnectionManagerType` — database type enum
+- [x] `ChangeAction` — merge change type enum
+- [x] `ConnectionManagerType` — database type enum
 
 ### Phase 2: Abstract Base Classes (EtlKit.Common + main EtlKit) — 13 types
 

@@ -25,9 +25,9 @@ tooltips for consumers of the NuGet packages.
 | EtlKit.RabbitMq          |     5 |         4 |        1 | 80%      |
 | EtlKit.Json              |     2 |         2 |        0 | 100%     |
 | EtlKit.Serialization     |     7 |         7 |        0 | 100%     |
-| EtlKit.ClickHouse        |     3 |         0 |        3 | 0%       |
-| EtlKit.Logging.Database  |     2 |         0 |        2 | 0%       |
-| **Total**                | **249** | **148** | **101** | **59%** |
+| EtlKit.ClickHouse        |     3 |         3 |        0 | 100%     |
+| EtlKit.Logging.Database  |     2 |         2 |        0 | 100%     |
+| **Total**                | **249** | **153** | **96** | **61%** |
 
 ## Implementation Plan
 
@@ -94,13 +94,13 @@ These are the classes users inherit from or interact with directly. They form th
 Small scope, quick wins — brings two projects from 0% to 100%.
 
 **EtlKit.ClickHouse (3):**
-- [ ] `ClickHouseConnectionManager` — ClickHouse connection manager
-- [ ] `ClickHouseConnectionString` — connection string wrapper
-- [ ] `ClickHouseConnectionStringBuilder` — connection string builder
+- [x] `ClickHouseConnectionManager` — ClickHouse connection manager
+- [x] `ClickHouseConnectionString` — connection string wrapper
+- [x] `ClickHouseConnectionStringBuilder` — connection string builder
 
 **EtlKit.Logging.Database (2):**
-- [ ] `DatabaseLoggingConfiguration` — database logging setup
-- [ ] `ETLLogLayoutRenderer` — NLog layout renderer for ETL logs
+- [x] `DatabaseLoggingConfiguration` — database logging setup
+- [x] `ETLLogLayoutRenderer` — NLog layout renderer for ETL logs
 
 ### Phase 4: Main EtlKit Library Gaps — 42 types
 

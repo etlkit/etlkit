@@ -36,7 +36,6 @@
 - [XML Documentation Coverage — 59% → 95%](docs/tech-debt/TECH-DEBT-XML-Documentation-Coverage.md)
   - Phase 1: Core interfaces in EtlKit.Primitives (14 types)
   - Phase 2: Abstract base classes in EtlKit.Common + main library (13 types)
-  - Phase 3: Fully undocumented projects — ClickHouse, Logging.Database (5 types)
   - Phase 4: Remaining main library gaps — enums, attributes, models, transforms (42 types)
 - [FieldLookupTransformation — declarative field-name-based lookup with XML serialization support](docs/tech-debt/field-lookup-transformation-roadmap.md)
   - New component alongside `LookupTransformation` with serializable `MatchColumns`/`RetrieveColumns` POCO lists

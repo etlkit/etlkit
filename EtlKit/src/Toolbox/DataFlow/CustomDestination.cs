@@ -8,8 +8,15 @@ namespace EtlKit.DataFlow
     [PublicAPI]
     public class CustomDestination : CustomDestination<ExpandoObject>
     {
+        /// <summary>
+        /// Creates a new instance with no write action set yet.
+        /// </summary>
         public CustomDestination() { }
 
+        /// <summary>
+        /// Creates a new instance with the given write action.
+        /// </summary>
+        /// <param name="writeAction">Action invoked for each row written to this destination.</param>
         public CustomDestination(Action<ExpandoObject> writeAction)
             : base(writeAction) { }
     }

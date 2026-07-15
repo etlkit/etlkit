@@ -7,6 +7,12 @@ using Microsoft.Extensions.Logging;
 
 namespace EtlKit.Common.DataFlow
 {
+    /// <summary>
+    /// Base class for destinations that buffer incoming rows and write them in batches. Derived
+    /// classes implement <see cref="PrepareWrite"/>, <see cref="TryBulkInsertData"/>, and <see
+    /// cref="FinishWrite"/> to define how a batch is actually persisted.
+    /// </summary>
+    /// <typeparam name="TInput">Type of the rows accepted by this destination.</typeparam>
     [PublicAPI]
     public abstract class DataFlowBatchDestination<TInput>
         : DataFlowDestination<TInput[]>,
@@ -55,6 +61,9 @@ namespace EtlKit.Common.DataFlow
         }
         private int? _batchSize;
 
+        /// <summary>
+        /// The batch size used when <see cref="BatchSize"/> has not been set to a positive value.
+        /// </summary>
         public const int DefaultBatchSize = 1000;
 
         /// <summary>
@@ -73,6 +82,9 @@ namespace EtlKit.Common.DataFlow
 
         private int? _boundedCapacity;
 
+        /// <summary>
+        /// Whether <see cref="PrepareWrite"/> has already run for the first batch.
+        /// </summary>
         protected bool WasInitialized { get; set; }
 
         /// <summary>
@@ -88,6 +100,12 @@ namespace EtlKit.Common.DataFlow
             completion.ContinueWith(_ => CheckCompleteAction());
         }
 
+        /// <summary>
+        /// Completes the batch <see cref="TargetBlock"/> once every task in <see
+        /// cref="DataFlowDestination{TInput}.PredecessorCompletions"/> has finished, faulting it
+        /// instead if any predecessor faulted. Shadows the base implementation because <see
+        /// cref="TargetBlock"/> here is the batch-typed block, not the base class's.
+        /// </summary>
         protected new void CheckCompleteAction()
         {
             Task.WhenAll(PredecessorCompletions)
@@ -105,8 +123,18 @@ namespace EtlKit.Common.DataFlow
                 });
         }
 
+        /// <summary>
+        /// Accumulates incoming rows until <see cref="BatchSize"/> is reached, then forwards the full
+        /// batch to <see cref="DataFlowDestination{TInput}.TargetAction"/> for writing.
+        /// </summary>
         protected BatchBlock<TInput> Buffer { get; set; }
 
+        /// <summary>
+        /// (Re-)creates <see cref="Buffer"/> and <see cref="DataFlowDestination{TInput}.TargetAction"/>
+        /// with the given batch size and current <see cref="BoundedCapacity"/>, and links them
+        /// together. Called whenever <see cref="BatchSize"/> or <see cref="BoundedCapacity"/> is set.
+        /// </summary>
+        /// <param name="initBatchSize">Batch size to configure <see cref="Buffer"/> with.</param>
         protected virtual void InitObjects(int initBatchSize)
         {
             var options = new GroupingDataflowBlockOptions { BoundedCapacity = BoundedCapacity };
@@ -116,6 +144,12 @@ namespace EtlKit.Common.DataFlow
             Buffer.LinkTo(TargetAction, new DataflowLinkOptions { PropagateCompletion = true });
         }
 
+        /// <summary>
+        /// Writes one batch: runs <see cref="BeforeBatchWrite"/>, lazily calls <see cref="PrepareWrite"/>
+        /// on the first batch, persists the data via <see cref="TryBulkInsertData"/>, logs progress,
+        /// then runs <see cref="AfterBatchWrite"/>.
+        /// </summary>
+        /// <param name="data">The accumulated batch of rows.</param>
         protected void WriteBatch(TInput[] data)
         {
             if (ProgressCount == 0)
@@ -132,14 +166,32 @@ namespace EtlKit.Common.DataFlow
             AfterBatchWrite?.Invoke(data);
         }
 
+        /// <summary>
+        /// Runs <see cref="FinishWrite"/> before the base cleanup (invoking <see
+        /// cref="DataFlowDestination{TInput}.OnCompletion"/> and logging), so the destination gets a
+        /// chance to flush or close resources first.
+        /// </summary>
         protected override void CleanUp()
         {
             FinishWrite();
             base.CleanUp();
         }
 
+        /// <summary>
+        /// Called once, lazily, before the first batch is written — e.g. to open a connection or
+        /// prepare the destination for bulk insertion.
+        /// </summary>
         protected abstract void PrepareWrite();
+
+        /// <summary>
+        /// Persists one batch of rows to the destination.
+        /// </summary>
+        /// <param name="data">The batch to write.</param>
         protected abstract void TryBulkInsertData(TInput[] data);
+
+        /// <summary>
+        /// Called once, after the last batch has been written, to perform any needed teardown.
+        /// </summary>
         protected abstract void FinishWrite();
     }
 }

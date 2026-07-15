@@ -57,7 +57,7 @@ them. Documenting these has the highest impact on API reference quality.
 - [x] `ChangeAction` — merge change type enum
 - [x] `ConnectionManagerType` — database type enum
 
-### Phase 2: Abstract Base Classes (EtlKit.Common + main EtlKit) — 13 types
+### Phase 2: Abstract Base Classes (EtlKit.Common + main EtlKit) — 22 types
 
 These are the classes users inherit from or interact with directly. They form the runtime backbone.
 

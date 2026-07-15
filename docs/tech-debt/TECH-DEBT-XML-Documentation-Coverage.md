@@ -14,8 +14,8 @@ tooltips for consumers of the NuGet packages.
 
 | Project                  | Types | Documented | Missing | Coverage |
 |--------------------------|------:|----------:|---------:|----------|
-| EtlKit (main)            |   166 |       117 |       49 | 70%      |
-| EtlKit.Common            |    21 |         6 |       15 | 28%      |
+| EtlKit (main)            |   166 |       125 |       41 | 75%      |
+| EtlKit.Common            |    21 |        20 |        1 | 95%      |
 | EtlKit.Primitives        |    19 |        19 |        0 | 100%     |
 | EtlKit.Kafka             |     7 |         4 |        3 | 57%      |
 | EtlKit.Rest              |     3 |         2 |        1 | 66%      |
@@ -27,7 +27,7 @@ tooltips for consumers of the NuGet packages.
 | EtlKit.Serialization     |     7 |         7 |        0 | 100%     |
 | EtlKit.ClickHouse        |     3 |         3 |        0 | 100%     |
 | EtlKit.Logging.Database  |     2 |         2 |        0 | 100%     |
-| **Total**                | **249** | **167** | **82** | **67%** |
+| **Total**                | **249** | **189** | **60** | **76%** |
 
 ## Implementation Plan
 
@@ -62,32 +62,32 @@ them. Documenting these has the highest impact on API reference quality.
 These are the classes users inherit from or interact with directly. They form the runtime backbone.
 
 **EtlKit.Common (6):**
-- [ ] `DataFlowSource<TOutput>` — base class for all sources
-- [ ] `DataFlowDestination<TInput>` — base class for all destinations
-- [ ] `DataFlowBatchDestination<TInput>` — base class for batch destinations
-- [ ] `DataFlowTransformation<TInput, TOutput>` — base class for transformations
-- [ ] `DataFlowTask` — base class for dataflow tasks
-- [ ] `GenericTask` — base class for control flow tasks
+- [x] `DataFlowSource<TOutput>` — base class for all sources
+- [x] `DataFlowDestination<TInput>` — base class for all destinations
+- [x] `DataFlowBatchDestination<TInput>` — base class for batch destinations
+- [x] `DataFlowTransformation<TInput, TOutput>` — base class for transformations
+- [x] `DataFlowTask` — base class for dataflow tasks
+- [x] `GenericTask` — base class for control flow tasks
 
 **EtlKit.Common utilities (9):**
-- [ ] `DataFlowLinker<TOutput>` — linking helper
-- [ ] `ErrorHandler` — error routing
-- [ ] `HashHelper` — hashing utility
-- [ ] `LoadProcess` — load process model
-- [ ] `MyLogEvent` — custom log event
-- [ ] `ObjectNameDescriptor` — SQL object name parsing
-- [ ] `RowTransformation` (non-generic variant)
-- [ ] `RowTransformation<TInput>` (single-type variant)
-- [ ] `CustomDestination` (non-generic variant)
+- [x] `DataFlowLinker<TOutput>` — linking helper
+- [x] `ErrorHandler` — error routing
+- [x] `HashHelper` — hashing utility
+- [x] `LoadProcess` — load process model
+- [x] `MyLogEvent` — custom log event
+- [x] `ObjectNameDescriptor` — SQL object name parsing
+- [x] `RowTransformation` (non-generic variant)
+- [x] `RowTransformation<TInput>` (single-type variant)
+- [x] `CustomDestination` (non-generic variant)
 
 **EtlKit main base classes (7):**
-- [ ] `DataFlowStreamSource<TOutput>` — base for file/stream sources
-- [ ] `DataFlowStreamDestination<TInput>` — base for file/stream destinations
-- [ ] `DbConnectionManager<TConnection>` — base for DB connection managers
-- [ ] `DbTask` — base for database tasks
-- [ ] `DropTask<T>` — base for drop tasks
-- [ ] `IfExistsTask` — base for existence checks
-- [ ] `OdbcConnectionManager` — base for ODBC connections
+- [x] `DataFlowStreamSource<TOutput>` — base for file/stream sources
+- [x] `DataFlowStreamDestination<TInput>` — base for file/stream destinations
+- [x] `DbConnectionManager<TConnection>` — base for DB connection managers
+- [x] `DbTask` — base for database tasks
+- [x] `DropTask<T>` — base for drop tasks
+- [x] `IfExistsTask` — base for existence checks
+- [x] `OdbcConnectionManager` — base for ODBC connections
 
 ### Phase 3: Fully Undocumented Projects — 5 types
 

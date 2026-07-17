@@ -20,8 +20,16 @@ namespace EtlKit.DataFlow
     [AttributeUsage(AttributeTargets.Property)]
     public class DeleteColumnAttribute : Attribute
     {
+        /// <summary>
+        /// The value that marks a row for deletion when the decorated property equals it.
+        /// </summary>
         public object DeleteOnMatchValue { get; set; }
 
+        /// <summary>
+        /// Marks the decorated property as the deletion indicator, using <paramref
+        /// name="deleteOnMatchValue"/> as the value that means "delete this row".
+        /// </summary>
+        /// <param name="deleteOnMatchValue">The value that marks a row for deletion.</param>
         public DeleteColumnAttribute(object deleteOnMatchValue)
         {
             DeleteOnMatchValue = deleteOnMatchValue;

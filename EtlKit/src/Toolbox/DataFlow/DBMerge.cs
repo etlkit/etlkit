@@ -473,10 +473,29 @@ namespace EtlKit.DataFlow
         public Task Completion => DestinationTable.Completion;
     }
 
+    /// <summary>
+    /// Controls how <see cref="DbMerge{TInput}"/> determines which rows to delete from the
+    /// destination, and whether the source itself already carries deletion markers.
+    /// </summary>
     public enum DeltaMode
     {
+        /// <summary>
+        /// Default mode: the source is a full snapshot. Rows present only in the destination (missing
+        /// from the source) are deleted.
+        /// </summary>
         Full = 0,
+
+        /// <summary>
+        /// Like <see cref="Full"/>, but skips truncation and deletion entirely — rows missing from the
+        /// source are left untouched in the destination.
+        /// </summary>
         NoDeletions = 1,
+
+        /// <summary>
+        /// The source is itself a changeset (e.g. from a CDC source), not a full snapshot. Deletions
+        /// are recognized via <c>MergeProperties.DeletionProperties</c> rather than by absence from the
+        /// source; requires at least one compare column and disallows truncation.
+        /// </summary>
         Delta = 2,
     }
 

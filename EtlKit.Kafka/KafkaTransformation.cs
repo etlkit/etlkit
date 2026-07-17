@@ -3,12 +3,9 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Threading.Tasks;
-
 using Confluent.Kafka;
 using DotLiquid;
-
 using EtlKit.Common.DataFlow;
-
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 
@@ -91,6 +88,10 @@ namespace EtlKit.DataFlow
             _producer = producer;
         }
 
+        /// <summary>
+        /// Flushes and disposes the Kafka producer, then runs the base cleanup.
+        /// </summary>
+        /// <param name="transformTask">The completed (or faulted) transform block task.</param>
         protected override void CleanUp(Task transformTask)
         {
             try
@@ -191,6 +192,11 @@ namespace EtlKit.DataFlow
             : base(producer) { }
     }
 
+    /// <summary>
+    /// Concrete string-valued Kafka transformation: builds the message value (and optional key) by
+    /// rendering <a href="https://shopify.github.io/liquid/">Liquid</a> templates against each input row.
+    /// </summary>
+    /// <typeparam name="TInput">Parameters for the message templates.</typeparam>
     public class KafkaStringTransformation<TInput> : KafkaTransformation<TInput, string>
     {
         /// <summary>
@@ -247,6 +253,10 @@ namespace EtlKit.DataFlow
             }
         }
 
+        /// <summary>
+        /// Renders <see cref="MessageTemplate"/> against <paramref name="input"/>.
+        /// </summary>
+        /// <param name="input">The row to render the template against.</param>
         protected override string BuildMessageValue(TInput input) =>
             RenderLiquid(input, MessageTemplate);
 
@@ -267,6 +277,9 @@ namespace EtlKit.DataFlow
         }
     }
 
+    /// <summary>
+    /// Non-generic <see cref="KafkaStringTransformation{TInput}"/> for dynamic-object input rows.
+    /// </summary>
     public class KafkaTransformation : KafkaStringTransformation<ExpandoObject>
     {
         /// <summary>

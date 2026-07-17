@@ -5,13 +5,19 @@ using Newtonsoft.Json;
 
 namespace EtlKit.AI;
 
-// Custom DotLiquid filters used to adjust data transformation in templates
+/// <summary>
+/// Custom <a href="https://github.com/dotliquid/dotliquid">DotLiquid</a> filters, registered globally
+/// via <see cref="EnsureRegistered"/>, for escaping and serializing values inside AI prompt templates.
+/// </summary>
 public static class CustomLiquidFilters
 {
     private static readonly object s_lock = new();
     private static bool s_registered;
 
-    // Thread-safe one-time registration of filters
+    /// <summary>
+    /// Registers this class's filters with DotLiquid, if not already done. Safe to call more than
+    /// once or concurrently.
+    /// </summary>
     [PublicAPI]
     public static void EnsureRegistered()
     {
@@ -28,21 +34,33 @@ public static class CustomLiquidFilters
         }
     }
 
-    // Escape single quotes by doubling them
+    /// <summary>
+    /// Escapes single quotes by doubling them (<c>'</c> becomes <c>''</c>), for embedding a value in a
+    /// single-quoted SQL string literal.
+    /// </summary>
+    /// <param name="input">The string to escape, or <see langword="null"/>.</param>
     [PublicAPI]
     public static string? EscapeSingleQuotes(string? input)
     {
         return input?.Replace("'", "''");
     }
 
-    // Escape backslash by doubling them
+    /// <summary>
+    /// Escapes backslashes by doubling them (<c>\</c> becomes <c>\\</c>).
+    /// </summary>
+    /// <param name="input">The string to escape, or <see langword="null"/>.</param>
     [PublicAPI]
     public static string? EscapeBackslash(string? input)
     {
         return input?.Replace("\\", "\\\\");
     }
 
-    // Recursively escape single quotes inside nested objects/dictionaries
+    /// <summary>
+    /// Applies <see cref="EscapeSingleQuotes"/> to every string value, recursing into nested
+    /// dictionaries. Non-string, non-dictionary values are returned unchanged.
+    /// </summary>
+    /// <param name="input">The value to escape: a string, an <see
+    /// cref="IDictionary{TKey,TValue}"/> of strings/objects, or any other value.</param>
     [PublicAPI]
     public static object? EscapeSingleQuotesRecursive(object? input)
     {
@@ -62,7 +80,11 @@ public static class CustomLiquidFilters
         return input;
     }
 
-    // Serialize the input object into JSON (compact form)
+    /// <summary>
+    /// Serializes <paramref name="input"/> to compact JSON (no indentation, nulls omitted). Works with
+    /// <see cref="System.Dynamic.ExpandoObject"/> since it uses Newtonsoft.Json.
+    /// </summary>
+    /// <param name="input">The value to serialize.</param>
     [PublicAPI]
     public static string JsonArray(object input)
     {
@@ -79,7 +101,11 @@ public static class CustomLiquidFilters
         return JsonConvert.SerializeObject(input, settings);
     }
 
-    // Convert input object to a string (JSON for dictionaries, ToString() for scalars)
+    /// <summary>
+    /// Converts <paramref name="input"/> to a string: dictionaries are rendered as compact JSON via
+    /// <see cref="JsonArray"/>, everything else uses <see cref="object.ToString"/>.
+    /// </summary>
+    /// <param name="input">The value to convert, or <see langword="null"/>.</param>
     [PublicAPI]
     public static string? AsString(object? input)
     {

@@ -3,12 +3,9 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Threading.Tasks;
-
 using Confluent.Kafka;
 using DotLiquid;
-
 using EtlKit.Common.DataFlow;
-
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 
@@ -142,6 +139,14 @@ namespace EtlKit.DataFlow
             }
             if (_producer == null)
                 throw new InvalidOperationException("Producer is not initialized.");
+
+            // Produce() is fire-and-forget; the delivery report only arrives asynchronously on
+            // librdkafka's poll thread. Block on it here via a TaskCompletionSource so that a
+            // delivery error surfaces as an exception on this thread, where SendToKafka's
+            // try/catch can route it to the error buffer like any other failure.
+            var deliveryCompletion = new TaskCompletionSource<
+                DeliveryReport<TKafkaKey, TKafkaValue>
+            >(TaskCreationOptions.RunContinuationsAsynchronously);
             _producer.Produce(
                 TopicName,
                 message,
@@ -155,8 +160,14 @@ namespace EtlKit.DataFlow
                             deliveryReport.Error.Reason
                         );
                     }
+                    deliveryCompletion.SetResult(deliveryReport);
                 }
             );
+            var report = deliveryCompletion.Task.GetAwaiter().GetResult();
+            if (report.Error.IsError)
+            {
+                throw new ProduceException<TKafkaKey, TKafkaValue>(report.Error, report);
+            }
         }
     }
 

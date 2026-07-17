@@ -1,12 +1,13 @@
 using System.Dynamic;
+using Confluent.Kafka;
 using EtlKit.Common.ControlFlow;
 using EtlKit.DataFlow;
-using Confluent.Kafka;
 using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
 
 namespace EtlKit.Kafka.Tests
 {
+    [Collection("Kafka")]
     public class KafkaTransformationTests : IClassFixture<KafkaFixture>
     {
         private readonly KafkaFixture _fixture;

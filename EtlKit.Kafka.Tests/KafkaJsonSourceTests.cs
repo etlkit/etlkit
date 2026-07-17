@@ -2,9 +2,9 @@ using System.Diagnostics;
 using System.Dynamic;
 using System.Text.Json;
 using System.Threading.Tasks.Dataflow;
+using Confluent.Kafka;
 using EtlKit.Common.ControlFlow;
 using EtlKit.DataFlow;
-using Confluent.Kafka;
 using EtlKit.Primitives;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
@@ -14,6 +14,7 @@ using CancellationTokenSource = System.Threading.CancellationTokenSource;
 
 namespace EtlKit.Kafka.Tests;
 
+[Collection("Kafka")]
 public partial class KafkaJsonSourceTests : IClassFixture<KafkaFixture>
 {
     private readonly KafkaFixture _fixture;

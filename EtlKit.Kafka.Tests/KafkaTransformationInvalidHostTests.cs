@@ -3,6 +3,7 @@ using Confluent.Kafka;
 using EtlKit.DataFlow;
 using EtlKit.Primitives;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
 namespace EtlKit.Kafka.Tests;
@@ -13,6 +14,7 @@ namespace EtlKit.Kafka.Tests;
 // just log it - by then SendToKafka had already returned the row as "successfully" processed.
 // SendToKafkaInternal now blocks on the delivery report and throws when it carries an error, so a
 // delivery failure is routed through SendToKafka's error handling like any other failure.
+[Collection("Kafka")]
 public class KafkaTransformationInvalidHostTests
 {
     [Fact]
@@ -41,9 +43,20 @@ public class KafkaTransformationInvalidHostTests
             TopicName = $"test-{Guid.NewGuid()}",
         };
 
-        var source = new MemorySource<ExpandoObject>([data]);
-        var dest = new MemoryDestination<ExpandoObject?>();
-        var errorDest = new MemoryDestination<EtlKitError>();
+        // DataFlowLinker now logs through CallingTask.Logger instead of the static ControlFlow.LoggerFactory,
+        // so source/dest/errorDest also need an injected logger to avoid touching that static state.
+        var source = new MemorySource<ExpandoObject>(
+            NullLogger<MemorySource<ExpandoObject>>.Instance
+        )
+        {
+            Data = new List<ExpandoObject> { data },
+        };
+        var dest = new MemoryDestination<ExpandoObject?>(
+            NullLogger<MemoryDestination<ExpandoObject?>>.Instance
+        );
+        var errorDest = new MemoryDestination<EtlKitError>(
+            NullLogger<MemoryDestination<EtlKitError>>.Instance
+        );
 
         source.LinkTo(transformation);
         transformation.LinkTo(dest);
@@ -93,8 +106,15 @@ public class KafkaTransformationInvalidHostTests
             TopicName = $"test-{Guid.NewGuid()}",
         };
 
-        var source = new MemorySource<ExpandoObject>([data]);
-        var dest = new MemoryDestination<ExpandoObject?>();
+        var source = new MemorySource<ExpandoObject>(
+            NullLogger<MemorySource<ExpandoObject>>.Instance
+        )
+        {
+            Data = new List<ExpandoObject> { data },
+        };
+        var dest = new MemoryDestination<ExpandoObject?>(
+            NullLogger<MemoryDestination<ExpandoObject?>>.Instance
+        );
 
         source.LinkTo(transformation);
         transformation.LinkTo(dest);
@@ -102,9 +122,9 @@ public class KafkaTransformationInvalidHostTests
         // of routing it away, so it must fault the pipeline instead of disappearing silently.
 
         // Act
+        source.Execute();
         var exception = Record.Exception(() =>
         {
-            source.Execute();
             dest.Wait();
         });
 

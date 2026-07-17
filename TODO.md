@@ -33,8 +33,6 @@
 
 ## Tech Debt
 
-- [XML Documentation Coverage — 59% → 95%](docs/tech-debt/TECH-DEBT-XML-Documentation-Coverage.md)
-  - Phase 4: Remaining main library gaps — enums, attributes, models, transforms (42 types)
 - [FieldLookupTransformation — declarative field-name-based lookup with XML serialization support](docs/tech-debt/field-lookup-transformation-roadmap.md)
   - New component alongside `LookupTransformation` with serializable `MatchColumns`/`RetrieveColumns` POCO lists
   - `DictionarySource: IDataFlowSource<T>` property deserialized via existing `DataFlowXmlReader` mechanism (no reader changes)

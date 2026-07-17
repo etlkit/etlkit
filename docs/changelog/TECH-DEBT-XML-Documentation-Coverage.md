@@ -1,6 +1,6 @@
 # Tech Debt: XML Documentation Coverage
 
-**Status:** Open
+**Status:** COMPLETED (2026-07-17)
 **Created:** 2026-04-08
 **Priority:** Medium-High
 
@@ -14,20 +14,20 @@ tooltips for consumers of the NuGet packages.
 
 | Project                  | Types | Documented | Missing | Coverage |
 |--------------------------|------:|----------:|---------:|----------|
-| EtlKit (main)            |   166 |       125 |       41 | 75%      |
+| EtlKit (main)            |   166 |       163 |        3 | 98%      |
 | EtlKit.Common            |    21 |        20 |        1 | 95%      |
 | EtlKit.Primitives        |    19 |        19 |        0 | 100%     |
-| EtlKit.Kafka             |     7 |         4 |        3 | 57%      |
-| EtlKit.Rest              |     3 |         2 |        1 | 66%      |
+| EtlKit.Kafka             |     7 |         7 |        0 | 100%     |
+| EtlKit.Rest              |     3 |         3 |        0 | 100%     |
 | EtlKit.Scripting         |     7 |         5 |        2 | 71%      |
 | EtlKit.DynamicLinq        |     3 |         3 |        0 | 100%     |
-| EtlKit.AI                |     8 |         6 |        2 | 75%      |
-| EtlKit.RabbitMq          |     5 |         4 |        1 | 80%      |
+| EtlKit.AI                |     8 |         8 |        0 | 100%     |
+| EtlKit.RabbitMq          |     5 |         5 |        0 | 100%     |
 | EtlKit.Json              |     2 |         2 |        0 | 100%     |
 | EtlKit.Serialization     |     7 |         7 |        0 | 100%     |
 | EtlKit.ClickHouse        |     3 |         3 |        0 | 100%     |
 | EtlKit.Logging.Database  |     2 |         2 |        0 | 100%     |
-| **Total**                | **249** | **189** | **60** | **76%** |
+| **Total**                | **249** | **234** | **15** | **94%** |
 
 ## Implementation Plan
 
@@ -102,68 +102,68 @@ Small scope, quick wins — brings two projects from 0% to 100%.
 - [x] `DatabaseLoggingConfiguration` — database logging setup
 - [x] `ETLLogLayoutRenderer` — NLog layout renderer for ETL logs
 
-### Phase 4: Main EtlKit Library Gaps — 42 types
+### Phase 4: Main EtlKit Library Gaps — 45 types
 
 Remaining gaps in the main library, grouped by category.
 
 **Enums (5):**
-- [ ] `AggregationMethod` — aggregation function type
-- [ ] `DeltaMode` — merge delta mode
-- [ ] `ReadOptions` — load process read options
-- [ ] `RecoveryModel` — database recovery model
-- [ ] `ResourceType` — source resource type (file vs. HTTP)
+- [x] `AggregationMethod` — aggregation function type
+- [x] `DeltaMode` — merge delta mode
+- [x] `ReadOptions` — load process read options
+- [x] `RecoveryModel` — database recovery model
+- [x] `ResourceType` — source resource type (file vs. HTTP)
 
 **Attribute classes (5):**
-- [ ] `CompareColumnAttribute` — marks columns for merge comparison
-- [ ] `DeleteColumnAttribute` — marks deletion flag column
-- [ ] `ExcelColumnAttribute` — maps Excel columns to properties
-- [ ] `MatchColumnAttribute` — marks columns for merge matching
-- [ ] `RetrieveColumnAttribute` — marks columns for lookup retrieval
+- [x] `CompareColumnAttribute` — marks columns for merge comparison
+- [x] `DeleteColumnAttribute` — marks deletion flag column
+- [x] `ExcelColumnAttribute` — maps Excel columns to properties
+- [x] `MatchColumnAttribute` — marks columns for merge matching
+- [x] `RetrieveColumnAttribute` — marks columns for lookup retrieval
 
-**Data model classes (9):**
-- [ ] `ExcelRange` — Excel cell range definition
-- [ ] `LogEntry` — log table entry
-- [ ] `LogHierarchyEntry` — hierarchical log entry
-- [ ] `MergeProperties` — merge operation configuration
-- [ ] `ProcedureDefinition` — stored procedure metadata
-- [ ] `ProcedureParameter` — stored procedure parameter
-- [ ] `QueryParameter` — SQL query parameter
-- [ ] `TableColumn` — table column definition
-- [ ] `TableData` — in-memory table data
-- [ ] `TableDefinition` — table structure metadata
+**Data model classes (10):**
+- [x] `ExcelRange` — Excel cell range definition
+- [x] `LogEntry` — log table entry
+- [x] `LogHierarchyEntry` — hierarchical log entry
+- [x] `MergeProperties` — merge operation configuration
+- [x] `ProcedureDefinition` — stored procedure metadata
+- [x] `ProcedureParameter` — stored procedure parameter
+- [x] `QueryParameter` — SQL query parameter
+- [x] `TableColumn` — table column definition
+- [x] `TableData` — in-memory table data
+- [x] `TableDefinition` — table structure metadata
 
 **Transformation/destination classes (8):**
-- [ ] `BlockTransformation` — non-generic blocking transform
-- [ ] `DbRowTransformation` — database row transform
-- [ ] `DbTransformation` — database transform base
-- [ ] `DynamicAggregationTypeInfo` — dynamic aggregation metadata
-- [ ] `ErrorLogDestination` — error logging destination
-- [ ] `MergeJoinTarget` — merge join target wrapper
-- [ ] `Sequence<T>` — sequence generator source
-- [ ] `SampleHttpClient` — default HTTP client implementation
+- [x] `BlockTransformation` — non-generic blocking transform
+- [x] `DbRowTransformation` — database row transform
+- [x] `DbTransformation` — database transform base
+- [x] `DynamicAggregationTypeInfo` — dynamic aggregation metadata
+- [x] `ErrorLogDestination` — error logging destination
+- [x] `MergeJoinTarget` — merge join target wrapper
+- [x] `Sequence<T>` — sequence generator source
+- [x] `SampleHttpClient` — default HTTP client implementation
 
 **Connection classes (2):**
-- [ ] `AccessOdbcConnectionManager` — MS Access via ODBC
-- [ ] `SqlOdbcConnectionManager` — SQL Server via ODBC
+- [x] `AccessOdbcConnectionManager` — MS Access via ODBC
+- [x] `SqlOdbcConnectionManager` — SQL Server via ODBC
 
-**Utility/extension classes (6):**
-- [ ] `ConnectionManagerExtensions` — connection manager helpers
-- [ ] `DataTypeConverter` — SQL/CLR type conversion
-- [ ] `JsonPathConverter` — JSON path utility
-- [ ] `JsonProperty2JsonPath` — JSON property mapping
-- [ ] `PropertyInfoExtension` — reflection helpers
-- [ ] `SqlParser` — SQL parsing utility
-- [ ] `StringExtension` — string helpers
-- [ ] `TableColumnExtensions` — table column helpers
+**Utility/extension classes (8):**
+- [x] `ConnectionManagerExtensions` — connection manager helpers
+- [x] `DataTypeConverter` — SQL/CLR type conversion
+- [x] `JsonPathConverter` — JSON path utility
+- [x] `JsonProperty2JsonPath` — JSON property mapping
+- [x] `PropertyInfoExtension` — reflection helpers
+- [x] `SqlParser` — SQL parsing utility
+- [x] `StringExtension` — string helpers
+- [x] `TableColumnExtensions` — table column helpers
 
 **Extension library gaps (7):**
-- [ ] `KafkaTransformation` — Kafka produce transformation (EtlKit.Kafka)
-- [ ] `KafkaStringTransformation<TInput>` — string variant (EtlKit.Kafka)
-- [ ] `ExpandoObjectConverter` — JSON converter (EtlKit.Kafka)
-- [ ] `RestMethodInfo` — REST method metadata (EtlKit.Rest)
-- [ ] `PublicationAddress` — RabbitMQ address (EtlKit.RabbitMq)
-- [ ] `ExpandoObjectConverter` — JSON converter (EtlKit.AI)
-- [ ] `CustomLiquidFilters` — Liquid template filters (EtlKit.AI)
+- [x] `KafkaTransformation` — Kafka produce transformation (EtlKit.Kafka)
+- [x] `KafkaStringTransformation<TInput>` — string variant (EtlKit.Kafka)
+- [x] `ExpandoObjectConverter` — JSON converter (EtlKit.Kafka)
+- [x] `RestMethodInfo` — REST method metadata (EtlKit.Rest)
+- [x] `PublicationAddress` — RabbitMQ address (EtlKit.RabbitMq)
+- [x] `ExpandoObjectConverter` — JSON converter (EtlKit.AI)
+- [x] `CustomLiquidFilters` — Liquid template filters (EtlKit.AI)
 
 ## Guidelines
 
@@ -194,3 +194,17 @@ Reach 95%+ coverage (document at least 93 of the 101 missing types). Internal ut
 that are `public` only for cross-assembly access may be excluded if they are not part of the
 intended public API — consider marking those `[EditorBrowsable(EditorBrowsableState.Never)]`
 instead.
+
+## Outcome (2026-07-17)
+
+All 4 phases complete: 86 types documented across the initiative (Phase 1: 14, Phase 2: 22, Phase 3:
+5, Phase 4: 45), bringing overall coverage from 61% to 94% (see the updated table above). Two header
+counts in this document were corrected along the way (Phase 2: 13 → 22 types; Phase 4: 42 → 45 types
+after two subsection miscounts — "Data model classes" was actually 10, not 9, and "Utility/extension
+classes" was actually 8, not 6).
+
+Just short of the 95% target. Known remaining gaps, out of scope for the 4 phases above:
+- `EtlKit.Scripting` — 2 types
+- `EtlKit.Common.DataFlow.CustomDestination<TInput>` — flagged separately, not part of any phase's checklist
+
+Both are small, well-scoped follow-ups rather than reasons to reopen this initiative.

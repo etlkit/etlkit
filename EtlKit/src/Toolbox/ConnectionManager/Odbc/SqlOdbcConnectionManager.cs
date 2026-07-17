@@ -23,20 +23,43 @@ namespace EtlKit.ConnectionManager
     [PublicAPI]
     public class SqlOdbcConnectionManager : OdbcConnectionManager
     {
+        /// <inheritdoc />
         public override ConnectionManagerType ConnectionManagerType { get; } =
             ConnectionManagerType.SqlServer;
+
+        /// <inheritdoc />
         public override string QB { get; } = @"[";
+
+        /// <inheritdoc />
         public override string QE { get; } = @"]";
+
+        /// <inheritdoc />
         public override CultureInfo ConnectionCulture => CultureInfo.CurrentCulture;
 
+        /// <summary>
+        /// Creates a connection manager with no connection string set yet.
+        /// </summary>
         public SqlOdbcConnectionManager() { }
 
+        /// <summary>
+        /// Creates a connection manager for the given ODBC connection string.
+        /// </summary>
+        /// <param name="connectionString">Connection string for the SQL Server ODBC driver.</param>
         public SqlOdbcConnectionManager(OdbcConnectionString connectionString)
             : base(connectionString) { }
 
+        /// <summary>
+        /// Creates a connection manager from a raw SQL Server ODBC connection string.
+        /// </summary>
+        /// <param name="connectionString">Connection string for the SQL Server ODBC driver.</param>
         public SqlOdbcConnectionManager(string connectionString)
             : base(new OdbcConnectionString(connectionString)) { }
 
+        /// <inheritdoc />
+        /// <remarks>
+        /// Builds the insert as a parameterized <c>INSERT INTO ... VALUES (..),(..),(..)</c> statement;
+        /// reduce the batch size if the resulting statement exceeds the driver's length limits.
+        /// </remarks>
         public override void BulkInsert(ITableData data, string tableName)
         {
             var bulkInsert = new BulkInsertSql
@@ -49,6 +72,7 @@ namespace EtlKit.ConnectionManager
             OdbcBulkInsert(data, tableName, bulkInsert);
         }
 
+        /// <inheritdoc />
         public override IConnectionManager Clone()
         {
             var clone = new SqlOdbcConnectionManager((OdbcConnectionString)ConnectionString)
@@ -58,12 +82,16 @@ namespace EtlKit.ConnectionManager
             return clone;
         }
 
+        /// <inheritdoc />
         public override void BeforeBulkInsert(string tableName) { }
 
+        /// <inheritdoc />
         public override void AfterBulkInsert(string tableName) { }
 
+        /// <inheritdoc />
         public override void PrepareBulkInsert(string tableName) { }
 
+        /// <inheritdoc />
         public override void CleanUpBulkInsert(string tableName) { }
     }
 }

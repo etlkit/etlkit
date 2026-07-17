@@ -4,15 +4,25 @@ using EtlKit.Primitives;
 
 namespace EtlKit.DataFlow
 {
+    /// <summary>
+    /// Default <see cref="IHttpClient"/> implementation, backed by a plain <see cref="HttpClient"/>.
+    /// </summary>
     public sealed class SampleHttpClient : IHttpClient
     {
         private readonly HttpClient _httpClient = new();
 
+        /// <inheritdoc />
         public void Dispose()
         {
             _httpClient.Dispose();
         }
 
+        /// <inheritdoc />
+        /// <remarks>
+        /// For <see cref="HttpMethod.Post"/>/<see cref="HttpMethod.Put"/>, sends <paramref
+        /// name="body"/> as a JSON string content.
+        /// </remarks>
+        /// <exception cref="HttpStatusCodeException">The response status code did not indicate success.</exception>
         public async Task<string> InvokeAsync(
             string url,
             HttpMethod method,

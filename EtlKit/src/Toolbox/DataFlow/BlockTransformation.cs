@@ -1,7 +1,5 @@
-﻿using EtlKit.Primitives;
-
-using EtlKit.Common.DataFlow;
-
+﻿using EtlKit.Common.DataFlow;
+using EtlKit.Primitives;
 using Microsoft.Extensions.Logging;
 
 namespace EtlKit.DataFlow
@@ -25,9 +23,15 @@ namespace EtlKit.DataFlow
     public class BlockTransformation<TInput, TOutput> : DataFlowTransformation<TInput, TOutput>
     {
         /* ITask Interface */
+        /// <inheritdoc />
+        /// <remarks>Fixed to <c>"Excecute block transformation"</c>; cannot be overridden further by subclasses.</remarks>
         public sealed override string TaskName { get; set; } = "Excecute block transformation";
 
         /* Public Properties */
+        /// <summary>
+        /// The function applied to the full buffered input list once all rows have arrived. Setting
+        /// this property wires up the input buffer.
+        /// </summary>
         public Func<List<TInput>, List<TOutput>> BlockTransformationFunc
         {
             get { return _blockTransformationFunc; }
@@ -62,6 +66,9 @@ namespace EtlKit.DataFlow
         private List<TInput> InputData { get; set; }
         private List<TOutput> OutputData { get; set; }
 
+        /// <summary>
+        /// Creates a new instance with no transformation function set yet.
+        /// </summary>
         public BlockTransformation()
             : this(logger: null) { }
 
@@ -75,12 +82,21 @@ namespace EtlKit.DataFlow
             OutputBuffer = new BufferBlock<TOutput>();
         }
 
+        /// <summary>
+        /// Creates a new instance with the given block transformation function.
+        /// </summary>
+        /// <param name="blockTransformationFunc">Function applied to the full buffered input list.</param>
         public BlockTransformation(Func<List<TInput>, List<TOutput>> blockTransformationFunc)
             : this()
         {
             BlockTransformationFunc = blockTransformationFunc;
         }
 
+        /// <summary>
+        /// Creates a new instance with the given task name and block transformation function.
+        /// </summary>
+        /// <param name="name">Task name to use instead of the default.</param>
+        /// <param name="blockTransformationFunc">Function applied to the full buffered input list.</param>
         public BlockTransformation(
             string name,
             Func<List<TInput>, List<TOutput>> blockTransformationFunc
@@ -90,6 +106,12 @@ namespace EtlKit.DataFlow
             TaskName = name;
         }
 
+        /// <summary>
+        /// Creates a new instance with the given block transformation function, copying identity and
+        /// logging settings from <paramref name="task"/>.
+        /// </summary>
+        /// <param name="task">The task to copy properties from.</param>
+        /// <param name="blockTransformationFunc">Function applied to the full buffered input list.</param>
         internal BlockTransformation(
             ITask task,
             Func<List<TInput>, List<TOutput>> blockTransformationFunc
@@ -135,9 +157,18 @@ namespace EtlKit.DataFlow
         public BlockTransformation([CanBeNull] ILogger<BlockTransformation<TInput>> logger)
             : base(logger) { }
 
+        /// <summary>
+        /// Creates a new instance with the given block transformation function.
+        /// </summary>
+        /// <param name="blockTransformationFunc">Function applied to the full buffered input list.</param>
         public BlockTransformation(Func<List<TInput>, List<TInput>> blockTransformationFunc)
             : base(blockTransformationFunc) { }
 
+        /// <summary>
+        /// Creates a new instance with the given task name and block transformation function.
+        /// </summary>
+        /// <param name="name">Task name to use instead of the default.</param>
+        /// <param name="blockTransformationFunc">Function applied to the full buffered input list.</param>
         public BlockTransformation(
             string name,
             Func<List<TInput>, List<TInput>> blockTransformationFunc
@@ -159,11 +190,20 @@ namespace EtlKit.DataFlow
         public BlockTransformation(ILogger<BlockTransformation> logger)
             : base(logger) { }
 
+        /// <summary>
+        /// Creates a new instance with the given block transformation function.
+        /// </summary>
+        /// <param name="blockTransformationFunc">Function applied to the full buffered input list.</param>
         public BlockTransformation(
             Func<List<ExpandoObject>, List<ExpandoObject>> blockTransformationFunc
         )
             : base(blockTransformationFunc) { }
 
+        /// <summary>
+        /// Creates a new instance with the given task name and block transformation function.
+        /// </summary>
+        /// <param name="name">Task name to use instead of the default.</param>
+        /// <param name="blockTransformationFunc">Function applied to the full buffered input list.</param>
         public BlockTransformation(
             string name,
             Func<List<ExpandoObject>, List<ExpandoObject>> blockTransformationFunc

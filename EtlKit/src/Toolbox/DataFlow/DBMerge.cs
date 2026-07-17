@@ -499,10 +499,27 @@ namespace EtlKit.DataFlow
         Delta = 2,
     }
 
+    /// <summary>
+    /// Configures which properties <see cref="DbMerge{TInput}"/> uses to identify, compare, and mark
+    /// rows for deletion. Populated automatically from <c>[IdColumn]</c>/<c>[CompareColumn]</c>/<c>[DeleteColumn]</c>
+    /// attributes when not set explicitly.
+    /// </summary>
     public class MergeProperties
     {
+        /// <summary>
+        /// Names of the properties that uniquely identify a row, used to match source and destination rows.
+        /// </summary>
         public List<string> IdPropertyNames { get; set; } = new();
+
+        /// <summary>
+        /// Names of the properties compared to detect whether a matched row changed (needs updating).
+        /// </summary>
         public List<string> ComparePropertyNames { get; set; } = new();
+
+        /// <summary>
+        /// Property name/value pairs that mark a source row as a deletion when <see
+        /// cref="DeltaMode.Delta"/> is used (property equals value means "delete this row").
+        /// </summary>
         public Dictionary<string, object> DeletionProperties { get; set; } = new();
         internal string ChangeActionPropertyName { get; set; } = "ChangeAction";
         internal string ChangeDatePropertyName { get; set; } = "ChangeDate";

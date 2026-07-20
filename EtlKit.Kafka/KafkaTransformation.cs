@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading.Tasks.Dataflow;
 using Confluent.Kafka;
 using DotLiquid;
+using EtlKit.Common.ControlFlow;
 using EtlKit.Common.DataFlow;
+using EtlKit.Primitives;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 
@@ -19,9 +22,29 @@ namespace EtlKit.DataFlow
     /// <typeparam name="TInput">Parameters for the message templates</typeparam>
     /// <typeparam name="TKafkaKey">Kafka key type (reference type; null key = keyless message)</typeparam>
     /// <typeparam name="TKafkaValue">Kafka value type</typeparam>
+    /// <remarks>
+    /// Internally this is two chained dataflow stages, not one:
+    /// <list type="bullet">
+    /// <item><description>
+    /// a produce stage (<see cref="Produce"/>) that calls <see cref="IProducer{TKey,TValue}.Produce"/>
+    /// truly fire-and-forget, so librdkafka can still batch/pipeline on the wire, emitting each row
+    /// paired with its pending delivery-report task;
+    /// </description></item>
+    /// <item><description>
+    /// a confirm stage (<see cref="Confirm"/>) that awaits those pairs strictly in the order the rows
+    /// arrived, forwarding a row only once its delivery is confirmed - so a delivery failure is
+    /// attributed to the row that caused it and routed to <see cref="ErrorHandler"/> (or thrown) before
+    /// any later row is ever forwarded past it.
+    /// </description></item>
+    /// </list>
+    /// This keeps producing fire-and-forget while still failing the pipeline - in row order - on a
+    /// delivery error, instead of trading one property off against the other.
+    /// <see cref="MaxUnconfirmedMessages"/> bounds how far the produce stage can race ahead of the
+    /// confirm stage, so a slow or unreachable broker can't grow the in-flight set without limit.
+    /// </remarks>
     [PublicAPI]
     public abstract class KafkaTransformation<TInput, TKafkaKey, TKafkaValue>
-        : RowTransformation<TInput, TInput?>
+        : DataFlowTransformation<TInput, TInput?>
         where TKafkaKey : class
     {
         /// <summary>
@@ -33,13 +56,10 @@ namespace EtlKit.DataFlow
         /// Kafka producer configuration.
         /// </summary>
         /// <remarks>
-        /// <see cref="Confluent.Kafka.ProducerConfig.MessageTimeoutMs"/> bounds how long
-        /// <see cref="SendToKafkaInternal"/> blocks per row while waiting for a delivery report. Because
-        /// <c>SendToKafkaInternal</c> sends and waits for one row at a time, librdkafka's own default of
-        /// 300000 ms (5 minutes) would let a single unreachable broker stall the pipeline for that long
-        /// on the very first row - too slow to be useful as a fail-fast signal. If left unset, the
-        /// constructor's <c>InitAction</c> defaults it to 30000 ms (30 seconds) instead; set it
-        /// explicitly beforehand (before the transformation starts) to override.
+        /// If <see cref="Confluent.Kafka.ProducerConfig.MessageTimeoutMs"/> is left unset, it defaults to
+        /// 30000 ms (30 seconds) instead of librdkafka's own 300000 ms (5 minutes), so a delivery failure
+        /// against an unreachable broker is noticed reasonably quickly. Set it explicitly beforehand
+        /// (before the transformation starts) to override.
         /// </remarks>
         public ProducerConfig ProducerConfig { get; set; } = new();
 
@@ -51,9 +71,21 @@ namespace EtlKit.DataFlow
         >? ConfigureProducerBuilder { get; set; }
 
         /// <summary>
+        /// Maximum number of rows that may have been produced without their delivery report confirmed
+        /// yet. Bounds how far the fire-and-forget produce stage can race ahead of the confirm stage, so
+        /// a slow or unreachable broker cannot grow the in-flight set without limit. Applied as the
+        /// produce stage's <see cref="ExecutionDataflowBlockOptions.BoundedCapacity"/> the first time this
+        /// transformation is linked, so it must be set before then.
+        /// </summary>
+        public int MaxUnconfirmedMessages { get; set; } = 1000;
+
+        /// <summary>
         /// Producer instance override for use in tests
         /// </summary>
         private IProducer<TKafkaKey, TKafkaValue>? _producer;
+
+        private TransformBlock<TInput, ProduceEnvelope>? _produceBlock;
+        private TransformBlock<ProduceEnvelope, TInput?>? _confirmBlock;
 
         /// <summary>
         /// Build Kafka message value.
@@ -69,6 +101,24 @@ namespace EtlKit.DataFlow
         /// </summary>
         protected Func<TInput, TKafkaKey>? MessageKeyResolver { get; set; }
 
+        public override ITargetBlock<TInput> TargetBlock
+        {
+            get
+            {
+                EnsureBlocksCreated();
+                return _produceBlock!;
+            }
+        }
+
+        public override ISourceBlock<TInput?> SourceBlock
+        {
+            get
+            {
+                EnsureBlocksCreated();
+                return _confirmBlock!;
+            }
+        }
+
         /// <summary>
         /// Default constructor
         /// </summary>
@@ -83,14 +133,7 @@ namespace EtlKit.DataFlow
         )
             : base(logger)
         {
-            TransformationFunc = SendToKafka;
-            InitAction = () =>
-            {
-                // ETL-specific default: per-row blocking send (see SendToKafkaInternal) needs a fast
-                // fail, not librdkafka's 5-minute default.
-                ProducerConfig.MessageTimeoutMs ??= 30000;
-                _producer ??= new ProducerBuilder<TKafkaKey, TKafkaValue>(ProducerConfig).Build();
-            };
+            TaskName = "Execute row transformation";
         }
 
         /// <summary>
@@ -102,67 +145,99 @@ namespace EtlKit.DataFlow
             _producer = producer;
         }
 
-        protected override void CleanUp(Task transformTask)
+        public override void LinkErrorTo(IDataFlowLinkTarget<EtlKitError> target) =>
+            ErrorHandler.LinkErrorTo(target, SourceBlock.Completion);
+
+        private void EnsureBlocksCreated()
+        {
+            if (_produceBlock != null && _confirmBlock != null)
+                return;
+
+            _produceBlock = new TransformBlock<TInput, ProduceEnvelope>(
+                Produce,
+                new ExecutionDataflowBlockOptions { BoundedCapacity = MaxUnconfirmedMessages }
+            );
+            _confirmBlock = new TransformBlock<ProduceEnvelope, TInput?>(Confirm);
+            _produceBlock.LinkTo(
+                _confirmBlock,
+                new DataflowLinkOptions { PropagateCompletion = true }
+            );
+            // Flush() has nothing left to wait on here: the confirm stage above already blocks on every
+            // row's delivery report before it advances, so every produced message is already confirmed
+            // (successfully, or routed/thrown as an error) by the time its Completion resolves. Kept as a
+            // cheap safety net in case that ever changes. Runs as a fire-and-forget continuation rather
+            // than gating SourceBlock.Completion, since nothing downstream observes the producer itself.
+            _confirmBlock.Completion.ContinueWith(CleanUp);
+        }
+
+        private void CleanUp(Task confirmCompletion)
         {
             try
             {
-                // SendToKafkaInternal already blocks on each message's delivery report before the
-                // next one is produced, so by the time the block completes nothing is left in-flight
-                // for Flush() to wait on - this call is effectively a no-op today, kept as a cheap
-                // safety net in case that per-row blocking model ever changes.
                 _producer?.Flush();
             }
             finally
             {
                 _producer?.Dispose();
             }
-            base.CleanUp(transformTask);
         }
 
-        private TInput? SendToKafka(TInput input)
+        private sealed class ProduceEnvelope
         {
-            try
-            {
-                SendToKafkaInternal(input);
-                LogProgress();
-                return input;
-            }
-            catch (Exception e)
-            {
-                if (!ErrorHandler.HasErrorBuffer)
-                    throw;
+            public TInput Input { get; }
+            public Task<DeliveryReport<TKafkaKey, TKafkaValue>> DeliveryTask { get; }
 
-                var errorData = ErrorHandler.ConvertErrorData(input);
-                ErrorHandler.Send(e, errorData);
+            public ProduceEnvelope(
+                TInput input,
+                Task<DeliveryReport<TKafkaKey, TKafkaValue>> deliveryTask
+            )
+            {
+                Input = input;
+                DeliveryTask = deliveryTask;
             }
-            return default;
         }
 
         /// <summary>
-        /// Produces a single message and blocks until its delivery report arrives, so a delivery
-        /// failure surfaces as an exception on this thread for <see cref="SendToKafka"/> to route into
-        /// the error buffer.
+        /// Produces a single message truly fire-and-forget: <see cref="IProducer{TKey,TValue}.Produce"/>
+        /// returns immediately, and the row is paired with the pending delivery-report task for
+        /// <see cref="Confirm"/> to await in order. A synchronous failure (for example the producer not
+        /// being initialized, or librdkafka's local queue being full) is captured as an already-faulted
+        /// task instead of throwing here, so it is routed through <see cref="Confirm"/> the same way as an
+        /// asynchronous delivery failure.
         /// </summary>
-        /// <remarks>
-        /// <c>Produce()</c> is itself fire-and-forget; the delivery report only arrives asynchronously
-        /// on librdkafka's poll thread. Blocking on it here is what makes an unreachable broker fail the
-        /// pipeline instead of being silently swallowed by the async callback.
-        /// <para>
-        /// Trade-off: the transformation's underlying <c>TransformBlock</c> runs with the default
-        /// <c>MaxDegreeOfParallelism</c> of 1 (not currently configurable for
-        /// <see cref="EtlKit.Common.DataFlow.RowTransformation{TInput,TOutput}"/>), so only one message
-        /// is ever in flight - every row pays a full broker round-trip before the next one is produced.
-        /// This turns batch producing into synchronous request/response and defeats librdkafka's own
-        /// batching/pipelining, in exchange for being able to attribute a delivery failure to the row
-        /// that caused it.
-        /// </para>
-        /// <para>
-        /// How long a stuck row can block here is governed by <see cref="ProducerConfig"/>'s
-        /// <c>MessageTimeoutMs</c>, which defaults to 30 seconds (see its remarks) rather than
-        /// librdkafka's 5-minute default, precisely because of the per-row blocking above.
-        /// </para>
-        /// </remarks>
-        private void SendToKafkaInternal(TInput input)
+        private ProduceEnvelope Produce(TInput input)
+        {
+            if (_producer == null)
+            {
+                // ETL-specific default: librdkafka's own 5-minute default is too slow for a useful
+                // fail-fast signal against an unreachable broker (see ProducerConfig remarks).
+                ProducerConfig.MessageTimeoutMs ??= 30000;
+                _producer = new ProducerBuilder<TKafkaKey, TKafkaValue>(ProducerConfig).Build();
+                if (!DisableLogging)
+                    Logger.Debug(
+                        TaskName + " was initialized!",
+                        TaskType,
+                        "LOG",
+                        TaskHash,
+                        ControlFlow.Stage,
+                        ControlFlow.CurrentLoadProcess?.Id
+                    );
+            }
+            LogProgress();
+            try
+            {
+                return new ProduceEnvelope(input, ProduceToKafka(input));
+            }
+            catch (Exception e)
+            {
+                return new ProduceEnvelope(
+                    input,
+                    Task.FromException<DeliveryReport<TKafkaKey, TKafkaValue>>(e)
+                );
+            }
+        }
+
+        private Task<DeliveryReport<TKafkaKey, TKafkaValue>> ProduceToKafka(TInput input)
         {
             var message = new Message<TKafkaKey, TKafkaValue> { Value = BuildMessageValue(input) };
             // MessageKeyResolver null -> Message.Key stays unset = keyless (default partitioning) for the
@@ -201,11 +276,34 @@ namespace EtlKit.DataFlow
                     deliveryCompletion.SetResult(deliveryReport);
                 }
             );
-            var report = deliveryCompletion.Task.GetAwaiter().GetResult();
-            if (report.Error.IsError)
+            return deliveryCompletion.Task;
+        }
+
+        /// <summary>
+        /// Awaits a single row's delivery report strictly in the order rows were produced, so a delivery
+        /// failure is attributed to the row that caused it and no later row is ever forwarded ahead of it.
+        /// </summary>
+        private TInput? Confirm(ProduceEnvelope envelope)
+        {
+            try
             {
-                throw new ProduceException<TKafkaKey, TKafkaValue>(report.Error, report);
+                var report = envelope.DeliveryTask.GetAwaiter().GetResult();
+                if (report.Error.IsError)
+                {
+                    throw new ProduceException<TKafkaKey, TKafkaValue>(report.Error, report);
+                }
+                LogProgress();
+                return envelope.Input;
             }
+            catch (Exception e)
+            {
+                if (!ErrorHandler.HasErrorBuffer)
+                    throw;
+
+                var errorData = ErrorHandler.ConvertErrorData(envelope.Input);
+                ErrorHandler.Send(e, errorData);
+            }
+            return default;
         }
     }
 

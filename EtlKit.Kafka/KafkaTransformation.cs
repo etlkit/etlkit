@@ -30,8 +30,17 @@ namespace EtlKit.DataFlow
         public string TopicName { get; set; } = string.Empty;
 
         /// <summary>
-        /// Kafka producer configuration
+        /// Kafka producer configuration.
         /// </summary>
+        /// <remarks>
+        /// <see cref="Confluent.Kafka.ProducerConfig.MessageTimeoutMs"/> bounds how long
+        /// <see cref="SendToKafkaInternal"/> blocks per row while waiting for a delivery report. Because
+        /// <c>SendToKafkaInternal</c> sends and waits for one row at a time, librdkafka's own default of
+        /// 300000 ms (5 minutes) would let a single unreachable broker stall the pipeline for that long
+        /// on the very first row - too slow to be useful as a fail-fast signal. If left unset, the
+        /// constructor's <c>InitAction</c> defaults it to 30000 ms (30 seconds) instead; set it
+        /// explicitly beforehand (before the transformation starts) to override.
+        /// </remarks>
         public ProducerConfig ProducerConfig { get; set; } = new();
 
         /// <summary>
@@ -76,7 +85,12 @@ namespace EtlKit.DataFlow
         {
             TransformationFunc = SendToKafka;
             InitAction = () =>
+            {
+                // ETL-specific default: per-row blocking send (see SendToKafkaInternal) needs a fast
+                // fail, not librdkafka's 5-minute default.
+                ProducerConfig.MessageTimeoutMs ??= 30000;
                 _producer ??= new ProducerBuilder<TKafkaKey, TKafkaValue>(ProducerConfig).Build();
+            };
         }
 
         /// <summary>
@@ -92,6 +106,10 @@ namespace EtlKit.DataFlow
         {
             try
             {
+                // SendToKafkaInternal already blocks on each message's delivery report before the
+                // next one is produced, so by the time the block completes nothing is left in-flight
+                // for Flush() to wait on - this call is effectively a no-op today, kept as a cheap
+                // safety net in case that per-row blocking model ever changes.
                 _producer?.Flush();
             }
             finally
@@ -120,6 +138,30 @@ namespace EtlKit.DataFlow
             return default;
         }
 
+        /// <summary>
+        /// Produces a single message and blocks until its delivery report arrives, so a delivery
+        /// failure surfaces as an exception on this thread for <see cref="SendToKafka"/> to route into
+        /// the error buffer.
+        /// </summary>
+        /// <remarks>
+        /// <c>Produce()</c> is itself fire-and-forget; the delivery report only arrives asynchronously
+        /// on librdkafka's poll thread. Blocking on it here is what makes an unreachable broker fail the
+        /// pipeline instead of being silently swallowed by the async callback.
+        /// <para>
+        /// Trade-off: the transformation's underlying <c>TransformBlock</c> runs with the default
+        /// <c>MaxDegreeOfParallelism</c> of 1 (not currently configurable for
+        /// <see cref="EtlKit.Common.DataFlow.RowTransformation{TInput,TOutput}"/>), so only one message
+        /// is ever in flight - every row pays a full broker round-trip before the next one is produced.
+        /// This turns batch producing into synchronous request/response and defeats librdkafka's own
+        /// batching/pipelining, in exchange for being able to attribute a delivery failure to the row
+        /// that caused it.
+        /// </para>
+        /// <para>
+        /// How long a stuck row can block here is governed by <see cref="ProducerConfig"/>'s
+        /// <c>MessageTimeoutMs</c>, which defaults to 30 seconds (see its remarks) rather than
+        /// librdkafka's 5-minute default, precisely because of the per-row blocking above.
+        /// </para>
+        /// </remarks>
         private void SendToKafkaInternal(TInput input)
         {
             var message = new Message<TKafkaKey, TKafkaValue> { Value = BuildMessageValue(input) };
@@ -140,10 +182,6 @@ namespace EtlKit.DataFlow
             if (_producer == null)
                 throw new InvalidOperationException("Producer is not initialized.");
 
-            // Produce() is fire-and-forget; the delivery report only arrives asynchronously on
-            // librdkafka's poll thread. Block on it here via a TaskCompletionSource so that a
-            // delivery error surfaces as an exception on this thread, where SendToKafka's
-            // try/catch can route it to the error buffer like any other failure.
             var deliveryCompletion = new TaskCompletionSource<
                 DeliveryReport<TKafkaKey, TKafkaValue>
             >(TaskCreationOptions.RunContinuationsAsynchronously);

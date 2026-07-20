@@ -14,6 +14,11 @@ namespace EtlKit.Kafka.Tests;
 // just log it - by then SendToKafka had already returned the row as "successfully" processed.
 // SendToKafkaInternal now blocks on the delivery report and throws when it carries an error, so a
 // delivery failure is routed through SendToKafka's error handling like any other failure.
+//
+// These tests resolve a real DNS host (".invalid", a reserved TLD per RFC 2606/6761 guaranteed never
+// to resolve) and wait out a real librdkafka delivery timeout (~2s each), so they exercise the actual
+// client end-to-end rather than isolated logic - integration-style by nature, even though the
+// ".invalid" guarantee keeps them deterministic.
 [Collection("Kafka")]
 public class KafkaTransformationInvalidHostTests
 {

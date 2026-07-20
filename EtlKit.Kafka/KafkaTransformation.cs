@@ -133,7 +133,7 @@ namespace EtlKit.DataFlow
         )
             : base(logger)
         {
-            TaskName = "Execute row transformation";
+            TaskName = "Execute Kafka transformation";
         }
 
         /// <summary>
@@ -209,9 +209,6 @@ namespace EtlKit.DataFlow
         {
             if (_producer == null)
             {
-                // ETL-specific default: librdkafka's own 5-minute default is too slow for a useful
-                // fail-fast signal against an unreachable broker (see ProducerConfig remarks).
-                ProducerConfig.MessageTimeoutMs ??= 30000;
                 _producer = new ProducerBuilder<TKafkaKey, TKafkaValue>(ProducerConfig).Build();
                 if (!DisableLogging)
                     Logger.Debug(

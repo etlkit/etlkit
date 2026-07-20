@@ -49,6 +49,10 @@
 - [Split `DataTypeConverter` driver conventions before moving type-mapping to Common](docs/tech-debt/TECH-DEBT-DataTypeConverter-Driver-Split.md)
   - Pure type-mapping → Common/Primitives; per-driver SQL-type conventions → driver packages behind a DI abstraction (drop the central `switch (ConnectionManagerType)`)
   - Unblocks moving `QueryParameter` to Common (and `ITableColumn` to Primitives); ride along with broader driver-package/DI modularization
+- [Unified timeout and cancellation approach across sources and transformations](docs/tech-debt/TECH-DEBT-Unified-Timeout-Cancellation.md)
+  - No shared convention today: DB is `CommandTimeout = 0` (infinite, not configurable), REST relies on `HttpClient` default + retry count/interval, Kafka (MR !5) would silently override the client default
+  - Principle: don't silently override the client's timeout/retry defaults; expose the knob, keep the client default, honor the `CancellationToken` already threaded through `Execute`/`ExecuteAsync`
+  - Prefer leaving `MessageTimeoutMs` at the librdkafka default in MR !5; fold any unified work here rather than into the bug fix
 
 ## Other
 

@@ -79,29 +79,29 @@ test_job:
   needs:
     - get_unique_semversion
   services:
-    - name: mysql/mysql-server
+    - name: mysql/mysql-server:8.0
       alias: localmysql
       variables:
         MYSQL_ROOT_HOST: '%'
         MYSQL_ROOT_PASSWORD: 'etlkitpassword'
-    - name: postgres
+    - name: postgres:16
       alias: localpostgres
       variables:
         POSTGRES_PASSWORD: 'etlkitpassword'
         LANG: en_US.utf8
-    - name: mcr.microsoft.com/azure-sql-edge
+    - name: mcr.microsoft.com/azure-sql-edge:1.0.7
       alias: localmssql
       variables:
         ACCEPT_EULA: 'Y'
         SA_PASSWORD: 'YourStrong@Passw0rd'
         MSSQL_PID: 'Developer'
-    - name: clickhouse/clickhouse-server
+    - name: clickhouse/clickhouse-server:25.8
       alias: localclickhouse
       variables:
         CLICKHOUSE_USER: clickhouse
         CLICKHOUSE_PASSWORD: Qwe123456
         CLICKHOUSE_MAX_CONNECTIONS: 100
-    - name: apache/kafka:latest
+    - name: apache/kafka:3.8.1
       alias: kafka
       variables:
         KAFKA_NODE_ID: '1'
@@ -116,6 +116,24 @@ test_job:
         KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: '0'
         CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
   before_script:
+    # Fail fast (SYSOPS-1713) if the ClickHouse service container isn't listening.
+    # Its :latest tag drifted to a build that dies with SIGILL on these runner
+    # nodes, so the sidecar exits at startup (pod restartPolicy: Never) and the
+    # whole run otherwise drowns in confusing "Connection refused" test failures.
+    - |
+      echo "Waiting for ClickHouse service on localclickhouse:9000 ..."
+      for i in $(seq 1 30); do
+        if (echo > /dev/tcp/localclickhouse/9000) 2>/dev/null; then
+          echo "ClickHouse service is up."
+          break
+        fi
+        if [ "$i" -eq 30 ]; then
+          echo "ERROR: ClickHouse service not reachable on localclickhouse:9000 after ~60s."
+          echo "The 'localclickhouse' service container likely failed to start (see SYSOPS-1713)."
+          exit 1
+        fi
+        sleep 2
+      done
     - pushd test
     - pwsh ./Set-Configuration.ps1 gitlab-ci
     - popd

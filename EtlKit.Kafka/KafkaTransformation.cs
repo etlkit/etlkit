@@ -71,12 +71,20 @@ namespace EtlKit.DataFlow
         >? ConfigureProducerBuilder { get; set; }
 
         /// <summary>
-        /// Maximum number of rows that may have been produced without their delivery report confirmed
-        /// yet. Bounds how far the fire-and-forget produce stage can race ahead of the confirm stage, so
-        /// a slow or unreachable broker cannot grow the in-flight set without limit. Applied as the
-        /// produce stage's <see cref="ExecutionDataflowBlockOptions.BoundedCapacity"/> the first time this
-        /// transformation is linked, so it must be set before then.
+        /// Bounds how far the fire-and-forget produce stage can race ahead of the confirm stage, so a
+        /// slow or unreachable broker cannot grow the in-flight set without limit. Applied as the
+        /// <see cref="ExecutionDataflowBlockOptions.BoundedCapacity"/> of BOTH the produce and confirm
+        /// stages the first time this transformation is linked - bounding only one of the two stages does
+        /// not provide real backpressure, since a block's BoundedCapacity only gates acceptance of new
+        /// input, not its own output buffer - so it must be set before either stage is created.
         /// </summary>
+        /// <remarks>
+        /// Because both stages are bounded to this same value, the actual steady-state ceiling of
+        /// unconfirmed rows is roughly 2x this number, not this number itself: in the handoff window
+        /// between the two blocks, a row can transiently count against the produce stage's output buffer
+        /// and the confirm stage's input buffer at the same time. Size this value with that in mind
+        /// rather than assuming it caps in-flight rows exactly.
+        /// </remarks>
         public int MaxUnconfirmedMessages { get; set; } = 1000;
 
         /// <summary>

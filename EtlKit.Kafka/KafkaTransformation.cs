@@ -56,10 +56,10 @@ namespace EtlKit.DataFlow
         /// Kafka producer configuration.
         /// </summary>
         /// <remarks>
-        /// If <see cref="Confluent.Kafka.ProducerConfig.MessageTimeoutMs"/> is left unset, it defaults to
-        /// 30000 ms (30 seconds) instead of librdkafka's own 300000 ms (5 minutes), so a delivery failure
-        /// against an unreachable broker is noticed reasonably quickly. Set it explicitly beforehand
-        /// (before the transformation starts) to override.
+        /// Passed through to librdkafka as-is. If <see cref="Confluent.Kafka.ProducerConfig.MessageTimeoutMs"/>
+        /// is left unset, librdkafka's own default of 300000 ms (5 minutes) applies - this transformation
+        /// does not override it. Set it explicitly beforehand (before the transformation starts) if a
+        /// different delivery-failure timeout is needed.
         /// </remarks>
         public ProducerConfig ProducerConfig { get; set; } = new();
 

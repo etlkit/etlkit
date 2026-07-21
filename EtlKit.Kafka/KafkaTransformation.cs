@@ -44,7 +44,8 @@ namespace EtlKit.DataFlow
     /// </remarks>
     [PublicAPI]
     public abstract class KafkaTransformation<TInput, TKafkaKey, TKafkaValue>
-        : DataFlowTransformation<TInput, TInput?>
+        : DataFlowTransformation<TInput, TInput?>,
+            IDisposable
         where TKafkaKey : class
     {
         /// <summary>
@@ -173,16 +174,36 @@ namespace EtlKit.DataFlow
                 _confirmBlock,
                 new DataflowLinkOptions { PropagateCompletion = true }
             );
-            // Flush() has nothing left to wait on here: the confirm stage above already blocks on every
-            // row's delivery report before it advances, so every produced message is already confirmed
-            // (successfully, or routed/thrown as an error) by the time its Completion resolves. Kept as a
-            // cheap safety net in case that ever changes. Runs as a fire-and-forget continuation rather
-            // than gating SourceBlock.Completion, since nothing downstream observes the producer itself.
-            _confirmBlock.Completion.ContinueWith(CleanUp);
         }
 
-        private void CleanUp(Task confirmCompletion)
+        /// <summary>
+        /// Releases the underlying Kafka producer, if one was created. Contains only resource cleanup -
+        /// the caller (the parent object that owns this transformation) is responsible for calling this
+        /// once the transformation is no longer needed, typically once <see cref="SourceBlock"/>'s
+        /// <see cref="IDataflowBlock.Completion"/> has finished.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="IProducer{TKey,TValue}.Flush(System.Threading.CancellationToken)"/> has nothing left
+        /// to wait on when called after completion: the confirm stage already blocks on every row's
+        /// delivery report before it advances, so every produced message is already confirmed
+        /// (successfully, or routed/thrown as an error) by the time <see cref="SourceBlock"/>'s completion
+        /// resolves. Kept as a cheap safety net in case that ever changes.
+        /// </remarks>
+        public void Dispose()
         {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// See <see cref="Dispose()"/>. Split out as the virtual half of the dispose pattern so
+        /// subclasses can extend cleanup without hiding the base <see cref="_producer"/> release.
+        /// </summary>
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposing)
+                return;
+
             try
             {
                 _producer?.Flush();

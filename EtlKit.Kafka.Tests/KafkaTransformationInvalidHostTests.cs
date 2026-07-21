@@ -9,11 +9,11 @@ using Moq;
 namespace EtlKit.Kafka.Tests;
 
 // Regression test for a reported precedent: pointing KafkaTransformation at an invalid/unreachable
-// broker host never failed the pipeline. Produce() is fire-and-forget, so the connectivity error only
-// reached the async delivery-report callback (KafkaTransformation.SendToKafkaInternal), which used to
-// just log it - by then SendToKafka had already returned the row as "successfully" processed.
-// SendToKafkaInternal now blocks on the delivery report and throws when it carries an error, so a
-// delivery failure is routed through SendToKafka's error handling like any other failure.
+// broker host never failed the pipeline. Produce() is fire-and-forget - it pairs the row with the
+// pending delivery-report task returned by ProduceToKafka, so a connectivity error only surfaces
+// asynchronously via that task. ConfirmAsync() awaits each row's delivery task in order and throws when the
+// report carries an error, so a delivery failure is routed through ConfirmAsync's error handling like any
+// other failure, instead of the row having already been returned as "successfully" processed.
 //
 // These tests resolve a real DNS host (".invalid", a reserved TLD per RFC 2606/6761 guaranteed never
 // to resolve) and wait out a real librdkafka delivery timeout (~2s each), so they exercise the actual
@@ -123,7 +123,7 @@ public class KafkaTransformationInvalidHostTests
 
         source.LinkTo(transformation);
         transformation.LinkTo(dest);
-        // No LinkErrorTo: without an error buffer, SendToKafka rethrows the delivery error instead
+        // No LinkErrorTo: without an error buffer, ConfirmAsync rethrows the delivery error instead
         // of routing it away, so it must fault the pipeline instead of disappearing silently.
 
         // Act

@@ -31,7 +31,7 @@ namespace EtlKit.DataFlow
     /// paired with its pending delivery-report task;
     /// </description></item>
     /// <item><description>
-    /// a confirm stage (<see cref="Confirm"/>) that awaits those pairs strictly in the order the rows
+    /// a confirm stage (<see cref="ConfirmAsync"/>) that awaits those pairs strictly in the order the rows
     /// arrived, forwarding a row only once its delivery is confirmed - so a delivery failure is
     /// attributed to the row that caused it and routed to <see cref="ErrorHandler"/> (or thrown) before
     /// any later row is ever forwarded past it.
@@ -157,7 +157,10 @@ namespace EtlKit.DataFlow
                 Produce,
                 new ExecutionDataflowBlockOptions { BoundedCapacity = MaxUnconfirmedMessages }
             );
-            _confirmBlock = new TransformBlock<ProduceEnvelope, TInput?>(Confirm);
+            _confirmBlock = new TransformBlock<ProduceEnvelope, TInput?>(
+                ConfirmAsync,
+                new ExecutionDataflowBlockOptions { BoundedCapacity = MaxUnconfirmedMessages }
+            );
             _produceBlock.LinkTo(
                 _confirmBlock,
                 new DataflowLinkOptions { PropagateCompletion = true }
@@ -200,13 +203,16 @@ namespace EtlKit.DataFlow
         /// <summary>
         /// Produces a single message truly fire-and-forget: <see cref="IProducer{TKey,TValue}.Produce"/>
         /// returns immediately, and the row is paired with the pending delivery-report task for
-        /// <see cref="Confirm"/> to await in order. A synchronous failure (for example the producer not
+        /// <see cref="ConfirmAsync"/> to await in order. A synchronous failure (for example the producer not
         /// being initialized, or librdkafka's local queue being full) is captured as an already-faulted
-        /// task instead of throwing here, so it is routed through <see cref="Confirm"/> the same way as an
+        /// task instead of throwing here, so it is routed through <see cref="ConfirmAsync"/> the same way as an
         /// asynchronous delivery failure.
         /// </summary>
         private ProduceEnvelope Produce(TInput input)
         {
+            // Check-then-init is safe without locking only because _produceBlock is created with the
+            // TransformBlock default MaxDegreeOfParallelism == 1 (see EnsureBlocksCreated) and is never
+            // overridden, so Produce is guaranteed to run on a single thread at a time for this instance.
             if (_producer == null)
             {
                 _producer = new ProducerBuilder<TKafkaKey, TKafkaValue>(ProducerConfig).Build();
@@ -220,7 +226,6 @@ namespace EtlKit.DataFlow
                         ControlFlow.CurrentLoadProcess?.Id
                     );
             }
-            LogProgress();
             try
             {
                 return new ProduceEnvelope(input, ProduceToKafka(input));
@@ -280,11 +285,11 @@ namespace EtlKit.DataFlow
         /// Awaits a single row's delivery report strictly in the order rows were produced, so a delivery
         /// failure is attributed to the row that caused it and no later row is ever forwarded ahead of it.
         /// </summary>
-        private TInput? Confirm(ProduceEnvelope envelope)
+        private async Task<TInput?> ConfirmAsync(ProduceEnvelope envelope)
         {
             try
             {
-                var report = envelope.DeliveryTask.GetAwaiter().GetResult();
+                var report = await envelope.DeliveryTask.ConfigureAwait(false);
                 if (report.Error.IsError)
                 {
                     throw new ProduceException<TKafkaKey, TKafkaValue>(report.Error, report);

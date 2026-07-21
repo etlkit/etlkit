@@ -49,6 +49,10 @@
 - [Split `DataTypeConverter` driver conventions before moving type-mapping to Common](docs/tech-debt/TECH-DEBT-DataTypeConverter-Driver-Split.md)
   - Pure type-mapping → Common/Primitives; per-driver SQL-type conventions → driver packages behind a DI abstraction (drop the central `switch (ConnectionManagerType)`)
   - Unblocks moving `QueryParameter` to Common (and `ITableColumn` to Primitives); ride along with broader driver-package/DI modularization
+- [Dispose graph components, not just their IDisposable properties](docs/tech-debt/TECH-DEBT-Dispose-Graph-Components.md)
+  - Flow cleanup (`DataFlowResources`) disposes only `IDisposable` *properties* registered by the reader; a component that is itself `IDisposable` (e.g. `KafkaTransformation`) is never disposed
+  - Proposal: if a component implements `IDisposable`, the flow disposes the component and it owns its own properties; if not, keep today's per-property registration
+  - Shared connection managers stay flow-owned; externally-owned resources stay excluded; came out of MR !5 (RSSL-11867)
 
 ## Other
 

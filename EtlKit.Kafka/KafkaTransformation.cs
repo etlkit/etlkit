@@ -92,7 +92,12 @@ namespace EtlKit.DataFlow
         /// <summary>
         /// Producer instance override for use in tests
         /// </summary>
+        // CA2213's dataflow heuristic doesn't recognize disposal through Interlocked.Exchange - the
+        // field IS disposed in Dispose(bool) below, just via a captured local rather than a direct
+        // "_producer.Dispose(); _producer = null;" the analyzer can pattern-match.
+#pragma warning disable CA2213
         private IProducer<TKafkaKey, TKafkaValue>? _producer;
+#pragma warning restore CA2213
 
         private TransformBlock<TInput, ProduceEnvelope>? _produceBlock;
         private TransformBlock<ProduceEnvelope, TInput?>? _confirmBlock;

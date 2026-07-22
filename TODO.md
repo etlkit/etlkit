@@ -5,8 +5,8 @@
 ### Future release
 
 - New feature: Bounded Capacity for all Buffers (separately for every component besides
-  `DataFlowBatchDestination` & general property in ConnectionManager), to restrict buffer size and max
-  memory consumption
+  `DataFlowBatchDestination` & general property in ConnectionManager), to restrict buffer size and
+  max memory consumption
 - After XML deserialization most of the components need to re-initialize internal TPL structures.
   This is handled inconsistently in different components. There needs to be a common method (similar
   to existing `InitObjects`) to be called after properties are initialized, but before execution
@@ -39,20 +39,39 @@
   - Phase 3: Fully undocumented projects — ClickHouse, Logging.Database (5 types)
   - Phase 4: Remaining main library gaps — enums, attributes, models, transforms (42 types)
 - [FieldLookupTransformation — declarative field-name-based lookup with XML serialization support](docs/tech-debt/field-lookup-transformation-roadmap.md)
-  - New component alongside `LookupTransformation` with serializable `MatchColumns`/`RetrieveColumns` POCO lists
-  - `DictionarySource: IDataFlowSource<T>` property deserialized via existing `DataFlowXmlReader` mechanism (no reader changes)
-  - Optional `ScriptedFieldLookupTransformation` in `EtlKit.Scripting` with Roslyn enrichment script string
+  - New component alongside `LookupTransformation` with serializable
+    `MatchColumns`/`RetrieveColumns` POCO lists
+  - `DictionarySource: IDataFlowSource<T>` property deserialized via existing `DataFlowXmlReader`
+    mechanism (no reader changes)
+  - Optional `ScriptedFieldLookupTransformation` in `EtlKit.Scripting` with Roslyn enrichment script
+    string
 - [PostgresLogicalReplicationSource — WAL/CDC streaming source](docs/tech-debt/TECH-DEBT-Postgres-Logical-Replication-Source.md)
-  - Net-new source in `EtlKit.PostgresStreaming` over `Npgsql.Replication` (built-in `pgoutput`, no extension)
-  - Complements (does not replace) `PostgresXminTailSource`: full ordered change log incl. DELETEs and every intermediate UPDATE, sub-second latency
+  - Net-new source in `EtlKit.PostgresStreaming` over `Npgsql.Replication` (built-in `pgoutput`, no
+    extension)
+  - Complements (does not replace) `PostgresXminTailSource`: full ordered change log incl. DELETEs
+    and every intermediate UPDATE, sub-second latency
   - Resume token = LSN via existing `ICheckpointStore`; deferred to V3+ per MLRSSL-1509 §5.8
 - [Split `DataTypeConverter` driver conventions before moving type-mapping to Common](docs/tech-debt/TECH-DEBT-DataTypeConverter-Driver-Split.md)
-  - Pure type-mapping → Common/Primitives; per-driver SQL-type conventions → driver packages behind a DI abstraction (drop the central `switch (ConnectionManagerType)`)
-  - Unblocks moving `QueryParameter` to Common (and `ITableColumn` to Primitives); ride along with broader driver-package/DI modularization
+  - Pure type-mapping → Common/Primitives; per-driver SQL-type conventions → driver packages behind
+    a DI abstraction (drop the central `switch (ConnectionManagerType)`)
+  - Unblocks moving `QueryParameter` to Common (and `ITableColumn` to Primitives); ride along with
+    broader driver-package/DI modularization
+- [Unified timeout and cancellation approach across sources and transformations](docs/tech-debt/TECH-DEBT-Unified-Timeout-Cancellation.md)
+  - No shared convention today: DB is `CommandTimeout = 0` (infinite, not configurable), REST relies
+    on `HttpClient` default + retry count/interval, Kafka (MR !5) would silently override the client
+    default
+  - Principle: don't silently override the client's timeout/retry defaults; expose the knob, keep
+    the client default, honor the `CancellationToken` already threaded through
+    `Execute`/`ExecuteAsync`
+  - Prefer leaving `MessageTimeoutMs` at the librdkafka default in MR !5; fold any unified work here
+    rather than into the bug fix
 - [Dispose graph components, not just their IDisposable properties](docs/tech-debt/TECH-DEBT-Dispose-Graph-Components.md)
-  - Flow cleanup (`DataFlowResources`) disposes only `IDisposable` *properties* registered by the reader; a component that is itself `IDisposable` (e.g. `KafkaTransformation`) is never disposed
-  - Proposal: if a component implements `IDisposable`, the flow disposes the component and it owns its own properties; if not, keep today's per-property registration
-  - Shared connection managers stay flow-owned; externally-owned resources stay excluded; came out of MR !5 (RSSL-11867)
+  - Flow cleanup (`DataFlowResources`) disposes only `IDisposable` _properties_ registered by the
+    reader; a component that is itself `IDisposable` (e.g. `KafkaTransformation`) is never disposed
+  - Proposal: if a component implements `IDisposable`, the flow disposes the component and it owns
+    its own properties; if not, keep today's per-property registration
+  - Shared connection managers stay flow-owned; externally-owned resources stay excluded; came out
+    of MR !5 (RSSL-11867)
 
 ## Other
 

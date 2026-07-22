@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
 using Confluent.Kafka;
@@ -203,17 +204,18 @@ namespace EtlKit.DataFlow
 
         /// <summary>
         /// See <see cref="Dispose()"/>. Split out as the virtual half of the dispose pattern so
-        /// subclasses can extend cleanup without hiding the base <see cref="_producer"/> release. Clears
-        /// <see cref="_producer"/> before releasing it so this is safe to invoke more than once (it now
-        /// runs automatically on completion, and may also be called explicitly by an owner).
+        /// subclasses can extend cleanup without hiding the base <see cref="_producer"/> release.
+        /// Atomically swaps <see cref="_producer"/> for <c>null</c> before releasing it, so this is safe
+        /// to invoke more than once - including concurrently from two different threads - since it now
+        /// runs automatically on completion, and may also be called explicitly by an owner (for example
+        /// via a <c>using</c> block racing the automatic dispose).
         /// </summary>
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing)
                 return;
 
-            var producer = _producer;
-            _producer = null;
+            var producer = Interlocked.Exchange(ref _producer, null);
             try
             {
                 producer?.Flush();

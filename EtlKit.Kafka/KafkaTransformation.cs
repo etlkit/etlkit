@@ -174,13 +174,19 @@ namespace EtlKit.DataFlow
                 _confirmBlock,
                 new DataflowLinkOptions { PropagateCompletion = true }
             );
+            // Same idea as RowTransformation's TransformBlockWithCompletion.OnComplete -> CleanUp:
+            // release the producer as soon as this transformation's own completion resolves, instead of
+            // relying on an external owner to call Dispose().
+            _confirmBlock.Completion.ContinueWith(_ => Dispose());
         }
 
         /// <summary>
-        /// Releases the underlying Kafka producer, if one was created. Contains only resource cleanup -
-        /// the caller (the parent object that owns this transformation) is responsible for calling this
-        /// once the transformation is no longer needed, typically once <see cref="SourceBlock"/>'s
-        /// <see cref="IDataflowBlock.Completion"/> has finished.
+        /// Releases the underlying Kafka producer, if one was created. Wired in
+        /// <see cref="EnsureBlocksCreated"/> to run automatically once <see cref="SourceBlock"/>'s
+        /// <see cref="IDataflowBlock.Completion"/> finishes - the same way
+        /// <c>RestTransformation.CleanUp</c> releases its HTTP client as soon as its own transform block
+        /// completes, instead of relying on an external owner to call this. Still public and safe to call
+        /// again explicitly (idempotent, see <see cref="Dispose(bool)"/>).
         /// </summary>
         /// <remarks>
         /// <see cref="IProducer{TKey,TValue}.Flush(System.Threading.CancellationToken)"/> has nothing left
@@ -197,20 +203,24 @@ namespace EtlKit.DataFlow
 
         /// <summary>
         /// See <see cref="Dispose()"/>. Split out as the virtual half of the dispose pattern so
-        /// subclasses can extend cleanup without hiding the base <see cref="_producer"/> release.
+        /// subclasses can extend cleanup without hiding the base <see cref="_producer"/> release. Clears
+        /// <see cref="_producer"/> before releasing it so this is safe to invoke more than once (it now
+        /// runs automatically on completion, and may also be called explicitly by an owner).
         /// </summary>
         protected virtual void Dispose(bool disposing)
         {
             if (!disposing)
                 return;
 
+            var producer = _producer;
+            _producer = null;
             try
             {
-                _producer?.Flush();
+                producer?.Flush();
             }
             finally
             {
-                _producer?.Dispose();
+                producer?.Dispose();
             }
         }
 

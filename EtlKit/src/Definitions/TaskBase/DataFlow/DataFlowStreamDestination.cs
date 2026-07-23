@@ -47,7 +47,7 @@ namespace EtlKit.DataFlow
         protected StreamWriter StreamWriter { get; set; }
 
         /// <summary>
-        /// The HTTP client used when <see cref="ResourceType"/> is <see cref="EtlKit.ResourceType.Http"/>.
+        /// The HTTP client used when <see cref="ResourceType"/> is <see cref="EtlKit.DataFlow.ResourceType.Http"/>.
         /// </summary>
         public HttpClient HttpClient { get; set; } = new();
 
@@ -58,7 +58,7 @@ namespace EtlKit.DataFlow
 
         /// <summary>
         /// The in-flight HTTP request sending rows to <see cref="Uri"/>, when <see
-        /// cref="ResourceType"/> is <see cref="EtlKit.ResourceType.Http"/>.
+        /// cref="ResourceType"/> is <see cref="EtlKit.DataFlow.ResourceType.Http"/>.
         /// </summary>
         public Task<HttpResponseMessage> HttpResponseMessage { get; set; }
 

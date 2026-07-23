@@ -7,7 +7,10 @@
     public enum ResourceType
     {
         /// <summary>
-        /// No resource type set; behaves like <see cref="Http"/>.
+        /// No resource type set. Streams are opened as for <see cref="Http"/>, but
+        /// <see cref="DataFlowStreamDestination{TInput}"/> finalizes the HTTP upload (completing the
+        /// request and checking the response status) only when <see cref="Http"/> is set explicitly —
+        /// always set <see cref="Http"/> when writing to an HTTP endpoint.
         /// </summary>
         Unspecified = 0,
 

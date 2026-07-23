@@ -30,7 +30,8 @@ namespace EtlKit
         public string PrimaryKeyConstraintName { get; set; }
 
         /// <summary>
-        /// The table engine clause. Only for ClickHouse.
+        /// The sorting key emitted as the <c>ORDER BY</c> clause when the table has no primary key
+        /// column (defaults to the first column's name). Only for ClickHouse.
         /// </summary>
         // Only for ClickHouse
         public string OrderBy { get; set; }
@@ -79,7 +80,8 @@ namespace EtlKit
         }
 
         /// <summary>
-        /// Only for ClickHouse
+        /// The table engine clause, emitted as <c>ENGINE = ...</c> (defaults to <c>MergeTree()</c>).
+        /// Only for ClickHouse.
         /// </summary>
         public string Engine { get; set; }
 

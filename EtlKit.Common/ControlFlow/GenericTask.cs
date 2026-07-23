@@ -121,8 +121,8 @@ namespace EtlKit.Common.ControlFlow
 
         /// <inheritdoc />
         /// <remarks>
-        /// Computed lazily via <see cref="HashHelper.Encrypt_Char40"/> from this instance until
-        /// explicitly set.
+        /// Unless explicitly set, recomputed via <see cref="HashHelper.Encrypt_Char40"/> from this
+        /// instance on every read (the result is not cached).
         /// </remarks>
         public virtual string TaskHash
         {

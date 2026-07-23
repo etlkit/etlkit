@@ -63,7 +63,7 @@ namespace EtlKit.DataFlow
         public ResourceType ResourceType { get; set; }
 
         /// <summary>
-        /// The HTTP client used when <see cref="ResourceType"/> is <see cref="EtlKit.ResourceType.Http"/>.
+        /// The HTTP client used when <see cref="ResourceType"/> is <see cref="EtlKit.DataFlow.ResourceType.Http"/>.
         /// </summary>
         public HttpClient HttpClient { get; set; } = new();
 
@@ -86,8 +86,10 @@ namespace EtlKit.DataFlow
         /// Reads from <see cref="GetNextUri"/> repeatedly, for as long as <see cref="HasNextUri"/>
         /// returns <see langword="true"/>, calling <see cref="InitReader"/> then <see cref="ReadAll"/>
         /// for each URI, and completing <see
-        /// cref="EtlKit.Common.DataFlow.DataFlowSource{TOutput}.Buffer"/> once done. Always runs <see
-        /// cref="CloseReader"/> and closes the stream/client afterwards, even on failure.
+        /// cref="EtlKit.Common.DataFlow.DataFlowSource{TOutput}.Buffer"/> once done. Runs <see
+        /// cref="CloseReader"/> and closes the stream/client afterwards (also on failure), but only
+        /// once a reader has been fully initialized — if <see cref="InitReader"/> throws on the
+        /// first URI, the just-opened stream is not closed.
         /// </summary>
         public override void Execute(CancellationToken cancellationToken)
         {

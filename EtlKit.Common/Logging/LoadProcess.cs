@@ -27,7 +27,8 @@ namespace EtlKit.Common.Logging
         public DateTime? EndDate { get; set; }
 
         /// <summary>
-        /// Free-text label identifying what started this load process. Defaults to <c>"ETL"</c>.
+        /// Free-text label identifying what started this load process. Not set by default;
+        /// <c>StartLoadProcessTask</c> fills it with <c>"ETL"</c> unless configured otherwise.
         /// </summary>
         public string Source { get; set; }
 

@@ -87,7 +87,8 @@ namespace EtlKit.ClickHouse.ConnectionManager
         /// <summary>
         /// Bulk-loads <paramref name="data"/> into <paramref name="tableName"/> using ClickHouse's
         /// <c>INSERT ... FORMAT CSV</c> statement. Rows are converted per destination column type and
-        /// streamed as a single CSV payload.
+        /// sent as a single CSV payload in one statement; the whole batch is buffered in memory
+        /// before it is sent, so batch size bounds memory usage.
         /// </summary>
         /// <param name="data">Row-by-row source data to insert.</param>
         /// <param name="tableName">Destination table name.</param>

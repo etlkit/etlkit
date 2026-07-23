@@ -23,14 +23,17 @@ namespace EtlKit.Primitives
         IDbConnectionString ConnectionString { get; set; }
 
         /// <summary>
-        /// Opens the database connection, retrying up to <see cref="MaxLoginAttempts"/> times on
-        /// failure. Reuses the existing connection when <see cref="LeaveOpen"/> is <see langword="true"/>
-        /// and one is already open; otherwise closes any existing connection first.
+        /// Opens the database connection, making up to <see cref="MaxLoginAttempts"/> attempts in
+        /// total before giving up. Reuses the existing connection when <see cref="LeaveOpen"/> is
+        /// <see langword="true"/> and one is already open; otherwise closes any existing connection
+        /// first.
         /// </summary>
         void Open();
 
         /// <summary>
-        /// Closes and disposes the database connection unconditionally, regardless of <see cref="LeaveOpen"/>.
+        /// Closes and disposes the database connection, regardless of <see cref="LeaveOpen"/>.
+        /// Disposal runs only once per manager instance: after the first call, later calls are
+        /// no-ops even if the connection was reopened in between.
         /// </summary>
         void Close();
 
@@ -177,10 +180,13 @@ namespace EtlKit.Primitives
         void CloseTransaction();
 
         /// <summary>
-        /// Executes <paramref name="sql"/> and reports whether it returned a non-empty scalar result.
+        /// Executes <paramref name="sql"/> and reports whether the scalar result indicates the index
+        /// exists. The default implementation treats only a positive integer or the string
+        /// <c>"true"</c> as existing, so the query should return such a value (e.g.
+        /// <c>SELECT 1</c>) when the index is present.
         /// </summary>
         /// <param name="callingTask">The task requesting the check, used for logging context.</param>
-        /// <param name="sql">A scalar query that returns a value only if the index exists.</param>
+        /// <param name="sql">A scalar query returning a truthy value only if the index exists.</param>
         bool IndexExists(ITask callingTask, string sql);
 
         /// <summary>

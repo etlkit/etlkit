@@ -16,7 +16,8 @@ namespace EtlKit.Primitives
         /// </summary>
         /// <param name="url">The request URL.</param>
         /// <param name="method">The HTTP method to use.</param>
-        /// <param name="headers">Request headers to send, or <see langword="null"/> for none.</param>
+        /// <param name="headers">Request headers to send. Must not be <see langword="null"/>; pass an
+        /// empty collection for none.</param>
         /// <param name="body">The request body, or <see langword="null"/> for none.</param>
         /// <returns>The response body.</returns>
         Task<string> InvokeAsync(

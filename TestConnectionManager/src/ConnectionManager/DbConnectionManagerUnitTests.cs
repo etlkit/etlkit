@@ -121,6 +121,104 @@ namespace EtlKit.TestConnectionManager.ConnectionManager
             public override IConnectionManager Clone() => new TestDbConnectionManager();
         }
 
+        /// <summary>
+        /// Fake <see cref="IDbConnection"/> that reproduces the ClickHouse.Ado failure mode:
+        /// the first freshly-constructed connection(s) fail <see cref="Open"/> transiently, and any
+        /// connection whose <see cref="Open"/> has already been attempted refuses to reopen with
+        /// "Connection already open." (ClickHouse.Ado never reports <see cref="State"/> as Open
+        /// reliably). A brand-new instance opens cleanly.
+        /// </summary>
+        public sealed class FlakyConnection : IDbConnection
+        {
+            private static int s_instancesConstructed;
+            private static int s_failFirstNInstances;
+
+            private readonly int _instanceIndex;
+            private bool _openAttempted;
+            private ConnectionState _state = ConnectionState.Closed;
+
+            public FlakyConnection()
+            {
+                _instanceIndex = ++s_instancesConstructed;
+            }
+
+            /// <summary>
+            /// Resets shared state; the first <paramref name="failFirstNInstances"/> instances
+            /// fail their first <see cref="Open"/> transiently.
+            /// </summary>
+            public static void Reset(int failFirstNInstances)
+            {
+                s_instancesConstructed = 0;
+                s_failFirstNInstances = failFirstNInstances;
+            }
+
+            public static int InstancesConstructed => s_instancesConstructed;
+
+            public ConnectionState State => _state;
+
+            public void Open()
+            {
+                if (_openAttempted)
+                {
+                    throw new System.InvalidOperationException("Connection already open.");
+                }
+                _openAttempted = true;
+                if (_instanceIndex <= s_failFirstNInstances)
+                {
+                    throw new System.TimeoutException("Transient connection failure");
+                }
+                _state = ConnectionState.Open;
+            }
+
+            public void Close() => _state = ConnectionState.Closed;
+
+            public void Dispose() => _state = ConnectionState.Closed;
+
+            public string ConnectionString { get; set; } = "";
+            public int ConnectionTimeout => 0;
+            public string Database => "";
+
+            public IDbTransaction BeginTransaction() => throw new System.NotSupportedException();
+
+            public IDbTransaction BeginTransaction(IsolationLevel il) =>
+                throw new System.NotSupportedException();
+
+            public void ChangeDatabase(string databaseName) =>
+                throw new System.NotSupportedException();
+
+            public IDbCommand CreateCommand() => throw new System.NotSupportedException();
+        }
+
+        /// <summary>
+        /// Test connection manager bound to <see cref="FlakyConnection"/>.
+        /// </summary>
+        private sealed class TestFlakyConnectionManager : DbConnectionManager<FlakyConnection>
+        {
+            public override ConnectionManagerType ConnectionManagerType =>
+                ConnectionManagerType.ClickHouse;
+            public override string QB => "`";
+            public override string QE => "`";
+            public override CultureInfo ConnectionCulture => CultureInfo.CurrentCulture;
+
+            private TestFlakyConnectionManager() { }
+
+            public TestFlakyConnectionManager(IDbConnectionString connectionString)
+                : base(connectionString) { }
+
+            public override void PrepareBulkInsert(string tableName) { }
+
+            public override void CleanUpBulkInsert(string tableName) { }
+
+            public override void BulkInsert(ITableData data, string tableName) { }
+
+            public override void BeforeBulkInsert(string tableName) { }
+
+            public override void AfterBulkInsert(string tableName) { }
+
+            [MustDisposeResource]
+            public override IConnectionManager Clone() => new TestFlakyConnectionManager();
+        }
+
         private readonly Mock<IDbConnectionString> _mockConnectionString;
 
         public DbConnectionManagerUnitTests()
@@ -187,33 +285,58 @@ namespace EtlKit.TestConnectionManager.ConnectionManager
         [Fact]
         public void Open_WithMaxLoginAttempts_RetriesConnection()
         {
-            // Arrange
-            using var connectionManager = new TestDbConnectionManager(_mockConnectionString.Object);
+            // Arrange: the first two connections fail Open() transiently; the third opens.
+            // A correct retry recreates the connection on each attempt, so it recovers within
+            // MaxLoginAttempts instead of reopening a poisoned instance.
+            FlakyConnection.Reset(failFirstNInstances: 2);
+            using var connectionManager = new TestFlakyConnectionManager(
+                _mockConnectionString.Object
+            );
             connectionManager.MaxLoginAttempts = 3;
             connectionManager.LeaveOpen = true;
-
-            var connection = new DbConnectionMock();
-            connection.Connection!.SetupGet(c => c.State).Returns(ConnectionState.Closed);
-            var states = new Queue<ConnectionState>(
-                [ConnectionState.Closed, ConnectionState.Closed, ConnectionState.Open]
-            );
-            connection
-                .Connection.Setup(c => c.Open())
-                .Callback(() =>
-                {
-                    if (states.Count > 0)
-                    {
-                        connection.Connection.SetupGet(c => c.State).Returns(states.Dequeue());
-                    }
-                });
-            connectionManager.DbConnection = connection;
 
             // Act
             connectionManager.Open();
 
             // Assert
             Assert.Equal(ConnectionState.Open, connectionManager.State);
-            connection!.Connection.Verify(x => x.Open(), Times.Exactly(3));
+            Assert.Equal(3, FlakyConnection.InstancesConstructed);
+        }
+
+        [Fact]
+        public void Open_WhenFirstAttemptFailsTransiently_RecreatesConnectionAndRecovers()
+        {
+            // Arrange: the first connection fails Open() transiently; the driver then refuses to
+            // reopen that same instance ("Connection already open."), so a correct retry must
+            // recreate the connection rather than reopen the poisoned one. Mirrors ClickHouse.Ado.
+            FlakyConnection.Reset(failFirstNInstances: 1);
+            using var connectionManager = new TestFlakyConnectionManager(
+                _mockConnectionString.Object
+            );
+            connectionManager.LeaveOpen = false;
+
+            // Act
+            connectionManager.Open();
+
+            // Assert
+            Assert.Equal(ConnectionState.Open, connectionManager.State);
+            Assert.Equal(2, FlakyConnection.InstancesConstructed);
+        }
+
+        [Fact]
+        public void Open_WhenAllAttemptsFail_ThrowsFirstRealException_NotFollowUpError()
+        {
+            // Arrange: every connection fails Open() transiently. The retry must report the
+            // original transient failure, not the misleading "Connection already open." that a
+            // reopened instance would surface.
+            FlakyConnection.Reset(failFirstNInstances: int.MaxValue);
+            using var connectionManager = new TestFlakyConnectionManager(
+                _mockConnectionString.Object
+            );
+            connectionManager.MaxLoginAttempts = 2;
+
+            // Act & Assert
+            Assert.Throws<System.TimeoutException>(() => connectionManager.Open());
         }
 
         #endregion Open Tests

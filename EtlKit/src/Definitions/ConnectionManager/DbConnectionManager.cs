@@ -1,9 +1,7 @@
 using System.Diagnostics;
-
-using EtlKit.Primitives;
-
 using EtlKit.Common;
 using EtlKit.ControlFlow;
+using EtlKit.Primitives;
 
 namespace EtlKit.ConnectionManager
 {
@@ -76,44 +74,51 @@ namespace EtlKit.ConnectionManager
 
         private void TryOpenConnectionXTimes()
         {
-            var successfullyConnected = false;
-            Exception lastException = null;
+            Exception firstException = null;
             for (var i = 1; i <= MaxLoginAttempts; i++)
             {
                 try
                 {
                     if (DbConnection!.State == ConnectionState.Open)
                     {
-                        successfullyConnected = true;
-                        break;
+                        return;
                     }
 
                     DbConnection.Open();
-                    successfullyConnected = DbConnection.State == ConnectionState.Open;
+                    if (DbConnection.State == ConnectionState.Open)
+                    {
+                        return;
+                    }
                 }
                 catch (Exception e)
                 {
-                    successfullyConnected = false;
-                    lastException = e;
+                    // Keep the first (real) cause. A later attempt can surface a
+                    // misleading follow-up error — e.g. ClickHouse.Ado throwing
+                    // "Connection already open." on a connection whose previous
+                    // Open() failed — which must not mask the original failure.
+                    firstException ??= e;
                 }
 
-                if (successfullyConnected)
+                if (i >= MaxLoginAttempts)
                 {
                     break;
                 }
 
-                Task.Delay(1000).Wait();
-            }
+                // Drop the (possibly half-opened) connection and retry with a
+                // fresh one. Some providers refuse to reopen a connection whose
+                // previous Open() attempt failed and do not report State as Open,
+                // so reopening the same instance would loop on that error instead
+                // of recovering.
+                DbConnection?.Dispose();
+                DbConnection = new TConnection { ConnectionString = ConnectionString.Value };
 
-            if (successfullyConnected)
-            {
-                return;
+                Task.Delay(1000).Wait();
             }
 
             DbConnection?.Dispose();
             DbConnection = null;
 
-            throw lastException ?? new EtlKitException("Could not connect to database!");
+            throw firstException ?? new EtlKitException("Could not connect to database!");
         }
 
         public IDbCommand CreateCommand(

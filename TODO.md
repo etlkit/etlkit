@@ -51,6 +51,13 @@
   - Complements (does not replace) `PostgresXminTailSource`: full ordered change log incl. DELETEs
     and every intermediate UPDATE, sub-second latency
   - Resume token = LSN via existing `ICheckpointStore`; deferred to V3+ per MLRSSL-1509 §5.8
+- [Align `KafkaSource` offset commits with the checkpoint model (at-least-once)](docs/tech-debt/TECH-DEBT-KafkaSource-Offset-Commit-Alignment.md)
+  - Today `enable.auto.commit` (Confluent default) commits offsets at read time — at-most-once,
+    silently weaker than `PostgresXminTailSource`/`MongoChangeStreamSource` and the producer side
+    fixed in MR !5
+  - Direction: disable auto-commit, emit `TopicPartitionOffset` with each record, commit strictly
+    forward per partition in a terminal committer mirroring `CheckpointWriter` (Kafka's consumer
+    group offset IS the checkpoint store)
 - [Split `DataTypeConverter` driver conventions before moving type-mapping to Common](docs/tech-debt/TECH-DEBT-DataTypeConverter-Driver-Split.md)
   - Pure type-mapping → Common/Primitives; per-driver SQL-type conventions → driver packages behind
     a DI abstraction (drop the central `switch (ConnectionManagerType)`)

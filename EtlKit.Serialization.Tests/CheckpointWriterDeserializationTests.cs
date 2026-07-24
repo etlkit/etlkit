@@ -89,4 +89,44 @@ public class CheckpointWriterDeserializationTests
         Assert.True(found);
         Assert.Equal(3, position);
     }
+
+    [Fact]
+    public void CheckpointWriter_XmlDeserialization_ConfiguresDbCheckpointStore()
+    {
+        // Deserialization-only (no Invoke): pins that the DB-backed store is declarable from XML —
+        // resolvable by simple name via the type attribute and fully configured, including the
+        // connection manager through the reader's IConnectionManager handling. Committing against
+        // a live database is covered by DbCheckpointStoreTests.
+        var xml =
+            @"<EtlDataFlowStep>
+                <MemorySource>
+                    <LinkTo>
+                        <CheckpointWriter>
+                            <CheckpointId>xml-db-checkpoint</CheckpointId>
+                            <PositionColumn>Id</PositionColumn>
+                            <CheckpointStore type=""DbCheckpointStore"">
+                                <ConnectionManager type=""PostgresConnectionManager"">
+                                    <ConnectionString type=""PostgresConnectionString"">
+                                        <Value>Server=local;Port=123;Database=test;User ID=userId;Password=secret;</Value>
+                                    </ConnectionString>
+                                </ConnectionManager>
+                                <TableName>etl.checkpoint</TableName>
+                                <KeyColumn>ConsumerId</KeyColumn>
+                                <PositionColumn>CommittedPosition</PositionColumn>
+                            </CheckpointStore>
+                        </CheckpointWriter>
+                    </LinkTo>
+                </MemorySource>
+            </EtlDataFlowStep>";
+
+        using var step = Deserialize(xml);
+
+        var writer = Assert.IsType<CheckpointWriter>(Assert.Single(step.Destinations));
+        var store = Assert.IsType<DbCheckpointStore>(writer.CheckpointStore);
+        Assert.Equal("etl.checkpoint", store.TableName);
+        Assert.Equal("ConsumerId", store.KeyColumn);
+        Assert.Equal("CommittedPosition", store.PositionColumn);
+        Assert.NotNull(store.ConnectionManager);
+        Assert.Equal(1, step.ConnectionManagerCount());
+    }
 }

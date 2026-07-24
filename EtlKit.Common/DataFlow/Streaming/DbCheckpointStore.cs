@@ -155,3 +155,23 @@ public class DbCheckpointStore<TPosition> : ICheckpointStore<TPosition>
         public DbType DBType { get; }
     }
 }
+
+/// <summary>
+/// Non-generic <see cref="DbCheckpointStore{TPosition}"/> with a <see cref="long"/> position, the
+/// common cursor shape (sequence ids, xmin values, offsets). Exists for XML-defined flows: the XML
+/// reader resolves interface properties by simple type name via the <c>type</c> attribute and
+/// cannot close an open generic — the store counterpart of the non-generic
+/// <c>CheckpointWriter</c>.
+/// </summary>
+[PublicAPI]
+public class DbCheckpointStore : DbCheckpointStore<long>
+{
+    /// <summary>Creates an unconfigured store; set the properties before use.</summary>
+    public DbCheckpointStore() { }
+
+    /// <summary>Creates a store bound to a connection manager and checkpoint table.</summary>
+    /// <param name="connectionManager">Connection manager used to reach the table.</param>
+    /// <param name="tableName">Table that holds the checkpoints (emitted verbatim).</param>
+    public DbCheckpointStore(IConnectionManager connectionManager, string tableName)
+        : base(connectionManager, tableName) { }
+}

@@ -58,6 +58,14 @@
   - Direction: disable auto-commit, emit `TopicPartitionOffset` with each record, commit strictly
     forward per partition in a terminal committer mirroring `CheckpointWriter` (Kafka's consumer
     group offset IS the checkpoint store)
+- [Generic type arguments in XML pipeline notation — `typeArguments` attribute](docs/tech-debt/TECH-DEBT-Xml-Generic-Type-Arguments.md)
+  - XAML-style notation: tag stays the generic definition name, arguments in a `typeArguments`
+    attribute (`<RowTransformation typeArguments="Order, OrderDto">`), parentheses for nesting
+  - Replaces the hardcoded `MakeGenericType(typeof(ExpandoObject))` in `GetTypeByName` with an
+    arity-matched, alias-registry-backed resolver; no attribute → current behavior (backward
+    compatible)
+  - Phase 1 covers interior/auxiliary types only; typed end-to-end flows blocked on the `IDataFlow`
+    `ExpandoObject` boundary (Phase 2, separate decision)
 - [Split `DataTypeConverter` driver conventions before moving type-mapping to Common](docs/tech-debt/TECH-DEBT-DataTypeConverter-Driver-Split.md)
   - Pure type-mapping → Common/Primitives; per-driver SQL-type conventions → driver packages behind
     a DI abstraction (drop the central `switch (ConnectionManagerType)`)

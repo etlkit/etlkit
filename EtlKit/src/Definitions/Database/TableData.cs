@@ -11,19 +11,11 @@ namespace EtlKit
     [PublicAPI]
     public sealed class TableData : TableData<object[]>
     {
-        /// <summary>
-        /// Creates an instance for <paramref name="definition"/> with no pre-sized row buffer.
-        /// </summary>
-        /// <param name="definition">The destination table's structure, used for column mapping.</param>
+        /// <inheritdoc cref="TableData{T}.TableData(TableDefinition)" />
         public TableData(TableDefinition definition)
             : base(definition) { }
 
-        /// <summary>
-        /// Creates an instance for <paramref name="definition"/>, pre-sizing the row buffer for
-        /// <paramref name="estimatedBatchSize"/> rows.
-        /// </summary>
-        /// <param name="definition">The destination table's structure, used for column mapping.</param>
-        /// <param name="estimatedBatchSize">Expected number of rows, used to pre-size the internal buffer.</param>
+        /// <inheritdoc cref="TableData{T}.TableData(TableDefinition,int)" />
         public TableData(TableDefinition definition, int estimatedBatchSize)
             : base(definition, estimatedBatchSize) { }
     }

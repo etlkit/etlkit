@@ -33,19 +33,16 @@ namespace EtlKit.ClickHouse.ConnectionManager
         public override ConnectionManagerType ConnectionManagerType { get; } =
             ConnectionManagerType.ClickHouse;
 
-        /// <summary>
-        /// Quotation begin character used to escape identifiers in generated SQL. ClickHouse uses a backtick.
-        /// </summary>
+        /// <inheritdoc />
+        /// <remarks>ClickHouse uses a backtick.</remarks>
         public override string QB { get; } = @"`";
 
-        /// <summary>
-        /// Quotation end character used to escape identifiers in generated SQL. ClickHouse uses a backtick.
-        /// </summary>
+        /// <inheritdoc />
+        /// <remarks>ClickHouse uses a backtick.</remarks>
         public override string QE { get; } = @"`";
 
-        /// <summary>
-        /// Culture used to format and parse values sent to and read from ClickHouse. Always <see cref="CultureInfo.CurrentCulture"/>.
-        /// </summary>
+        /// <inheritdoc />
+        /// <remarks>Always <see cref="CultureInfo.CurrentCulture"/>.</remarks>
         public override CultureInfo ConnectionCulture => CultureInfo.CurrentCulture;
 
         /// <summary>

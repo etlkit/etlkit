@@ -52,6 +52,9 @@
   - Deferred until it can land together with the sibling `ScriptBuilder` ALC work
 - [Expression Engine Unification — Roslyn vs Dynamic LINQ follow-up](docs/tech-debt/TECH-DEBT-Expression-Engine-Unification.md)
   - Package split (`EtlKit.Scripting` vs `EtlKit.DynamicLinq`) already shipped; remaining: audit real `ScriptedRowTransformation` usage, build `ExpressionRowTransformation<TInput,TOutput>`, then decide keep-both vs. drop-one
+- [XML documentation: 2 known gaps left after the coverage initiative](docs/changelog/TECH-DEBT-XML-Documentation-Coverage.md)
+  - `EtlKit.Scripting` — 2 undocumented types, out of scope for all 4 phases
+  - `EtlKit.Common.DataFlow.CustomDestination<TInput>` — undocumented, not part of any phase's checklist
 
 ## Other
 

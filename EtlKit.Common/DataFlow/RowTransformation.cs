@@ -207,39 +207,22 @@ namespace EtlKit.Common.DataFlow
     [PublicAPI]
     public class RowTransformation<TInput> : RowTransformation<TInput, TInput>
     {
-        /// <summary>
-        /// Creates a new instance with no transformation function set yet.
-        /// </summary>
+        /// <inheritdoc cref="RowTransformation{TInput,TOutput}.RowTransformation()" />
         public RowTransformation() { }
 
-        /// <summary>
-        /// Creates a new instance with an injected logger.
-        /// </summary>
+        /// <inheritdoc cref="RowTransformation{TInput,TOutput}.RowTransformation(ILogger{RowTransformation{TInput,TOutput}})" />
         public RowTransformation(ILogger<RowTransformation<TInput>> logger)
             : base(logger) { }
 
-        /// <summary>
-        /// Creates a new instance with the given transformation function.
-        /// </summary>
-        /// <param name="rowTransformationFunc">Function applied to each input row.</param>
+        /// <inheritdoc cref="RowTransformation{TInput,TOutput}.RowTransformation(Func{TInput,TOutput})" />
         public RowTransformation(Func<TInput, TInput> rowTransformationFunc)
             : base(rowTransformationFunc) { }
 
-        /// <summary>
-        /// Creates a new instance with the given task name and transformation function.
-        /// </summary>
-        /// <param name="name">Task name to use instead of the default.</param>
-        /// <param name="rowTransformationFunc">Function applied to each input row.</param>
+        /// <inheritdoc cref="RowTransformation{TInput,TOutput}.RowTransformation(string,Func{TInput,TOutput})" />
         public RowTransformation(string name, Func<TInput, TInput> rowTransformationFunc)
             : base(name, rowTransformationFunc) { }
 
-        /// <summary>
-        /// Creates a new instance with the given task name, transformation function, and one-time
-        /// initialization action.
-        /// </summary>
-        /// <param name="name">Task name to use instead of the default.</param>
-        /// <param name="rowTransformationFunc">Function applied to each input row.</param>
-        /// <param name="initAction">Action run once, before the first row is transformed.</param>
+        /// <inheritdoc cref="RowTransformation{TInput,TOutput}.RowTransformation(string,Func{TInput,TOutput},Action)" />
         public RowTransformation(
             string name,
             Func<TInput, TInput> rowTransformationFunc,
@@ -268,42 +251,25 @@ namespace EtlKit.Common.DataFlow
     [PublicAPI]
     public class RowTransformation : RowTransformation<ExpandoObject>
     {
-        /// <summary>
-        /// Creates a new instance with no transformation function set yet.
-        /// </summary>
+        /// <inheritdoc cref="RowTransformation{TInput}.RowTransformation()" />
         public RowTransformation() { }
 
-        /// <summary>
-        /// Creates a new instance with an injected logger.
-        /// </summary>
+        /// <inheritdoc cref="RowTransformation{TInput}.RowTransformation(ILogger{RowTransformation{TInput}})" />
         public RowTransformation(ILogger<RowTransformation> logger)
             : base(logger) { }
 
-        /// <summary>
-        /// Creates a new instance with the given transformation function.
-        /// </summary>
-        /// <param name="rowTransformationFunc">Function applied to each input row.</param>
+        /// <inheritdoc cref="RowTransformation{TInput}.RowTransformation(Func{TInput,TInput})" />
         public RowTransformation(Func<ExpandoObject, ExpandoObject> rowTransformationFunc)
             : base(rowTransformationFunc) { }
 
-        /// <summary>
-        /// Creates a new instance with the given task name and transformation function.
-        /// </summary>
-        /// <param name="name">Task name to use instead of the default.</param>
-        /// <param name="rowTransformationFunc">Function applied to each input row.</param>
+        /// <inheritdoc cref="RowTransformation{TInput}.RowTransformation(string,Func{TInput,TInput})" />
         public RowTransformation(
             string name,
             Func<ExpandoObject, ExpandoObject> rowTransformationFunc
         )
             : base(name, rowTransformationFunc) { }
 
-        /// <summary>
-        /// Creates a new instance with the given task name, transformation function, and one-time
-        /// initialization action.
-        /// </summary>
-        /// <param name="name">Task name to use instead of the default.</param>
-        /// <param name="rowTransformationFunc">Function applied to each input row.</param>
-        /// <param name="initAction">Action run once, before the first row is transformed.</param>
+        /// <inheritdoc cref="RowTransformation{TInput}.RowTransformation(string,Func{TInput,TInput},Action)" />
         public RowTransformation(
             string name,
             Func<ExpandoObject, ExpandoObject> rowTransformationFunc,

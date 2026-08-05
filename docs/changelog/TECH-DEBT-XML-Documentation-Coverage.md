@@ -6,11 +6,34 @@
 
 ## Problem
 
-XML documentation (`/// <summary>`) covers only ~59% of the public API surface (148 of 249 public
-types). This results in poor API reference output on the hosted DocFx site and missing IntelliSense
-tooltips for consumers of the NuGet packages.
+XML documentation (`/// <summary>`) covered only ~59% of the public API surface (148 of 249 public
+types) when this doc was created. This results in poor API reference output on the hosted DocFx site
+and missing IntelliSense tooltips for consumers of the NuGet packages.
 
-## Current Coverage
+By the time Phases 1-4 (below) started, Phase 3 (`EtlKit.ClickHouse` + `EtlKit.Logging.Database`, 5
+types) had already landed separately, raising the baseline to 61% (153/249) — see "Coverage at start
+of Phases 1-4" below.
+
+## Coverage at start of Phases 1-4 (2026-07-12)
+
+| Project                  | Types | Documented | Missing | Coverage |
+|--------------------------|------:|----------:|---------:|----------|
+| EtlKit (main)            |   166 |       117 |       49 | 70%      |
+| EtlKit.Common            |    21 |         6 |       15 | 28%      |
+| EtlKit.Primitives        |    19 |         5 |       14 | 26%      |
+| EtlKit.Kafka             |     7 |         4 |        3 | 57%      |
+| EtlKit.Rest              |     3 |         2 |        1 | 66%      |
+| EtlKit.Scripting         |     7 |         5 |        2 | 71%      |
+| EtlKit.DynamicLinq        |     3 |         3 |        0 | 100%     |
+| EtlKit.AI                |     8 |         6 |        2 | 75%      |
+| EtlKit.RabbitMq          |     5 |         4 |        1 | 80%      |
+| EtlKit.Json              |     2 |         2 |        0 | 100%     |
+| EtlKit.Serialization     |     7 |         7 |        0 | 100%     |
+| EtlKit.ClickHouse        |     3 |         3 |        0 | 100%     |
+| EtlKit.Logging.Database  |     2 |         2 |        0 | 100%     |
+| **Total**                | **249** | **153** | **96** | **61%** |
+
+## Final Coverage (2026-07-17)
 
 | Project                  | Types | Documented | Missing | Coverage |
 |--------------------------|------:|----------:|---------:|----------|
@@ -198,12 +221,13 @@ instead.
 ## Outcome (2026-07-17)
 
 All 4 phases complete: 86 types documented across the initiative (Phase 1: 14, Phase 2: 22, Phase 3:
-5, Phase 4: 45), bringing overall coverage from 61% to 94% (see the updated table above). Two header
-counts in this document were corrected along the way (Phase 2: 13 → 22 types; Phase 4: 42 → 45 types
-after two subsection miscounts — "Data model classes" was actually 10, not 9, and "Utility/extension
-classes" was actually 8, not 6).
+5, Phase 4: 45), bringing overall coverage from 61% to 94% (see the two coverage tables above). Two
+header counts in this document were corrected along the way (Phase 2: 13 → 22 types; Phase 4: 42 → 45
+types after two subsection miscounts — "Data model classes" was actually 10, not 9, and
+"Utility/extension classes" was actually 8, not 6).
 
-Just short of the 95% target. Known remaining gaps, out of scope for the 4 phases above:
+Just short of the 95% target. Known remaining gaps, out of scope for the 4 phases above (tracked in
+`TODO.md`'s Tech Debt section since this doc is now filed as completed):
 - `EtlKit.Scripting` — 2 types
 - `EtlKit.Common.DataFlow.CustomDestination<TInput>` — flagged separately, not part of any phase's checklist
 

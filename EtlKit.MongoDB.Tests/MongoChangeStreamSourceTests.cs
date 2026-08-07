@@ -6,15 +6,15 @@ using EtlKit.DataFlow;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Xunit;
+using static EtlKit.MongoDB.Tests.MongoTestHelpers;
 
 // ReSharper disable AccessToDisposedClosure
 
 namespace EtlKit.MongoDB.Tests;
 
 [Collection("MongoDB")]
-public sealed class MongoChangeStreamSourceTests : IClassFixture<MongoContainerFixture>
+public sealed class MongoChangeStreamSourceTests
 {
-    private const string DatabaseName = "etltest";
     private readonly MongoContainerFixture _fixture;
 
     public MongoChangeStreamSourceTests(MongoContainerFixture fixture)
@@ -23,21 +23,6 @@ public sealed class MongoChangeStreamSourceTests : IClassFixture<MongoContainerF
     }
 
     private IMongoClient CreateClient() => new MongoClient(_fixture.ConnectionString);
-
-    private static IMongoCollection<BsonDocument> GetCollection(IMongoClient client, string name)
-    {
-        var db = client.GetDatabase(DatabaseName);
-        var collection = db.GetCollection<BsonDocument>(name);
-        collection.DeleteMany(FilterDefinition<BsonDocument>.Empty);
-        return collection;
-    }
-
-    private static void WaitForResults<T>(List<T> results, int expectedCount, TimeSpan timeout)
-    {
-        var deadline = DateTime.UtcNow + timeout;
-        while (results.Count < expectedCount && DateTime.UtcNow < deadline)
-            Thread.Sleep(30);
-    }
 
     [Fact]
     public async Task Execute_ReceivesInsertedDocuments_InOrder()

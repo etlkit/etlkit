@@ -1,10 +1,8 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks.Dataflow;
-
 using EtlKit.Common.DataFlow;
 using EtlKit.Common.DataFlow.Streaming;
-
 using JetBrains.Annotations;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -62,6 +60,32 @@ public class MongoChangeStreamSource<TOutput> : DataFlowSource<TOutput>
     /// </summary>
     public string CheckpointId { get; set; } = null!;
 
+    /// <summary>
+    /// Cold-start seed: starts the change stream at this point in time. Ignored when
+    /// <see cref="CheckpointStore"/> yields a token. Snapshot it with
+    /// <see cref="MongoChangeStreamPosition.Current"/> rather than reading a client clock — a
+    /// client running ahead of the deployment would reintroduce the gap this closes.
+    /// Mutually exclusive with <see cref="StartAfter"/>. Resolved to whole seconds, so the stream
+    /// may replay events from within the snapshotted second (at-least-once, as documented).
+    /// </summary>
+    public DateTimeOffset? StartAtOperationTime { get; set; }
+
+    /// <summary>
+    /// Cold-start seed: starts the change stream strictly after this resume token, given in the
+    /// same JSON form a <c>CheckpointWriter</c> commits (<c>doc.ResumeToken.ToJson()</c>).
+    /// Ignored when <see cref="CheckpointStore"/> yields a token. Mutually exclusive with
+    /// <see cref="StartAtOperationTime"/>.
+    /// </summary>
+    public string? StartAfter { get; set; }
+
+    /// <summary>
+    /// Controls how a token loaded from <see cref="CheckpointStore"/> is applied. Switch to
+    /// <see cref="ChangeStreamResumeMode.StartAfter"/> to resume past an <c>invalidate</c> event,
+    /// which <c>resumeAfter</c> cannot do.
+    /// </summary>
+    public ChangeStreamResumeMode CheckpointResumeMode { get; set; } =
+        ChangeStreamResumeMode.ResumeAfter;
+
     /// <summary>Maps a change stream document to the output type. Required.</summary>
     public Func<ChangeStreamDocument<BsonDocument>, TOutput> EventMapper { get; set; } = null!;
 
@@ -83,8 +107,6 @@ public class MongoChangeStreamSource<TOutput> : DataFlowSource<TOutput>
 
     private void RunChangeStreamLoop(CancellationToken ct)
     {
-        var resumeToken = LoadResumeToken(ct);
-
         var db = MongoClient.GetDatabase(Database);
         var collection = db.GetCollection<BsonDocument>(Collection);
 
@@ -93,10 +115,7 @@ public class MongoChangeStreamSource<TOutput> : DataFlowSource<TOutput>
             FullDocument = FullDocument,
             MaxAwaitTime = MaxAwaitTime,
         };
-        if (resumeToken != null)
-        {
-            options.ResumeAfter = resumeToken;
-        }
+        ApplyStartPosition(options, ct);
 
         var pipeline =
             Pipeline ?? new EmptyPipelineDefinition<ChangeStreamDocument<BsonDocument>>();
@@ -121,6 +140,34 @@ public class MongoChangeStreamSource<TOutput> : DataFlowSource<TOutput>
                 // commits it after the destination persists (at-least-once); the source only
                 // advances the live change-stream cursor in-memory. See ICheckpointStore.
             }
+        }
+    }
+
+    // MongoDB treats resumeAfter, startAfter and startAtOperationTime as mutually exclusive, so
+    // exactly one of them is ever set. A committed checkpoint always outranks the configured
+    // seeds: on a restart the consumer must continue from real progress, not replay from a value
+    // that has been sitting in configuration since the first run.
+    private void ApplyStartPosition(ChangeStreamOptions options, CancellationToken ct)
+    {
+        var checkpointToken = LoadResumeToken(ct);
+        if (checkpointToken != null)
+        {
+            if (CheckpointResumeMode == ChangeStreamResumeMode.StartAfter)
+                options.StartAfter = checkpointToken;
+            else
+                options.ResumeAfter = checkpointToken;
+            return;
+        }
+
+        if (StartAfter != null)
+        {
+            options.StartAfter = BsonDocument.Parse(StartAfter);
+            return;
+        }
+
+        if (StartAtOperationTime is { } startAt)
+        {
+            options.StartAtOperationTime = MongoChangeStreamPosition.ToBsonTimestamp(startAt);
         }
     }
 

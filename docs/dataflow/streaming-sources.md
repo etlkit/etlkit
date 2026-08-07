@@ -158,6 +158,89 @@ On restart the source loads the committed token and passes it to `Watch()` as `R
 source itself never commits — the `CheckpointWriter` does, after the destination, giving
 at-least-once.
 
+### Cold start: the first run has no checkpoint
+
+With no committed checkpoint and no start position, the cursor begins wherever `Watch()` lands, and
+everything written between process start and that moment is lost — silently, with no error. The
+window covers connecting to the replica set and any startup work, so it is measured in seconds.
+
+This differs from `PostgresXminTailSource`, which reads the table from the beginning on an empty
+checkpoint. The two sources share the `ICheckpointStore` contract but not their cold-start
+guarantees.
+
+Close the window by snapshotting the deployment's cluster time *before* the writes that matter and
+seeding the source with it:
+
+```csharp
+var startAt = MongoChangeStreamPosition.Current(client, "mydb");
+
+// ... anything written from here on is inside the stream's scope ...
+
+var source = new MongoChangeStreamSource<MyEvent>
+{
+    MongoClient          = client,
+    Database             = "mydb",
+    Collection           = "orders",
+    StartAtOperationTime = startAt,      // used only when no checkpoint is found
+    CheckpointStore      = store,
+    CheckpointId         = "orders-consumer",
+    EventMapper          = doc => /* ... */,
+};
+```
+
+`StartAtOperationTime` and `StartAfter` are **cold-start seeds**: a committed checkpoint always
+outranks them, so a restart resumes from real progress rather than replaying from a value left in
+configuration. Setting both seeds at once throws `InvalidOperationException`.
+
+> **Use `MongoChangeStreamPosition.Current`, not a client clock.** `DateTimeOffset.UtcNow` on a host
+> running ahead of the deployment places the start position *after* writes that already happened —
+> reintroducing exactly the gap the seed is meant to close.
+
+> **Second granularity.** A BSON timestamp is (seconds, ordinal-within-that-second), and the ordinal
+> is a server-assigned operation counter rather than a fraction, so the sub-second part of a
+> `DateTimeOffset` is discarded downwards. A stream can therefore start up to one second early and
+> replay the events in that second. Under at-least-once that is the safe direction — and for a seed
+> whose purpose is "begin before anything I did", the intended one.
+
+### Resuming past an `invalidate`
+
+When the watched collection is dropped or renamed, MongoDB delivers an `invalidate` event, closes
+the cursor, and then refuses any `resumeAfter` using a token from that stream. A consumer holding a
+committed token would be stuck permanently.
+
+`CheckpointResumeMode` decides whether a stored token is applied as `resumeAfter` or `startAfter`:
+
+```csharp
+var source = new MongoChangeStreamSource<MyEvent>
+{
+    // ...
+    CheckpointStore      = store,
+    CheckpointId         = "orders-consumer",
+    CheckpointResumeMode = ChangeStreamResumeMode.StartAfter,
+};
+```
+
+> **Setting the mode is necessary but not sufficient.** `startAfter` widens which tokens MongoDB
+> *accepts* as a starting point; it does not make a stream skip an `invalidate` it replays into.
+> Recovery therefore works only if the checkpoint holds the **`invalidate` event's own token**. A
+> token from before the drop replays `drop` → `invalidate`, the cursor closes again, and a consumer
+> that simply restarts loops forever.
+>
+> Two things follow for the pipeline, and both are on the caller:
+>
+> - The `EventMapper` must tolerate an event with no `FullDocument`. `drop` and `invalidate` carry
+>   none, so a bare `doc.FullDocument["name"]` throws. Use `doc.FullDocument?["name"]?.AsString ?? …`.
+> - The mapped record must reach the downstream `CheckpointWriter`, so that token actually gets
+>   committed. `MongoChangeStreamSource` never commits its own position — a pipeline that filters
+>   out non-insert events will never checkpoint past the `invalidate` at all.
+
+The source does not recover by itself: past an `invalidate`, resuming means reading a *new*
+collection that reuses the old name, which is the caller's decision to make. When the cursor closes,
+the source logs a warning and `Execute` returns normally.
+
+`startAfter` requires MongoDB 4.1.1 or later. On older servers, leave `CheckpointResumeMode` at its
+default.
+
 ### Key properties
 
 | Property | Default | Description |
@@ -169,6 +252,9 @@ at-least-once.
 | `Pipeline` | `null` (all events) | Aggregation pipeline for server-side filtering |
 | `FullDocument` | `UpdateLookup` | Controls which document version is returned on updates |
 | `MaxAwaitTime` | 1 second | Max time the server waits for new events per batch |
+| `StartAtOperationTime` | `null` | Cold-start seed: point in time to start from. Snapshot it with `MongoChangeStreamPosition.Current`. Ignored when a checkpoint is found |
+| `StartAfter` | `null` | Cold-start seed: resume token (JSON) to start strictly after. Ignored when a checkpoint is found |
+| `CheckpointResumeMode` | `ResumeAfter` | How a stored token is applied. `StartAfter` also resumes past an `invalidate` (MongoDB 4.1.1+) |
 | `CheckpointStore` | `null` (start from now) | `ICheckpointStore<string>` for resume tokens (load-only) |
 | `CheckpointId` | required if `CheckpointStore` set | This consumer's checkpoint key |
 

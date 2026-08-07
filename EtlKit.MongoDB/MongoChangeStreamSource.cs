@@ -170,8 +170,9 @@ public class MongoChangeStreamSource<TOutput> : DataFlowSource<TOutput>
         // inside an outer while(!cancelled) loop that re-entered the dead cursor immediately,
         // burning a core until cancellation. Stop instead — resuming past an invalidate is only
         // legal via startAfter, and doing it implicitly would silently start reading a brand-new
-        // collection that happens to reuse the old name. That is the caller's call, made with
-        // CheckpointResumeMode.StartAfter.
+        // collection that happens to reuse the old name.
+        // That is the caller's call, made by setting CheckpointResumeMode to
+        // ChangeStreamResumeMode.StartAfter.
         LogCursorClosed();
     }
 

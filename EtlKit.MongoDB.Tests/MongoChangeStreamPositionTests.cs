@@ -35,7 +35,7 @@ public sealed class MongoChangeStreamPositionConversionTests
     }
 
     [Fact]
-    public void ToBsonTimestamp_NormalisesOffsetToUtc()
+    public void ToBsonTimestamp_NormalizesOffsetToUtc()
     {
         var utc = new DateTimeOffset(2026, 8, 7, 10, 0, 0, TimeSpan.Zero);
         var sameInstantElsewhere = new DateTimeOffset(2026, 8, 7, 13, 0, 0, TimeSpan.FromHours(3));
@@ -78,10 +78,12 @@ public sealed class MongoChangeStreamPositionTests
         _fixture = fixture;
     }
 
+    private IMongoClient CreateClient() => new MongoClient(_fixture.ConnectionString);
+
     [Fact]
     public void Current_ReturnsATimestampFromTheDeployment()
     {
-        var client = new MongoClient(_fixture.ConnectionString);
+        using var client = CreateClient();
 
         var snapped = MongoChangeStreamPosition.Current(client, DatabaseName);
 
@@ -97,7 +99,7 @@ public sealed class MongoChangeStreamPositionTests
     [Fact]
     public void Current_NeverGoesBackwards()
     {
-        var client = new MongoClient(_fixture.ConnectionString);
+        using var client = CreateClient();
 
         var first = MongoChangeStreamPosition.Current(client, DatabaseName);
         var second = MongoChangeStreamPosition.Current(client, DatabaseName);

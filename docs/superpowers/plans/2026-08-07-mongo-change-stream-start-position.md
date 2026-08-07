@@ -42,17 +42,24 @@
 
 ---
 
-### Task 1: Share one MongoDB container across test classes
+### Task 1: Shared test infrastructure — one container, one set of helpers
 
-The suite is about to grow from one test class to three. Today `MongoChangeStreamSourceTests` declares `[Collection("MongoDB")]` but there is no matching `[CollectionDefinition]`, so the attribute does nothing and the container comes from `IClassFixture` — one container **per class**. Left alone, this plan would start three containers, each with a 3-minute startup budget.
+The suite is about to grow from one test class to three, and two things do not survive that growth.
+
+First, `MongoChangeStreamSourceTests` declares `[Collection("MongoDB")]` but there is no matching `[CollectionDefinition]`, so the attribute does nothing and the container comes from `IClassFixture` — one container **per class**. Left alone, this plan would start three containers, each with a 3-minute startup budget.
+
+Second, its `DatabaseName`, `GetCollection` and `WaitForResults` members would have to be copied verbatim into every new class. Move them somewhere shared before that happens.
 
 **Files:**
 - Create: `EtlKit.MongoDB.Tests/MongoDbCollection.cs`
-- Modify: `EtlKit.MongoDB.Tests/MongoChangeStreamSourceTests.cs:14-23`
+- Create: `EtlKit.MongoDB.Tests/MongoTestHelpers.cs`
+- Modify: `EtlKit.MongoDB.Tests/MongoChangeStreamSourceTests.cs`
 
 **Interfaces:**
 - Consumes: `MongoContainerFixture` (exists, `EtlKit.MongoDB.Tests/MongoContainerFixture.cs`), exposing `string ConnectionString`.
-- Produces: xUnit collection named `"MongoDB"` carrying a shared `MongoContainerFixture`. Every later test class in this plan joins it with `[Collection("MongoDB")]` and takes `MongoContainerFixture` as its only constructor parameter — **without** `IClassFixture`.
+- Produces:
+  - xUnit collection named `"MongoDB"` carrying a shared `MongoContainerFixture`. Every later test class in this plan joins it with `[Collection("MongoDB")]` and takes `MongoContainerFixture` as its only constructor parameter — **without** `IClassFixture`.
+  - `internal static class MongoTestHelpers` in namespace `EtlKit.MongoDB.Tests`, holding `public const string DatabaseName = "etltest"`, `public static IMongoCollection<BsonDocument> GetCollection(IMongoClient client, string name)` and `public static void WaitForResults<T>(List<T> results, int expectedCount, TimeSpan timeout)`. Every later test class in this plan reaches them through `using static EtlKit.MongoDB.Tests.MongoTestHelpers;` and keeps its own one-line `CreateClient()`, which closes over that class's own `_fixture` field.
 
 - [ ] **Step 1: Create the collection definition**
 
@@ -91,16 +98,84 @@ public sealed class MongoChangeStreamSourceTests
 
 Leave the constructor and the `_fixture` field exactly as they are — xUnit injects the collection fixture through the same constructor parameter.
 
-- [ ] **Step 3: Run the whole existing suite**
+- [ ] **Step 3: Extract the shared helpers**
+
+Create `EtlKit.MongoDB.Tests/MongoTestHelpers.cs`:
+
+```csharp
+using MongoDB.Bson;
+using MongoDB.Driver;
+
+namespace EtlKit.MongoDB.Tests;
+
+// Shared by every Mongo test class in this assembly. Reach them with
+// `using static EtlKit.MongoDB.Tests.MongoTestHelpers;` so call sites read unqualified.
+internal static class MongoTestHelpers
+{
+    public const string DatabaseName = "etltest";
+
+    public static IMongoCollection<BsonDocument> GetCollection(IMongoClient client, string name)
+    {
+        var db = client.GetDatabase(DatabaseName);
+        var collection = db.GetCollection<BsonDocument>(name);
+        collection.DeleteMany(FilterDefinition<BsonDocument>.Empty);
+        return collection;
+    }
+
+    public static void WaitForResults<T>(List<T> results, int expectedCount, TimeSpan timeout)
+    {
+        var deadline = DateTime.UtcNow + timeout;
+        while (results.Count < expectedCount && DateTime.UtcNow < deadline)
+            Thread.Sleep(30);
+    }
+}
+```
+
+- [ ] **Step 4: Point the existing class at the shared helpers**
+
+In `EtlKit.MongoDB.Tests/MongoChangeStreamSourceTests.cs`, add to the using block:
+
+```csharp
+using static EtlKit.MongoDB.Tests.MongoTestHelpers;
+```
+
+then delete these three members from the class — the `using static` makes every existing call site resolve unchanged:
+
+```csharp
+    private const string DatabaseName = "etltest";
+```
+
+```csharp
+    private static IMongoCollection<BsonDocument> GetCollection(IMongoClient client, string name)
+    {
+        var db = client.GetDatabase(DatabaseName);
+        var collection = db.GetCollection<BsonDocument>(name);
+        collection.DeleteMany(FilterDefinition<BsonDocument>.Empty);
+        return collection;
+    }
+```
+
+```csharp
+    private static void WaitForResults<T>(List<T> results, int expectedCount, TimeSpan timeout)
+    {
+        var deadline = DateTime.UtcNow + timeout;
+        while (results.Count < expectedCount && DateTime.UtcNow < deadline)
+            Thread.Sleep(30);
+    }
+```
+
+Keep `private IMongoClient CreateClient() => new MongoClient(_fixture.ConnectionString);` where it is — it closes over the class's own `_fixture` field, so it is not shareable as a static.
+
+- [ ] **Step 5: Run the whole existing suite**
 
 Run: `dotnet test EtlKit.MongoDB.Tests/EtlKit.MongoDB.Tests.csproj`
 Expected: PASS, 4 tests. This is a refactor; a behaviour change here would show up as a failure.
 
-- [ ] **Step 4: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
-git add EtlKit.MongoDB.Tests/MongoDbCollection.cs EtlKit.MongoDB.Tests/MongoChangeStreamSourceTests.cs
-git commit -m "test(mongodb): share one container across Mongo test classes"
+git add EtlKit.MongoDB.Tests/MongoDbCollection.cs EtlKit.MongoDB.Tests/MongoTestHelpers.cs EtlKit.MongoDB.Tests/MongoChangeStreamSourceTests.cs
+git commit -m "test(mongodb): share container and helpers across Mongo tests"
 ```
 
 ---
@@ -137,6 +212,7 @@ Create `EtlKit.MongoDB.Tests/MongoChangeStreamPositionTests.cs`:
 using EtlKit.DataFlow;
 using MongoDB.Driver;
 using Xunit;
+using static EtlKit.MongoDB.Tests.MongoTestHelpers;
 
 namespace EtlKit.MongoDB.Tests;
 
@@ -206,7 +282,6 @@ public sealed class MongoChangeStreamPositionConversionTests
 [Collection("MongoDB")]
 public sealed class MongoChangeStreamPositionTests
 {
-    private const string DatabaseName = "etltest";
     private readonly MongoContainerFixture _fixture;
 
     public MongoChangeStreamPositionTests(MongoContainerFixture fixture)
@@ -376,13 +451,13 @@ using EtlKit.DataFlow;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Xunit;
+using static EtlKit.MongoDB.Tests.MongoTestHelpers;
 
 namespace EtlKit.MongoDB.Tests;
 
 [Collection("MongoDB")]
 public sealed class MongoChangeStreamStartPositionTests
 {
-    private const string DatabaseName = "etltest";
     private readonly MongoContainerFixture _fixture;
 
     public MongoChangeStreamStartPositionTests(MongoContainerFixture fixture)
@@ -391,21 +466,6 @@ public sealed class MongoChangeStreamStartPositionTests
     }
 
     private IMongoClient CreateClient() => new MongoClient(_fixture.ConnectionString);
-
-    private static IMongoCollection<BsonDocument> GetCollection(IMongoClient client, string name)
-    {
-        var db = client.GetDatabase(DatabaseName);
-        var collection = db.GetCollection<BsonDocument>(name);
-        collection.DeleteMany(FilterDefinition<BsonDocument>.Empty);
-        return collection;
-    }
-
-    private static void WaitForResults<T>(List<T> results, int expectedCount, TimeSpan timeout)
-    {
-        var deadline = DateTime.UtcNow + timeout;
-        while (results.Count < expectedCount && DateTime.UtcNow < deadline)
-            Thread.Sleep(30);
-    }
 
     // The headline defect: with no start position the cursor begins wherever Watch() lands, so
     // everything written before that moment is lost silently. Here the write happens while the

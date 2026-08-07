@@ -154,9 +154,10 @@ destinationTransform.LinkTo(new CheckpointWriter<MyEvent, string>
 });
 ```
 
-On restart the source loads the committed token and passes it to `Watch()` as `ResumeAfter`. The
-source itself never commits — the `CheckpointWriter` does, after the destination, giving
-at-least-once.
+On restart the source loads the committed token and passes it to `Watch()` as `ResumeAfter` or
+`StartAfter`, depending on `CheckpointResumeMode` (see [Resuming past an
+`invalidate`](#resuming-past-an-invalidate)). The source itself never commits — the
+`CheckpointWriter` does, after the destination, giving at-least-once.
 
 ### Cold start: the first run has no checkpoint
 
@@ -255,7 +256,7 @@ default.
 | `StartAtOperationTime` | `null` | Cold-start seed: point in time to start from. Snapshot it with `MongoChangeStreamPosition.Current`. Ignored when a checkpoint is found |
 | `StartAfter` | `null` | Cold-start seed: resume token (JSON) to start strictly after. Ignored when a checkpoint is found |
 | `CheckpointResumeMode` | `ResumeAfter` | How a stored token is applied. `StartAfter` also resumes past an `invalidate` (MongoDB 4.1.1+) |
-| `CheckpointStore` | `null` (start from now) | `ICheckpointStore<string>` for resume tokens (load-only) |
+| `CheckpointStore` | `null` (start from now, or the cold-start seed if set) | `ICheckpointStore<string>` for resume tokens (load-only) |
 | `CheckpointId` | required if `CheckpointStore` set | This consumer's checkpoint key |
 
 ---

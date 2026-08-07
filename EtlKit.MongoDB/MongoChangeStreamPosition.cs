@@ -25,6 +25,11 @@ public static class MongoChangeStreamPosition
     /// <param name="database">Database used to issue the command.</param>
     /// <param name="cancellationToken">Token that cancels the command.</param>
     /// <returns>The deployment's cluster time, truncated to whole seconds.</returns>
+    /// <exception cref="InvalidOperationException">
+    /// The deployment did not return a <c>$clusterTime</c>, which means it is not running in
+    /// replica set mode (a single-node replica set is sufficient). Change streams require replica
+    /// set mode, so a standalone server cannot be watched regardless.
+    /// </exception>
     public static DateTimeOffset Current(
         IMongoClient client,
         string database,
@@ -37,9 +42,21 @@ public static class MongoChangeStreamPosition
                 new BsonDocumentCommand<BsonDocument>(new BsonDocument("ping", 1)),
                 cancellationToken: cancellationToken
             );
-        return DateTimeOffset.FromUnixTimeSeconds(
-            reply["$clusterTime"]["clusterTime"].AsBsonTimestamp.Timestamp
-        );
+        if (
+            !reply.TryGetValue("$clusterTime", out var clusterTime)
+            || clusterTime is not BsonDocument clusterTimeDocument
+            || !clusterTimeDocument.TryGetValue("clusterTime", out var clusterTimeTimestamp)
+        )
+        {
+            throw new InvalidOperationException(
+                "MongoChangeStreamPosition.Current: the deployment did not return a $clusterTime, "
+                    + "which means it is not running in replica set mode (a single-node replica set "
+                    + "is sufficient). Change streams require replica set mode, so a standalone "
+                    + "server cannot be watched regardless."
+            );
+        }
+
+        return DateTimeOffset.FromUnixTimeSeconds(clusterTimeTimestamp.AsBsonTimestamp.Timestamp);
     }
 
     /// <summary>

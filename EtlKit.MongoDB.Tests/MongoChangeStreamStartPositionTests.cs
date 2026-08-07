@@ -335,6 +335,8 @@ public sealed class MongoChangeStreamStartPositionTests
         await run1.ConfigureAwait(true);
         capture.Wait();
 
+        Assert.True(seen.Count >= 3, "First run did not observe insert + drop + invalidate");
+
         // Commit the last token observed (the Invalidate event's own token), which is what
         // CheckpointResumeMode.StartAfter needs in order to resume past it.
         await store.CommitAsync(checkpointId, seen[^1].Token, CancellationToken.None);
@@ -364,14 +366,9 @@ public sealed class MongoChangeStreamStartPositionTests
         var run2 = Task.Run(() => source2.Execute(tokenSource2.Token), CancellationToken.None);
         WaitForResults(results, 1, TimeSpan.FromSeconds(20));
         await tokenSource2.CancelAsync();
-        try
-        {
-            await run2.ConfigureAwait(true);
-        }
-        catch (OperationCanceledException)
-        {
-            // Expected: the run was stopped by cancellation, not by a closed cursor.
-        }
+
+        // The run must be stopped by cancellation, not by a closed cursor.
+        Assert.Throws<OperationCanceledException>(() => run2.GetAwaiter().GetResult());
         destination.Wait();
 
         Assert.Contains("after_drop", results);

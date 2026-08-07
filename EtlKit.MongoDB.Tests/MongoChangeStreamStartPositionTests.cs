@@ -179,4 +179,69 @@ public sealed class MongoChangeStreamStartPositionTests
 
         Assert.Equal(new[] { "second" }, results);
     }
+
+    // MongoClient is deliberately left null: reaching the driver at all would throw
+    // NullReferenceException, so an InvalidOperationException proves validation ran first.
+    [Fact]
+    public void Execute_WithBothSeedsSet_ThrowsBeforeTouchingTheDriver()
+    {
+        var source = new MongoChangeStreamSource<string>
+        {
+            Database = DatabaseName,
+            Collection = "never_watched",
+            StartAtOperationTime = DateTimeOffset.UtcNow,
+            StartAfter = "{ \"_data\": \"abc\" }",
+            EventMapper = doc => doc.FullDocument["name"].AsString,
+        };
+
+        var error = Assert.Throws<InvalidOperationException>(
+            () => source.Execute(CancellationToken.None)
+        );
+        Assert.Contains("StartAfter", error.Message, StringComparison.Ordinal);
+        Assert.Contains("StartAtOperationTime", error.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Execute_WithStartAtOperationTimeOutOfRange_ThrowsBeforeTouchingTheDriver()
+    {
+        var source = new MongoChangeStreamSource<string>
+        {
+            Database = DatabaseName,
+            Collection = "never_watched",
+            StartAtOperationTime = DateTimeOffset.FromUnixTimeSeconds(int.MaxValue).AddSeconds(1),
+            EventMapper = doc => doc.FullDocument["name"].AsString,
+        };
+
+        var error = Assert.Throws<InvalidOperationException>(
+            () => source.Execute(CancellationToken.None)
+        );
+        Assert.Contains("StartAtOperationTime", error.Message, StringComparison.Ordinal);
+    }
+
+    // A validation failure must still complete the buffer, or a linked destination's Wait()
+    // would hang forever on a pipeline that never started.
+    [Fact]
+    public async Task Execute_WhenValidationFails_StillCompletesTheBuffer()
+    {
+        var destination = new CustomDestination<string>(_ => { });
+        var source = new MongoChangeStreamSource<string>
+        {
+            Database = DatabaseName,
+            Collection = "never_watched",
+            StartAtOperationTime = DateTimeOffset.UtcNow,
+            StartAfter = "{ \"_data\": \"abc\" }",
+            EventMapper = doc => doc.FullDocument["name"].AsString,
+        };
+        source.LinkTo(destination);
+
+        Assert.Throws<InvalidOperationException>(() => source.Execute(CancellationToken.None));
+
+        var completedInTime =
+            await Task.WhenAny(destination.Completion, Task.Delay(TimeSpan.FromSeconds(5)))
+            == destination.Completion;
+        Assert.True(
+            completedInTime,
+            "Buffer was not completed after a validation failure — a linked destination would hang."
+        );
+    }
 }

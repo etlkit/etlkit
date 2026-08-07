@@ -95,6 +95,9 @@ public class MongoChangeStreamSource<TOutput> : DataFlowSource<TOutput>
         LogStart();
         try
         {
+            // Inside the try so that a rejected configuration still completes the buffer —
+            // otherwise a linked destination waits forever on a pipeline that never started.
+            ValidateStartPosition();
             RunChangeStreamLoop(cancellationToken);
         }
         finally
@@ -103,6 +106,28 @@ public class MongoChangeStreamSource<TOutput> : DataFlowSource<TOutput>
             LogFinish();
         }
         cancellationToken.ThrowIfCancellationRequested();
+    }
+
+    private void ValidateStartPosition()
+    {
+        if (StartAfter != null && StartAtOperationTime != null)
+        {
+            throw new InvalidOperationException(
+                "MongoChangeStreamSource: StartAfter and StartAtOperationTime are mutually "
+                    + "exclusive start positions. Set at most one of them."
+            );
+        }
+
+        if (
+            StartAtOperationTime is { } startAt
+            && !MongoChangeStreamPosition.IsRepresentable(startAt)
+        )
+        {
+            throw new InvalidOperationException(
+                $"MongoChangeStreamSource: StartAtOperationTime ({startAt:O}) is outside the range "
+                    + "a BSON timestamp can represent (1970-01-01 to 2038-01-19, UTC)."
+            );
+        }
     }
 
     private void RunChangeStreamLoop(CancellationToken ct)

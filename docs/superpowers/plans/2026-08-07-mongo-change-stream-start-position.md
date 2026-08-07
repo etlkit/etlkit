@@ -1598,5 +1598,7 @@ Before opening the merge request:
 - [ ] `dotnet build EtlKit.sln` — zero warnings.
 - [ ] `dotnet test EtlKit.MongoDB.Tests/EtlKit.MongoDB.Tests.csproj` — 18 tests pass, twice in a row.
 - [ ] `git diff master --stat` shows no change to `Directory.Build.props`.
-- [ ] `git log master..HEAD --oneline` shows eight commits, each a Conventional Commit.
+- [ ] `git log master..HEAD --oneline` — every commit is a valid Conventional Commit. (Expect more
+      than eight: the spec and plan are committed on this branch too, and some tasks needed a
+      follow-up fix commit.)
 - [ ] Report back to RSSL-11926: the outcome of Task 5 Step 2 (whether the dead-cursor spin reproduced), and that ticket item 3 (readiness signal) was dropped with the reasoning recorded in the design spec.

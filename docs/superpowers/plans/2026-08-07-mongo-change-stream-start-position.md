@@ -1446,8 +1446,7 @@ When the watched collection is dropped or renamed, MongoDB delivers an `invalida
 the cursor, and then refuses any `resumeAfter` using a token from that stream. A consumer holding a
 committed token would be stuck permanently.
 
-`CheckpointResumeMode` changes how the stored token is applied, so the same checkpoint becomes
-usable again:
+`CheckpointResumeMode` decides whether a stored token is applied as `resumeAfter` or `startAfter`:
 
 ```csharp
 var source = new MongoChangeStreamSource<MyEvent>
@@ -1459,7 +1458,21 @@ var source = new MongoChangeStreamSource<MyEvent>
 };
 ```
 
-The source does not do this by itself: past an `invalidate`, resuming means reading a *new*
+> **Setting the mode is necessary but not sufficient.** `startAfter` widens which tokens MongoDB
+> *accepts* as a starting point; it does not make a stream skip an `invalidate` it replays into.
+> Recovery therefore works only if the checkpoint holds the **`invalidate` event's own token**. A
+> token from before the drop replays `drop` → `invalidate`, the cursor closes again, and a consumer
+> that simply restarts loops forever.
+>
+> Two things follow for the pipeline, and both are on the caller:
+>
+> - The `EventMapper` must tolerate an event with no `FullDocument`. `drop` and `invalidate` carry
+>   none, so a bare `doc.FullDocument["name"]` throws. Use `doc.FullDocument?["name"]?.AsString ?? …`.
+> - The mapped record must reach the downstream `CheckpointWriter`, so that token actually gets
+>   committed. `MongoChangeStreamSource` never commits its own position — a pipeline that filters
+>   out non-insert events will never checkpoint past the `invalidate` at all.
+
+The source does not recover by itself: past an `invalidate`, resuming means reading a *new*
 collection that reuses the old name, which is the caller's decision to make. When the cursor closes,
 the source logs a warning and `Execute` returns normally.
 
@@ -1477,7 +1490,34 @@ In the same file, in the `MongoChangeStreamSource` "Key properties" table, inser
 | `CheckpointResumeMode` | `ResumeAfter` | How a stored token is applied. `StartAfter` also resumes past an `invalidate` (MongoDB 4.1.1+) |
 ```
 
-- [ ] **Step 3: Write the changelog entry**
+- [ ] **Step 3: Correct two code comments that misstate the same semantics**
+
+Both were written before the `invalidate` behaviour was pinned down by Task 6, and both now read as
+if any stored token works.
+
+In `EtlKit.MongoDB/ChangeStreamResumeMode.cs`, the XML doc on the `StartAfter` member currently says
+it "additionally resumes past an `invalidate` event". Replace that summary with:
+
+```csharp
+    /// <summary>
+    /// Apply the token as <c>startAfter</c>, which MongoDB also accepts when the token came from an
+    /// <c>invalidate</c> event — the watched collection having been dropped or renamed. This widens
+    /// which tokens are accepted as a start point; it does not skip an <c>invalidate</c> the stream
+    /// replays into, so recovery requires the checkpoint to hold that <c>invalidate</c>'s own token.
+    /// Requires MongoDB 4.1.1 or later.
+    /// </summary>
+```
+
+In `EtlKit.MongoDB/MongoChangeStreamSource.cs`, the comment that follows the read loop ends with
+"That is the caller's call, made with `CheckpointResumeMode.StartAfter`." That names no real member —
+`CheckpointResumeMode` is the property, `ChangeStreamResumeMode` is the enum. Change that sentence to:
+
+```csharp
+        // That is the caller's call, made by setting CheckpointResumeMode to
+        // ChangeStreamResumeMode.StartAfter.
+```
+
+- [ ] **Step 4: Write the changelog entry**
 
 Create `docs/changelog/mongo-change-stream-start-position.md`:
 
@@ -1532,7 +1572,7 @@ cursor readiness in favour of a snapshotted start position, which closes the rac
 rather than narrowing it.
 ```
 
-- [ ] **Step 4: Build the solution and run the full Mongo suite one last time**
+- [ ] **Step 5: Build the solution and run the full Mongo suite one last time**
 
 Run: `dotnet build EtlKit.sln && dotnet test EtlKit.MongoDB.Tests/EtlKit.MongoDB.Tests.csproj`
 Expected: build succeeds with zero warnings; 18 tests pass.
@@ -1540,10 +1580,10 @@ Expected: build succeeds with zero warnings; 18 tests pass.
 If the build reports a WeCantSpell diagnostic (a `SP`-prefixed code) for a word introduced by this
 plan, add that exact word to `.directory.dic` in alphabetical order, one word per line, and rebuild.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
-git add docs/dataflow/streaming-sources.md docs/changelog/mongo-change-stream-start-position.md
+git add docs/dataflow/streaming-sources.md docs/changelog/mongo-change-stream-start-position.md EtlKit.MongoDB/ChangeStreamResumeMode.cs EtlKit.MongoDB/MongoChangeStreamSource.cs
 git commit -m "docs(mongodb): document change stream start position and invalidate"
 ```
 

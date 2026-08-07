@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks.Dataflow;
+using EtlKit.Common.ControlFlow;
 using EtlKit.Common.DataFlow;
 using EtlKit.Common.DataFlow.Streaming;
 using JetBrains.Annotations;
@@ -146,26 +147,47 @@ public class MongoChangeStreamSource<TOutput> : DataFlowSource<TOutput>
             Pipeline ?? new EmptyPipelineDefinition<ChangeStreamDocument<BsonDocument>>();
         using var cursor = collection.Watch(pipeline, options, ct);
 
-        while (!ct.IsCancellationRequested)
+        while (cursor.MoveNext(ct))
         {
-            while (cursor.MoveNext(ct))
+            foreach (var doc in cursor.Current)
             {
-                foreach (var doc in cursor.Current)
-                {
-                    ct.ThrowIfCancellationRequested();
-                    var output = EventMapper(doc);
-                    // Propagate the source's cancellation token into SendAsync so that
-                    // backpressure from a bounded downstream buffer doesn't trap the
-                    // change-stream loop after Cancel() — see RSSL-11703 regression test
-                    // Execute_CancellationDuringBlockedSendAsync_ReturnsPromptly.
-                    Buffer.SendAsync(output, ct).GetAwaiter().GetResult();
-                    LogProgress();
-                }
-                // The durable resume token is NOT written here. A downstream CheckpointWriter
-                // commits it after the destination persists (at-least-once); the source only
-                // advances the live change-stream cursor in-memory. See ICheckpointStore.
+                ct.ThrowIfCancellationRequested();
+                var output = EventMapper(doc);
+                // Propagate the source's cancellation token into SendAsync so that
+                // backpressure from a bounded downstream buffer doesn't trap the
+                // change-stream loop after Cancel() — see RSSL-11703 regression test
+                // Execute_CancellationDuringBlockedSendAsync_ReturnsPromptly.
+                Buffer.SendAsync(output, ct).GetAwaiter().GetResult();
+                LogProgress();
             }
+            // The durable resume token is NOT written here. A downstream CheckpointWriter
+            // commits it after the destination persists (at-least-once); the source only
+            // advances the live change-stream cursor in-memory. See ICheckpointStore.
         }
+
+        // MoveNext returned false: the server closed the cursor, which is what happens after an
+        // invalidate event (the watched collection was dropped or renamed). This used to sit
+        // inside an outer while(!cancelled) loop that re-entered the dead cursor immediately,
+        // burning a core until cancellation. Stop instead — resuming past an invalidate is only
+        // legal via startAfter, and doing it implicitly would silently start reading a brand-new
+        // collection that happens to reuse the old name. That is the caller's call, made with
+        // CheckpointResumeMode.StartAfter.
+        LogCursorClosed();
+    }
+
+    private void LogCursorClosed()
+    {
+        if (DisableLogging)
+            return;
+        Logger.Warn(
+            TaskName
+                + " change stream cursor was closed by the server (e.g. after an invalidate event); the source stopped.",
+            TaskType,
+            "LOG",
+            TaskHash,
+            Common.ControlFlow.ControlFlow.Stage,
+            Common.ControlFlow.ControlFlow.CurrentLoadProcess?.Id
+        );
     }
 
     // MongoDB treats resumeAfter, startAfter and startAtOperationTime as mutually exclusive, so

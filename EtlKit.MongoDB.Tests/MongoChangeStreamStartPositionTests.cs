@@ -244,4 +244,50 @@ public sealed class MongoChangeStreamStartPositionTests
             "Buffer was not completed after a validation failure — a linked destination would hang."
         );
     }
+
+    // Dropping the watched collection delivers an invalidate event and the server closes the
+    // cursor. The source must stop rather than re-enter a dead cursor at full CPU.
+    [Fact]
+    public async Task Execute_WhenTheServerClosesTheCursor_ReturnsInsteadOfSpinning()
+    {
+        const string collectionName = "cursor_invalidated";
+        var client = CreateClient();
+        var collection = GetCollection(client, collectionName);
+        var database = client.GetDatabase(DatabaseName);
+
+        var startAt = MongoChangeStreamPosition.Current(client, DatabaseName);
+        await collection.InsertOneAsync(new BsonDocument { { "name", "alpha" } });
+
+        var results = new List<string>();
+        var destination = new CustomDestination<string>(name => results.Add(name));
+
+        using var tokenSource = new CancellationTokenSource();
+        var source = new MongoChangeStreamSource<string>
+        {
+            MongoClient = client,
+            Database = DatabaseName,
+            Collection = collectionName,
+            MaxAwaitTime = TimeSpan.FromMilliseconds(200),
+            StartAtOperationTime = startAt,
+            // Deletes and the invalidate itself carry no FullDocument.
+            EventMapper = doc => doc.FullDocument?["name"]?.AsString ?? "<no-document>",
+        };
+        source.LinkTo(destination);
+
+        var executeTask = Task.Run(() => source.Execute(tokenSource.Token), CancellationToken.None);
+        WaitForResults(results, 1, TimeSpan.FromSeconds(15));
+
+        await database.DropCollectionAsync(collectionName);
+
+        // The token is never cancelled: returning at all is the assertion.
+        var returned = await Task.WhenAny(executeTask, Task.Delay(TimeSpan.FromSeconds(15)));
+        Assert.True(
+            ReferenceEquals(returned, executeTask),
+            "Execute did not return after the server closed the cursor — the outer loop is spinning."
+        );
+        await executeTask.ConfigureAwait(true);
+        destination.Wait();
+
+        Assert.Contains("alpha", results);
+    }
 }

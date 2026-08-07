@@ -30,6 +30,10 @@ public sealed class MongoChangeStreamSourceTests
         var client = CreateClient();
         var collection = GetCollection(client, "change_stream_basic");
 
+        // Seed the stream from a mark taken before the inserts. The cursor may open whenever it
+        // likes — the events below are inside its scope either way.
+        var startAt = MongoChangeStreamPosition.Current(client, DatabaseName);
+
         var results = new List<string>();
         var destination = new CustomDestination<string>(name => results.Add(name));
 
@@ -40,15 +44,13 @@ public sealed class MongoChangeStreamSourceTests
             Database = DatabaseName,
             Collection = "change_stream_basic",
             MaxAwaitTime = TimeSpan.FromMilliseconds(200),
+            StartAtOperationTime = startAt,
             EventMapper = doc => doc.FullDocument["name"].AsString,
         };
         source.LinkTo(destination);
 
         // ReSharper disable once AccessToDisposedClosure
         var executeTask = Task.Run(() => source.Execute(tokenSource.Token), CancellationToken.None);
-
-        // Allow the cursor to open before inserting
-        await Task.Delay(500, CancellationToken.None).ConfigureAwait(true);
 
         await collection
             .InsertOneAsync(new BsonDocument { { "name", "alpha" } }, null, CancellationToken.None)
@@ -90,11 +92,15 @@ public sealed class MongoChangeStreamSourceTests
         var collection = GetCollection(client, "change_stream_checkpoint");
         var checkpointStore = new InMemoryCheckpointStore<string>();
 
+        // Seed the stream from a mark taken before the inserts. The cursor may open whenever it
+        // likes — the events below are inside its scope either way.
+        var startAt = MongoChangeStreamPosition.Current(client, DatabaseName);
+
         // First run — receive two inserts; a CheckpointWriter commits the resume token after the
         // destination.
         var firstRun = new List<string>();
         using var tokenSource1 = new CancellationTokenSource();
-        var source1 = NewSource(client, checkpointId, checkpointStore);
+        var source1 = NewSource(client, checkpointId, checkpointStore, startAt);
         var record1 = new RowTransformation<Event>(e =>
         {
             firstRun.Add(e.Name);
@@ -106,7 +112,6 @@ public sealed class MongoChangeStreamSourceTests
 
         // ReSharper disable once AccessToDisposedClosure
         var task1 = Task.Run(() => source1.Execute(tokenSource1.Token));
-        await Task.Delay(500).ConfigureAwait(true);
 
         await collection.InsertOneAsync(new BsonDocument { { "name", "first" } });
         await collection.InsertOneAsync(new BsonDocument { { "name", "second" } });
@@ -151,7 +156,8 @@ public sealed class MongoChangeStreamSourceTests
     private MongoChangeStreamSource<Event> NewSource(
         IMongoClient client,
         string checkpointId,
-        ICheckpointStore<string> store
+        ICheckpointStore<string> store,
+        DateTimeOffset? startAt = null
     ) =>
         new()
         {
@@ -161,6 +167,7 @@ public sealed class MongoChangeStreamSourceTests
             MaxAwaitTime = TimeSpan.FromMilliseconds(200),
             CheckpointStore = store,
             CheckpointId = checkpointId,
+            StartAtOperationTime = startAt,
             EventMapper = doc => new Event(
                 doc.FullDocument["name"].AsString,
                 doc.ResumeToken.ToJson()
@@ -194,6 +201,10 @@ public sealed class MongoChangeStreamSourceTests
         var client = CreateClient();
         var collection = GetCollection(client, "change_stream_cancel_send");
 
+        // Seed the stream from a mark taken before the inserts. The cursor may open whenever it
+        // likes — the events below are inside its scope either way.
+        var startAt = MongoChangeStreamPosition.Current(client, DatabaseName);
+
         using var tokenSource = new CancellationTokenSource();
         var source = new MongoChangeStreamSource<string>
         {
@@ -201,14 +212,12 @@ public sealed class MongoChangeStreamSourceTests
             Database = DatabaseName,
             Collection = "change_stream_cancel_send",
             MaxAwaitTime = TimeSpan.FromMilliseconds(200),
+            StartAtOperationTime = startAt,
             EventMapper = doc => doc.FullDocument["name"].AsString,
         };
         ReplaceBufferWithBounded(source, capacity: 1);
 
         var task = Task.Run(() => source.Execute(tokenSource.Token), CancellationToken.None);
-
-        // Allow the change-stream cursor to open before inserting.
-        await Task.Delay(500, CancellationToken.None).ConfigureAwait(true);
 
         // Push enough events to fill the bounded buffer (capacity 1) and block the
         // source on its second SendAsync.
@@ -262,6 +271,10 @@ public sealed class MongoChangeStreamSourceTests
         var client = CreateClient();
         var collection = GetCollection(client, "change_stream_pipeline");
 
+        // Seed the stream from a mark taken before the inserts. The cursor may open whenever it
+        // likes — the events below are inside its scope either way.
+        var startAt = MongoChangeStreamPosition.Current(client, DatabaseName);
+
         var filterStage = new BsonDocumentPipelineStageDefinition<
             ChangeStreamDocument<BsonDocument>,
             ChangeStreamDocument<BsonDocument>
@@ -281,12 +294,12 @@ public sealed class MongoChangeStreamSourceTests
             Collection = "change_stream_pipeline",
             MaxAwaitTime = TimeSpan.FromMilliseconds(200),
             Pipeline = pipeline,
+            StartAtOperationTime = startAt,
             EventMapper = doc => doc.FullDocument["name"].AsString,
         };
         source.LinkTo(destination);
 
         var executeTask = Task.Run(() => source.Execute(tokenSource.Token), CancellationToken.None);
-        await Task.Delay(500, CancellationToken.None).ConfigureAwait(true);
 
         await collection.InsertOneAsync(
             new BsonDocument { { "name", "keep_me" }, { "keep", true } }

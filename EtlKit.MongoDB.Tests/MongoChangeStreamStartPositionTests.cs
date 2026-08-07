@@ -290,4 +290,90 @@ public sealed class MongoChangeStreamStartPositionTests
 
         Assert.Contains("alpha", results);
     }
+
+    // MongoDB refuses to resume with resumeAfter once an invalidate has been delivered; startAfter
+    // exists for exactly this. Without CheckpointResumeMode the stored token would be unusable and
+    // the consumer would be stuck permanently.
+    [Fact]
+    public async Task Execute_AfterInvalidate_ResumesWithCheckpointResumeModeStartAfter()
+    {
+        const string collectionName = "invalidate_recovery";
+        const string checkpointId = "invalidate-recovery";
+        var client = CreateClient();
+        var collection = GetCollection(client, collectionName);
+        var database = client.GetDatabase(DatabaseName);
+        var store = new InMemoryCheckpointStore<string>();
+
+        var startAt = MongoChangeStreamPosition.Current(client, DatabaseName);
+        await collection.InsertOneAsync(new BsonDocument { { "name", "before_drop" } });
+
+        // First run: read the event, then drop the collection so the stream is invalidated. A
+        // collection-scoped watch delivers a Drop event followed by an Invalidate event before the
+        // server closes the cursor (Task 5's cursor-closed path), and this run keeps running long
+        // enough to see both — a real downstream CheckpointWriter would commit progress for every
+        // event that flows through, so by the time the run ends on its own the last committed
+        // position is the Invalidate event's own resume token, not the pre-drop insert's.
+        var seen = new List<(string Name, string Token)>();
+        var capture = new CustomDestination<(string Name, string Token)>(e => seen.Add(e));
+        using var tokenSource1 = new CancellationTokenSource();
+        var source1 = new MongoChangeStreamSource<(string Name, string Token)>
+        {
+            MongoClient = client,
+            Database = DatabaseName,
+            Collection = collectionName,
+            MaxAwaitTime = TimeSpan.FromMilliseconds(200),
+            StartAtOperationTime = startAt,
+            EventMapper = doc =>
+                (doc.FullDocument?["name"]?.AsString ?? "<no-document>", doc.ResumeToken.ToJson()),
+        };
+        source1.LinkTo(capture);
+
+        var run1 = Task.Run(() => source1.Execute(tokenSource1.Token), CancellationToken.None);
+        WaitForResults(seen, 1, TimeSpan.FromSeconds(15));
+
+        await database.DropCollectionAsync(collectionName);
+        await run1.ConfigureAwait(true);
+        capture.Wait();
+
+        // Commit the last token observed (the Invalidate event's own token), which is what
+        // CheckpointResumeMode.StartAfter needs in order to resume past it.
+        await store.CommitAsync(checkpointId, seen[^1].Token, CancellationToken.None);
+
+        // Recreate the collection and write again.
+        var recreated = database.GetCollection<BsonDocument>(collectionName);
+        await recreated.InsertOneAsync(new BsonDocument { { "name", "after_drop" } });
+
+        // Second run: the committed token is now unusable as resumeAfter. StartAfter mode makes it
+        // usable again.
+        var results = new List<string>();
+        var destination = new CustomDestination<string>(name => results.Add(name));
+        using var tokenSource2 = new CancellationTokenSource();
+        var source2 = new MongoChangeStreamSource<string>
+        {
+            MongoClient = client,
+            Database = DatabaseName,
+            Collection = collectionName,
+            MaxAwaitTime = TimeSpan.FromMilliseconds(200),
+            CheckpointStore = store,
+            CheckpointId = checkpointId,
+            CheckpointResumeMode = ChangeStreamResumeMode.StartAfter,
+            EventMapper = doc => doc.FullDocument?["name"]?.AsString ?? "<no-document>",
+        };
+        source2.LinkTo(destination);
+
+        var run2 = Task.Run(() => source2.Execute(tokenSource2.Token), CancellationToken.None);
+        WaitForResults(results, 1, TimeSpan.FromSeconds(20));
+        await tokenSource2.CancelAsync();
+        try
+        {
+            await run2.ConfigureAwait(true);
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected: the run was stopped by cancellation, not by a closed cursor.
+        }
+        destination.Wait();
+
+        Assert.Contains("after_drop", results);
+    }
 }

@@ -42,7 +42,7 @@ namespace EtlKit.Kafka.Tests
             dynamic data = new ExpandoObject();
             data.TestName = "Tom";
 
-            var transformation = new KafkaTransformation()
+            using var transformation = new KafkaTransformation()
             {
                 ProducerConfig = new ProducerConfig
                 {
@@ -77,7 +77,7 @@ namespace EtlKit.Kafka.Tests
             data.loyalty_program_id = 2;
             data.transaction_id = 12345;
 
-            var transformation = new KafkaTransformation()
+            using var transformation = new KafkaTransformation()
             {
                 ProducerConfig = new ProducerConfig
                 {

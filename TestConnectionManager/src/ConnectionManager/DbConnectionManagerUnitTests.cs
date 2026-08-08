@@ -96,11 +96,7 @@ namespace EtlKit.TestConnectionManager.ConnectionManager
             public override string QE => @"""";
             public override CultureInfo ConnectionCulture => CultureInfo.CurrentCulture;
 
-            public new DbConnectionMock DbConnection
-            {
-                get => base.DbConnection;
-                set => base.DbConnection = value;
-            }
+            public new DbConnectionMock DbConnection => base.DbConnection;
 
             private TestDbConnectionManager() { }
 

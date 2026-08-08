@@ -35,7 +35,7 @@ public class KafkaTransformationInvalidHostTests
         // Injecting the logger through the constructor means Logger no longer falls back to
         // ControlFlow.LoggerFactory (the ??= in GenericTask.Logger never triggers once _logger is set),
         // so this test no longer needs to touch process-wide static state.
-        var transformation = new KafkaTransformation(mockLogger.Object)
+        using var transformation = new KafkaTransformation(mockLogger.Object)
         {
             ProducerConfig = new ProducerConfig
             {
@@ -100,7 +100,7 @@ public class KafkaTransformationInvalidHostTests
         dynamic data = new ExpandoObject();
         data.TestName = "Tom";
 
-        var transformation = new KafkaTransformation(mockLogger.Object)
+        using var transformation = new KafkaTransformation(mockLogger.Object)
         {
             ProducerConfig = new ProducerConfig
             {

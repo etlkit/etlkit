@@ -47,7 +47,7 @@ public class KafkaTransformationDeliveryHandlerTests
                     )
             );
 
-        var transformation = new TestableKafkaTransformation(mockProducer.Object)
+        using var transformation = new TestableKafkaTransformation(mockProducer.Object)
         {
             TopicName = "test-topic",
         };
@@ -114,7 +114,7 @@ public class KafkaTransformationDeliveryHandlerTests
                     )
             );
 
-        var transformation = new TestableKafkaTransformation(mockProducer.Object)
+        using var transformation = new TestableKafkaTransformation(mockProducer.Object)
         {
             TopicName = "test-topic",
         };
@@ -156,7 +156,7 @@ public class KafkaTransformationDeliveryHandlerTests
             )
             .Throws(new InvalidOperationException("Simulated produce failure"));
 
-        var transformation = new TestableKafkaTransformation(mockProducer.Object)
+        using var transformation = new TestableKafkaTransformation(mockProducer.Object)
         {
             TopicName = "test-topic",
         };

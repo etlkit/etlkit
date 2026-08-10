@@ -114,9 +114,19 @@ public class KafkaTransformationCheckpointWriterTests
             cause = inner;
         Assert.IsType<ProduceException<string, string>>(cause);
 
+        // Committing nothing is legal here: under at-least-once a restart replays the whole
+        // stream and loses nothing. What must never happen is a commit at or past row 2, whose
+        // delivery failed. Asserting that row 1 was already committed would pin the race between
+        // the writer's commit and the fault propagating through the pipeline — a timing, not the
+        // contract — which is what made this test flaky under load (RSSL-11933).
         var (found, position) = await store.LoadAsync(checkpointId, CancellationToken.None);
-        Assert.True(found);
-        Assert.Equal(1, position);
+        if (found)
+        {
+            Assert.True(
+                position < 2,
+                $"Checkpoint advanced to {position}, at or past the row whose delivery failed."
+            );
+        }
     }
 
     [Fact]

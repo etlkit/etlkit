@@ -58,6 +58,14 @@
   - Direction: disable auto-commit, emit `TopicPartitionOffset` with each record, commit strictly
     forward per partition in a terminal committer mirroring `CheckpointWriter` (Kafka's consumer
     group offset IS the checkpoint store)
+- [Tests mutate the global `ControlFlow.LoggerFactory`](docs/tech-debt/TECH-DEBT-Test-Global-LoggerFactory.md)
+  - A task with no injected logger falls back to the process-wide static, so a test that replaces it
+    hands its mock to components owned by other test classes running in parallel — one class fails on
+    another class's log line (seen on pipelines 38237 and 38542)
+  - Root cause is an API gap: `KafkaTransformation` has no constructor taking a producer *and* a
+    logger, so a mock-producer test double has no way to avoid the static
+  - Direction: add the missing constructor overloads, migrate the four test sites off the global;
+    serializing the assembly hides the shared state rather than removing it
 - [Generic type arguments in XML pipeline notation — `typeArguments` attribute](docs/tech-debt/TECH-DEBT-Xml-Generic-Type-Arguments.md)
   - XAML-style notation: tag stays the generic definition name, arguments in a `typeArguments`
     attribute (`<RowTransformation typeArguments="Order, OrderDto">`), parentheses for nesting

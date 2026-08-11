@@ -55,6 +55,12 @@
 - [XML documentation: 2 known gaps left after the coverage initiative](docs/changelog/TECH-DEBT-XML-Documentation-Coverage.md)
   - `EtlKit.Scripting` — 2 undocumented types, out of scope for all 4 phases
   - `EtlKit.Common.DataFlow.CustomDestination<TInput>` — undocumented, not part of any phase's checklist
+- [`Sequence<T>` shadows `Tasks`/`Execute` instead of overriding them](docs/tech-debt/TECH-DEBT-Sequence-Generic-Shadowing.md)
+  - A `Sequence<T>` behind a `Sequence`-typed reference runs the base `Execute()`, which invokes the null base `Tasks` delegate — NRE after a `START` log entry with no `END`
+  - Direction: make `Execute()` virtual + override, guard the null delegate with a clear exception; surfaced by PR #4 review
+- [Three copies of `ExpandoObjectConverter` (Kafka, AI, Rest) — consolidate into Common](docs/tech-debt/TECH-DEBT-ExpandoObjectConverter-Consolidation.md)
+  - Copies already disagree: only Kafka honors `PropertyNamingPolicy`, only AI preserves null array elements; XML docs drifted between copies in PR #4
+  - Direction: one public converter in `EtlKit.Common` (naming policy honored, nulls preserved), migrate the three call sites, move the AI tests to Common.Tests
 
 ## Other
 

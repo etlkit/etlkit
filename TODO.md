@@ -95,6 +95,15 @@
     its own properties; if not, keep today's per-property registration
   - Shared connection managers stay flow-owned; externally-owned resources stay excluded; came out
     of MR !5 (RSSL-11867)
+- [Multi-target EtlKit packages instead of netstandard2.0-only](docs/tech-debt/TECH-DEBT-Multi-Targeting.md)
+  - A netstandard2.0-only binary is compiled against ns2.0 dependency groups (Npgsql pulls
+    `System.Collections.Immutable >= 8.0.0` there) while net6.0+ consumers restore per-TFM graphs
+    where that edge vanishes — runtime `FileNotFoundException` in `ScriptedTransformation`
+    (RSSL-11885)
+  - Direction: `netstandard2.0;net6.0;net8.0` so every shipped binary matches the dependency graph
+    its consumers actually restore (`EtlKit.MongoDB` already went net6.0-only)
+  - Interim rule: anything the compiler bakes into the ns2.0 binary must be reachable through
+    declared dependencies on every consumer TFM
 
 ## Other
 

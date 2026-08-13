@@ -91,6 +91,18 @@ renamed to match the new package identity. All `AddEtlBox*` calls must be update
 4. Find-and-replace `AddEtlBox` → `AddEtlKit` in DI registration calls.
 5. Update solution file references from `ETLBox.sln` to `EtlKit.sln`.
 
+🐛 Bug Fixes
+
+- Fixed (RSSL-11885): `EtlKit.Scripting` bumps `Microsoft.CodeAnalysis.CSharp.Scripting` from 4.8.0
+  to 4.9.2. The netstandard2.0 binary is compiled against `System.Collections.Immutable 8.0.0.0`
+  (elevated transitively by Npgsql's netstandard2.0 dependency group), but MSCA 4.8.0 metadata
+  guaranteed only `>= 7.0.0` to consumers; on net6.0+ the Npgsql edge disappears (SCI ships in the
+  shared framework), so consumers restored 7.0.0 and the runtime binder failed with
+  `FileNotFoundException` inside `ScriptedTransformation`. MSCA 4.9.2 declares
+  `System.Collections.Immutable >= 8.0.0` (and `System.Reflection.Metadata >= 8.0.0`) in every
+  dependency group, so the requirement now reaches consumers on all target frameworks. See
+  `docs/tech-debt/TECH-DEBT-Multi-Targeting.md` for the underlying single-target debt.
+
 
 <a name="1.20.0"></a>
 

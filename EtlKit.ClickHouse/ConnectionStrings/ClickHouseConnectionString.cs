@@ -20,24 +20,20 @@ namespace EtlKit.ClickHouse.ConnectionStrings
         public ClickHouseConnectionString(string connectionString)
             : base(connectionString) { }
 
-        /// <summary>
-        /// The target database name, backed by <see cref="ClickHouseConnectionStringBuilder.Database"/>.
-        /// </summary>
+        /// <inheritdoc />
+        /// <remarks>Backed by <see cref="ClickHouseConnectionStringBuilder.Database"/>.</remarks>
         public override string DbName
         {
             get => Builder.Database;
             set => Builder.Database = value;
         }
 
-        /// <summary>
-        /// ClickHouse's built-in default database, <c>"default"</c>. Used when cloning a connection
-        /// string that should point at the server's default database instead of a specific one.
-        /// </summary>
+        /// <inheritdoc />
+        /// <remarks>ClickHouse's built-in default database is <c>"default"</c>.</remarks>
         public override string MasterDbName => "default";
 
-        /// <summary>
-        /// The connection string key that stores the database name, <c>"Database"</c>.
-        /// </summary>
+        /// <inheritdoc />
+        /// <remarks>ClickHouse's connection string key is <c>"Database"</c>.</remarks>
         protected override string DbNameKeyword => "Database";
 
         /// <summary>

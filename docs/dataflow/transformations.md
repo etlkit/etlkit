@@ -46,7 +46,7 @@ public class MySimpleRow
     public string Col2 { get; set; }
 }
 
-RowTransformation&lt;string[], MySimpleRow&gt; trans = new RowTransformation&lt;string[], MySimpleRow&gt;(
+RowTransformation<string[], MySimpleRow> trans = new RowTransformation<string[], MySimpleRow>(
     csvdata =>
     {
         return new MySimpleRow()
@@ -84,9 +84,9 @@ public class InputDataRow
 }
 
 MemorySource<InputDataRow> source = new MemorySource<InputDataRow>();
-source.Data.Add(new InputDataRow() { LookupId = 1 });
+source.Data = new List<InputDataRow> { new InputDataRow() { LookupId = 1 } };
 MemorySource<LookupData> lookupSource = new MemorySource<LookupData>();
-lookupSource.Data.Add(new LookupData() { Id = 1, Value = "Test1" });
+lookupSource.Data = new List<LookupData> { new LookupData() { Id = 1, Value = "Test1" } };
 
 var lookup = new LookupTransformation<InputDataRow, LookupData>();
 lookup.Source = lookupSource;
@@ -99,18 +99,16 @@ If you don't want to use attributes, you can define your own lookup functions.
 
 ```csharp
 DbSource<MyLookupRow> lookupSource = new DbSource<MyLookupRow>(connection, "Lookup");
-List<MyLookupRow> LookupTableData = new List<MyLookupRow>();
-LookupTransformation<MyInputDataRow, MyLookupRow> lookup = new Lookup<MyInputDataRow, MyLookupRow>(
+List<MyLookupRow> lookupTableData = new List<MyLookupRow>();
+LookupTransformation<MyInputDataRow, MyLookupRow> lookup = new LookupTransformation<MyInputDataRow, MyLookupRow>(
     lookupSource,
     row =>
     {
-        Col1 = row.Col1,
-        Col2 = row.Col2,
-        Col3 = LookupTableData.Where(ld => ld.Key == row.Col1).Select(ld => ld.LookupValue1).FirstOrDefault(),
-        Col4 = LookupTableData.Where(ld => ld.Key == row.Col1).Select(ld => ld.LookupValue2).FirstOrDefault(),
+        row.Col3 = lookupTableData.Where(ld => ld.Key == row.Col1).Select(ld => ld.LookupValue1).FirstOrDefault();
+        row.Col4 = lookupTableData.Where(ld => ld.Key == row.Col1).Select(ld => ld.LookupValue2).FirstOrDefault();
         return row;
-    }
-    , LookupTableData
+    },
+    lookupTableData
 );
 ```
 
@@ -165,6 +163,36 @@ DbDestination<OutputRow> dest = new DbDestination<OutputRow>();
 source.LinkTo(multiplication);
 multiplication.LinkTo(dest);
 ```
+
+### SQL transformations
+
+Two transformations run a SQL statement for **each input row**. The statement is a
+[DotLiquid](https://github.com/dotliquid/dotliquid) `SqlTemplate` whose placeholders are filled from
+the row's fields.
+
+- `SqlQueryTransformation` runs a **query** and emits its result rows into the flow. Because one
+  input row can yield many result rows, it is a `RowMultiplication`.
+- `SqlCommandTransformation` runs a **non-query** command (INSERT/UPDATE/DELETE/DDL), passes the
+  input row through, and exposes the affected-row count via an optional `TransformResult` function.
+
+```csharp
+//Query: read order lines for each order id flowing through
+var lookup = new SqlQueryTransformation
+{
+    ConnectionManager = connection,
+    SqlTemplate = "SELECT * FROM order_lines WHERE order_id = {{ Id }}"
+};
+
+//Command: mark each incoming row as processed
+var markDone = new SqlCommandTransformation
+{
+    ConnectionManager = connection,
+    SqlTemplate = "UPDATE orders SET processed = 1 WHERE id = {{ Id }}"
+};
+```
+
+Both have generic variants (`SqlQueryTransformation<TInput, TOutput>`,
+`SqlCommandTransformation<TInput, TOutput>`) for strongly-typed rows.
 
 ### RowFiltration
 
@@ -309,6 +337,22 @@ source2.LinkTo(join.Target2);
 join.LinkTo(dest);
 ```
 
+#### CrossJoin
+
+A `CrossJoin` combines two inputs by joining **every** row of one with every row of the other. The
+first input (`InMemoryTarget`) is loaded fully into memory; then each row arriving at the second
+input (`PassingTarget`) is joined against every buffered row via `CrossJoinFunc`. Make the smaller
+data set the in-memory (first) input to keep memory use down.
+
+```csharp
+CrossJoin<Category, Product, CatalogEntry> crossJoin = new CrossJoin<Category, Product, CatalogEntry>(
+    (category, product) => new CatalogEntry { Category = category.Name, Product = product.Name });
+
+categorySource.LinkTo(crossJoin.InMemoryTarget);
+productSource.LinkTo(crossJoin.PassingTarget);
+crossJoin.LinkTo(dest);
+```
+
 ### Aggregation
 
 The aggregation allow you to aggregate data in your flow in a non-blocking transformation. Aggregation functions
@@ -316,7 +360,7 @@ are sum, min, max and count. This means that you can calculate a total sum, the 
 in your flow. Also, you can define your own aggregation function.
 The aggregation does not necessarily be calculated on your whole data. You can specify that your calculation is grouped by a particular property or function.
 
-There are two ways to use the Aggregation. The easier way is to make use of the attributes `AggregationColumn` and `GroupColumn`. The first parameter is the
+There are two ways to use the Aggregation. The easier way is to make use of the attributes `AggregateColumn` and `GroupColumn`. The first parameter is the
 property name of target property.
 
 ```csharp

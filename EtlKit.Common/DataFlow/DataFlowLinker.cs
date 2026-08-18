@@ -4,7 +4,6 @@ using System.Threading.Tasks.Dataflow;
 using EtlKit.Common.ControlFlow;
 using EtlKit.Primitives;
 using JetBrains.Annotations;
-using Microsoft.Extensions.Logging;
 
 namespace EtlKit.Common.DataFlow
 {
@@ -26,17 +25,6 @@ namespace EtlKit.Common.DataFlow
 
         /// <inheritdoc cref="EtlKit.Primitives.ITask.DisableLogging" />
         public bool DisableLogging => CallingTask.DisableLogging;
-
-        /// <summary>
-        /// Logger used to record linking activity, created from the shared <see
-        /// cref="ControlFlow.ControlFlow.LoggerFactory"/>.
-        /// </summary>
-        public ILogger Logger =>
-            ControlFlow.ControlFlow.LoggerFactory.CreateLogger<DataFlowLinker<TOutput>>();
-
-        /// <summary>
-        /// The component performing the link, used for logging context (name, type, hash).
-        /// </summary>
         public DataFlowTask CallingTask { get; set; }
 
         /// <summary>
@@ -60,7 +48,7 @@ namespace EtlKit.Common.DataFlow
             SourceBlock.LinkTo(target.TargetBlock);
             target.AddPredecessorCompletion(SourceBlock.Completion);
             if (!DisableLogging)
-                Logger.Debug(
+                CallingTask.Logger.Debug(
                     CallingTask.TaskName + $" was linked to: {target.TaskName}",
                     CallingTask.TaskType,
                     "LOG",
@@ -86,7 +74,7 @@ namespace EtlKit.Common.DataFlow
             SourceBlock.LinkTo(target.TargetBlock, predicate);
             target.AddPredecessorCompletion(SourceBlock.Completion);
             if (!DisableLogging)
-                Logger.Debug(
+                CallingTask.Logger.Debug(
                     CallingTask.TaskName + $" was linked to (with predicate): {target.TaskName}!",
                     CallingTask.TaskType,
                     "LOG",
@@ -114,7 +102,7 @@ namespace EtlKit.Common.DataFlow
             SourceBlock.LinkTo(target.TargetBlock, rowsToKeep);
             target.AddPredecessorCompletion(SourceBlock.Completion);
             if (!DisableLogging)
-                Logger.Debug(
+                CallingTask.Logger.Debug(
                     CallingTask.TaskName + $" was linked to (with predicate): {target.TaskName}!",
                     CallingTask.TaskType,
                     "LOG",
@@ -127,7 +115,7 @@ namespace EtlKit.Common.DataFlow
             SourceBlock.LinkTo(voidTarget.TargetBlock, rowsIntoVoid);
             voidTarget.AddPredecessorCompletion(SourceBlock.Completion);
             if (!DisableLogging)
-                Logger.Debug(
+                CallingTask.Logger.Debug(
                     CallingTask.TaskName
                         + " was also linked to: VoidDestination to ignore certain rows!",
                     CallingTask.TaskType,

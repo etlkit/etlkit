@@ -1,10 +1,9 @@
 using System.Dynamic;
+using EtlKit.AI;
 using EtlKit.Common.DataFlow;
 using EtlKit.DataFlow;
-using EtlKit.Scripting;
-using EtlKit.AI;
 using EtlKit.Rest;
-
+using EtlKit.Scripting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -50,7 +49,7 @@ public class SpecializedLoggerInjectionTests
     {
         var (_, logger) = BuildLogger<KafkaStringTransformation<ExpandoObject>>();
 
-        var component = new KafkaStringTransformation<ExpandoObject>(logger);
+        using var component = new KafkaStringTransformation<ExpandoObject>(logger);
 
         Assert.Same(logger, component.Logger);
     }
@@ -60,7 +59,7 @@ public class SpecializedLoggerInjectionTests
     {
         var (_, logger) = BuildLogger<KafkaTransformation>();
 
-        var component = new KafkaTransformation(logger);
+        using var component = new KafkaTransformation(logger);
 
         Assert.Same(logger, component.Logger);
     }

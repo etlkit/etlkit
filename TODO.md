@@ -5,8 +5,8 @@
 ### Future release
 
 - New feature: Bounded Capacity for all Buffers (separately for every component besides
-  `DataFlowBatchDestination` & general property in ConnectionManager), to restrict buffer size and max
-  memory consumption
+  `DataFlowBatchDestination` & general property in ConnectionManager), to restrict buffer size and
+  max memory consumption
 - After XML deserialization most of the components need to re-initialize internal TPL structures.
   This is handled inconsistently in different components. There needs to be a common method (similar
   to existing `InitObjects`) to be called after properties are initialized, but before execution
@@ -34,16 +34,46 @@
 ## Tech Debt
 
 - [FieldLookupTransformation — declarative field-name-based lookup with XML serialization support](docs/tech-debt/field-lookup-transformation-roadmap.md)
-  - New component alongside `LookupTransformation` with serializable `MatchColumns`/`RetrieveColumns` POCO lists
-  - `DictionarySource: IDataFlowSource<T>` property deserialized via existing `DataFlowXmlReader` mechanism (no reader changes)
-  - Optional `ScriptedFieldLookupTransformation` in `EtlKit.Scripting` with Roslyn enrichment script string
+  - New component alongside `LookupTransformation` with serializable
+    `MatchColumns`/`RetrieveColumns` POCO lists
+  - `DictionarySource: IDataFlowSource<T>` property deserialized via existing `DataFlowXmlReader`
+    mechanism (no reader changes)
+  - Optional `ScriptedFieldLookupTransformation` in `EtlKit.Scripting` with Roslyn enrichment script
+    string
 - [PostgresLogicalReplicationSource — WAL/CDC streaming source](docs/tech-debt/TECH-DEBT-Postgres-Logical-Replication-Source.md)
-  - Net-new source in `EtlKit.PostgresStreaming` over `Npgsql.Replication` (built-in `pgoutput`, no extension)
-  - Complements (does not replace) `PostgresXminTailSource`: full ordered change log incl. DELETEs and every intermediate UPDATE, sub-second latency
+  - Net-new source in `EtlKit.PostgresStreaming` over `Npgsql.Replication` (built-in `pgoutput`, no
+    extension)
+  - Complements (does not replace) `PostgresXminTailSource`: full ordered change log incl. DELETEs
+    and every intermediate UPDATE, sub-second latency
   - Resume token = LSN via existing `ICheckpointStore`; deferred to V3+ per MLRSSL-1509 §5.8
+- [Align `KafkaSource` offset commits with the checkpoint model (at-least-once)](docs/tech-debt/TECH-DEBT-KafkaSource-Offset-Commit-Alignment.md)
+  - Today `enable.auto.commit` (Confluent default) commits offsets at read time — at-most-once,
+    silently weaker than `PostgresXminTailSource`/`MongoChangeStreamSource` and the producer side
+    fixed in MR !5
+  - Direction: disable auto-commit, emit `TopicPartitionOffset` with each record, commit strictly
+    forward per partition in a terminal committer mirroring `CheckpointWriter` (Kafka's consumer
+    group offset IS the checkpoint store)
+- [Tests mutate the global `ControlFlow.LoggerFactory`](docs/tech-debt/TECH-DEBT-Test-Global-LoggerFactory.md)
+  - A task with no injected logger falls back to the process-wide static, so a test that replaces it
+    hands its mock to components owned by other test classes running in parallel — one class fails on
+    another class's log line (seen on pipelines 38237 and 38542)
+  - Root cause is an API gap: `KafkaTransformation` has no constructor taking a producer *and* a
+    logger, so a mock-producer test double has no way to avoid the static
+  - Direction: add the missing constructor overloads, migrate the four test sites off the global;
+    serializing the assembly hides the shared state rather than removing it
+- [Generic type arguments in XML pipeline notation — `typeArguments` attribute](docs/tech-debt/TECH-DEBT-Xml-Generic-Type-Arguments.md)
+  - XAML-style notation: tag stays the generic definition name, arguments in a `typeArguments`
+    attribute (`<RowTransformation typeArguments="Order, OrderDto">`), parentheses for nesting
+  - Replaces the hardcoded `MakeGenericType(typeof(ExpandoObject))` in `GetTypeByName` with an
+    arity-matched, alias-registry-backed resolver; no attribute → current behavior (backward
+    compatible)
+  - Phase 1 covers interior/auxiliary types only; typed end-to-end flows blocked on the `IDataFlow`
+    `ExpandoObject` boundary (Phase 2, separate decision)
 - [Split `DataTypeConverter` driver conventions before moving type-mapping to Common](docs/tech-debt/TECH-DEBT-DataTypeConverter-Driver-Split.md)
-  - Pure type-mapping → Common/Primitives; per-driver SQL-type conventions → driver packages behind a DI abstraction (drop the central `switch (ConnectionManagerType)`)
-  - Unblocks moving `QueryParameter` to Common (and `ITableColumn` to Primitives); ride along with broader driver-package/DI modularization
+  - Pure type-mapping → Common/Primitives; per-driver SQL-type conventions → driver packages behind
+    a DI abstraction (drop the central `switch (ConnectionManagerType)`)
+  - Unblocks moving `QueryParameter` to Common (and `ITableColumn` to Primitives); ride along with
+    broader driver-package/DI modularization
 - [UseRowAccessor mode for ScriptedRowTransformation](docs/tech-debt/TECH-DEBT-ScriptedTransformation-UseRowAccessor.md)
   - Fixes a real bug: scripts with Roslyn warnings only (e.g. CS0472) are incorrectly rejected outright
   - Opt-in `Row.Field` accessor sidesteps the compile errors that null/missing fields currently cause, which today produce a silently-null output instead
@@ -64,6 +94,31 @@
 - [`DbConnectionString.ToString()` bypasses the `GetConnectionString()` normalization](docs/tech-debt/TECH-DEBT-DbConnectionString-ToString-Divergence.md)
   - `Value` routes through the virtual `GetConnectionString()`, but `ToString()` returns `Builder.ConnectionString` directly — `SqlConnectionString` (the SSPI rewrite) reports two different strings for the same instance; internals only consume `.Value`, so the divergence is public-surface-only
   - Direction: one-line fix (`ToString() => GetConnectionString()`) plus a `ToString() == Value` regression test on `SqlConnectionString`; surfaced by PR #4 review
+- [Unified timeout and cancellation approach across sources and transformations](docs/tech-debt/TECH-DEBT-Unified-Timeout-Cancellation.md)
+  - No shared convention today: DB is `CommandTimeout = 0` (infinite, not configurable), REST relies
+    on `HttpClient` default + retry count/interval, Kafka (MR !5) would silently override the client
+    default
+  - Principle: don't silently override the client's timeout/retry defaults; expose the knob, keep
+    the client default, honor the `CancellationToken` already threaded through
+    `Execute`/`ExecuteAsync`
+  - Prefer leaving `MessageTimeoutMs` at the librdkafka default in MR !5; fold any unified work here
+    rather than into the bug fix
+- [Dispose graph components, not just their IDisposable properties](docs/tech-debt/TECH-DEBT-Dispose-Graph-Components.md)
+  - Flow cleanup (`DataFlowResources`) disposes only `IDisposable` _properties_ registered by the
+    reader; a component that is itself `IDisposable` (e.g. `KafkaTransformation`) is never disposed
+  - Proposal: if a component implements `IDisposable`, the flow disposes the component and it owns
+    its own properties; if not, keep today's per-property registration
+  - Shared connection managers stay flow-owned; externally-owned resources stay excluded; came out
+    of MR !5 (RSSL-11867)
+- [Multi-target EtlKit packages instead of netstandard2.0-only](docs/tech-debt/TECH-DEBT-Multi-Targeting.md)
+  - A netstandard2.0-only binary is compiled against ns2.0 dependency groups (Npgsql pulls
+    `System.Collections.Immutable >= 8.0.0` there) while net6.0+ consumers restore per-TFM graphs
+    where that edge vanishes — runtime `FileNotFoundException` in `ScriptedTransformation`
+    (RSSL-11885)
+  - Direction: `netstandard2.0;net6.0;net8.0` so every shipped binary matches the dependency graph
+    its consumers actually restore (`EtlKit.MongoDB` already went net6.0-only)
+  - Interim rule: anything the compiler bakes into the ns2.0 binary must be reachable through
+    declared dependencies on every consumer TFM
 
 ## Other
 

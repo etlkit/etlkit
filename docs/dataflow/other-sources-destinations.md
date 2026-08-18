@@ -24,12 +24,12 @@ public class MyRow {
 List<string> Data = new List<string>() { "Test1", "Test2", "Test3" };
 int _readIndex = 0;
 
-CustomSource<MySimpleRow> source = new CustomSource<MySimpleRow>(
+CustomSource<MyRow> source = new CustomSource<MyRow>(
     () => {
         return new MyRow()
         {
-            Id = _readIndex++,
-            Value = Data[_readIndex]
+            Id = _readIndex,
+            Value = Data[_readIndex++]
         };
     }, 
     () => _readIndex >= Data.Count);

@@ -1,6 +1,6 @@
+using Confluent.Kafka;
 using EtlKit.Common.ControlFlow;
 using EtlKit.DataFlow;
-using Confluent.Kafka;
 using EtlKit.Primitives;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -18,7 +18,7 @@ public class KafkaTransformationDeliveryHandlerTests
     }
 
     [Fact]
-    public void ShouldLogError_WhenDeliveryReportHasError()
+    public void ShouldSendToErrorBufferAndLogError_WhenDeliveryReportHasError()
     {
         // Arrange
         var mockLogger = new Mock<ILogger>();
@@ -27,7 +27,6 @@ public class KafkaTransformationDeliveryHandlerTests
         mockFactory.Setup(f => f.CreateLogger(It.IsAny<string>())).Returns(mockLogger.Object);
         Common.ControlFlow.ControlFlow.LoggerFactory = mockFactory.Object;
 
-        var capturedHandlers = new List<Action<DeliveryReport<string, string>>>();
         var mockProducer = new Mock<IProducer<string, string>>();
         mockProducer
             .Setup(p =>
@@ -38,31 +37,31 @@ public class KafkaTransformationDeliveryHandlerTests
                 )
             )
             .Callback<string, Message<string, string>, Action<DeliveryReport<string, string>>>(
-                (_, _, handler) => capturedHandlers.Add(handler)
+                (_, message, handler) =>
+                    handler(
+                        new DeliveryReport<string, string>
+                        {
+                            Error = new Error(ErrorCode.BrokerNotAvailable, "Broker not available"),
+                            Message = message,
+                        }
+                    )
             );
 
-        var transformation = new TestableKafkaTransformation(mockProducer.Object)
+        using var transformation = new TestableKafkaTransformation(mockProducer.Object)
         {
             TopicName = "test-topic",
         };
         var source = new MemorySource<string>(new[] { "test-value" });
         var dest = new MemoryDestination<string?>();
+        var errorDest = new MemoryDestination<EtlKitError>();
         source.LinkTo(transformation);
         transformation.LinkTo(dest);
+        transformation.LinkErrorTo(errorDest);
+
+        // Act
         source.Execute();
         dest.Wait();
-
-        Assert.Single(capturedHandlers);
-
-        // Act: Kafka reports an error
-        capturedHandlers[0]
-            (
-                new DeliveryReport<string, string>
-                {
-                    Error = new Error(ErrorCode.BrokerNotAvailable, "Broker not available"),
-                    Message = new Message<string, string> { Value = "test-value" },
-                }
-            );
+        errorDest.Wait();
 
         // Assert
         mockLogger.Verify(
@@ -80,6 +79,9 @@ public class KafkaTransformationDeliveryHandlerTests
                 ),
             Times.Once
         );
+
+        Assert.Empty(dest.Data);
+        Assert.Single(errorDest.Data);
     }
 
     [Fact]
@@ -92,7 +94,6 @@ public class KafkaTransformationDeliveryHandlerTests
         mockFactory.Setup(f => f.CreateLogger(It.IsAny<string>())).Returns(mockLogger.Object);
         Common.ControlFlow.ControlFlow.LoggerFactory = mockFactory.Object;
 
-        var capturedHandlers = new List<Action<DeliveryReport<string, string>>>();
         var mockProducer = new Mock<IProducer<string, string>>();
         mockProducer
             .Setup(p =>
@@ -103,10 +104,17 @@ public class KafkaTransformationDeliveryHandlerTests
                 )
             )
             .Callback<string, Message<string, string>, Action<DeliveryReport<string, string>>>(
-                (_, _, handler) => capturedHandlers.Add(handler)
+                (_, message, handler) =>
+                    handler(
+                        new DeliveryReport<string, string>
+                        {
+                            Error = new Error(ErrorCode.NoError),
+                            Message = message,
+                        }
+                    )
             );
 
-        var transformation = new TestableKafkaTransformation(mockProducer.Object)
+        using var transformation = new TestableKafkaTransformation(mockProducer.Object)
         {
             TopicName = "test-topic",
         };
@@ -116,18 +124,6 @@ public class KafkaTransformationDeliveryHandlerTests
         transformation.LinkTo(dest);
         source.Execute();
         dest.Wait();
-
-        Assert.Single(capturedHandlers);
-
-        // Act: Kafka reports success
-        capturedHandlers[0]
-            (
-                new DeliveryReport<string, string>
-                {
-                    Error = new Error(ErrorCode.NoError),
-                    Message = new Message<string, string> { Value = "test-value" },
-                }
-            );
 
         // Assert
         mockLogger.Verify(
@@ -141,6 +137,8 @@ public class KafkaTransformationDeliveryHandlerTests
                 ),
             Times.Never
         );
+
+        Assert.Single(dest.Data);
     }
 
     [Fact]
@@ -158,7 +156,7 @@ public class KafkaTransformationDeliveryHandlerTests
             )
             .Throws(new InvalidOperationException("Simulated produce failure"));
 
-        var transformation = new TestableKafkaTransformation(mockProducer.Object)
+        using var transformation = new TestableKafkaTransformation(mockProducer.Object)
         {
             TopicName = "test-topic",
         };

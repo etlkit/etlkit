@@ -1,11 +1,12 @@
 #nullable enable
 using System;
+using System.Collections.Generic;
+using System.Dynamic;
+using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
-
 using EtlKit.Common.DataFlow.Streaming;
-
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 
@@ -127,6 +128,47 @@ namespace EtlKit.Common.DataFlow
             // Final flush of the highest seen position when the pipeline completes.
             CommitMaxAsync(CancellationToken.None).GetAwaiter().GetResult();
             base.CleanUp();
+        }
+    }
+
+    /// <summary>
+    /// Non-generic <see cref="CheckpointWriter{TInput,TPosition}"/> for dynamic
+    /// (<see cref="ExpandoObject"/>) rows with a <see cref="long"/> position, the common cursor
+    /// shape (sequence ids, xmin values, offsets). Exists for XML-defined flows: the XML reader
+    /// can neither close a two-parameter generic nor assign the <c>Position</c> delegate, so this
+    /// wrapper exposes the position as a column name instead — the same pattern as
+    /// <c>DbSource</c> / <c>MemorySource</c>.
+    /// </summary>
+    [PublicAPI]
+    public class CheckpointWriter : CheckpointWriter<ExpandoObject, long>
+    {
+        private string _positionColumn = null!;
+
+        /// <summary>Creates a new instance with no logger.</summary>
+        public CheckpointWriter() { }
+
+        /// <summary>Creates a new instance with an injected logger.</summary>
+        public CheckpointWriter(ILogger<CheckpointWriter> logger)
+            : base(logger) { }
+
+        /// <summary>
+        /// Name of the row property that carries the checkpoint position. The value is converted
+        /// to <see cref="long"/> with the invariant culture. Setting it wires up
+        /// <see cref="CheckpointWriter{TInput,TPosition}.Position"/> (and thereby the underlying
+        /// block) — the XML-serializable counterpart of assigning the delegate in code.
+        /// </summary>
+        public string PositionColumn
+        {
+            get => _positionColumn;
+            set
+            {
+                _positionColumn = value;
+                Position = row =>
+                    Convert.ToInt64(
+                        ((IDictionary<string, object?>)row)[value],
+                        CultureInfo.InvariantCulture
+                    );
+            }
         }
     }
 }

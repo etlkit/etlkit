@@ -1,6 +1,6 @@
 using System.Dynamic;
-using EtlKit.DataFlow;
 using Confluent.Kafka;
+using EtlKit.DataFlow;
 using Moq;
 
 namespace EtlKit.Kafka.Tests;
@@ -29,7 +29,17 @@ public class KafkaTransformationKeyTests
                 )
             )
             .Callback<string, Message<string, string>, Action<DeliveryReport<string, string>>>(
-                (_, message, _) => captured.Add(message)
+                (_, message, handler) =>
+                {
+                    captured.Add(message);
+                    handler(
+                        new DeliveryReport<string, string>
+                        {
+                            Error = new Error(ErrorCode.NoError),
+                            Message = message,
+                        }
+                    );
+                }
             );
         return (mockProducer, captured);
     }
@@ -44,7 +54,7 @@ public class KafkaTransformationKeyTests
         data.loyalty_program_id = 2;
         data.transaction_id = 12345;
 
-        var transformation = new TestableStringKafkaTransformation(mockProducer.Object)
+        using var transformation = new TestableStringKafkaTransformation(mockProducer.Object)
         {
             TopicName = "test-topic",
             MessageTemplate = "{{transaction_id}}",
@@ -74,7 +84,7 @@ public class KafkaTransformationKeyTests
         dynamic data = new ExpandoObject();
         data.transaction_id = 12345;
 
-        var transformation = new TestableStringKafkaTransformation(mockProducer.Object)
+        using var transformation = new TestableStringKafkaTransformation(mockProducer.Object)
         {
             TopicName = "test-topic",
             MessageTemplate = "{{transaction_id}}",
@@ -126,7 +136,17 @@ public class KafkaTransformationKeyTests
                 )
             )
             .Callback<string, Message<byte[], string>, Action<DeliveryReport<byte[], string>>>(
-                (_, message, _) => captured.Add(message)
+                (_, message, handler) =>
+                {
+                    captured.Add(message);
+                    handler(
+                        new DeliveryReport<byte[], string>
+                        {
+                            Error = new Error(ErrorCode.NoError),
+                            Message = message,
+                        }
+                    );
+                }
             );
         return (mockProducer, captured);
     }
@@ -139,7 +159,7 @@ public class KafkaTransformationKeyTests
         var expectedKey = new byte[] { 1, 2, 3 };
         var data = new ExpandoObject();
 
-        var transformation = new TestableBytesKafkaTransformation(
+        using var transformation = new TestableBytesKafkaTransformation(
             mockProducer.Object,
             _ => expectedKey
         )
@@ -175,7 +195,7 @@ public class KafkaTransformationKeyTests
         row2.loyalty_program_id = 2;
         row2.transaction_id = 200;
 
-        var transformation = new TestableStringKafkaTransformation(mockProducer.Object)
+        using var transformation = new TestableStringKafkaTransformation(mockProducer.Object)
         {
             TopicName = "test-topic",
             MessageTemplate = "{{transaction_id}}",
@@ -206,7 +226,7 @@ public class KafkaTransformationKeyTests
         var (mockProducer, captured) = CreateCapturingBytesProducer();
         var data = new ExpandoObject();
 
-        var transformation = new TestableBytesKafkaTransformation(
+        using var transformation = new TestableBytesKafkaTransformation(
             mockProducer.Object,
             keyResolver: null
         )

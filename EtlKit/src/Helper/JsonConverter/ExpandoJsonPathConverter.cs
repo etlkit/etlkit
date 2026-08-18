@@ -4,11 +4,28 @@ using Newtonsoft.Json.Linq;
 
 namespace EtlKit.Helper
 {
+    /// <summary>
+    /// Maps a top-level JSON property to a JSONPath expression evaluated against that property's
+    /// value, for use with <see cref="ExpandoJsonPathConverter"/>.
+    /// </summary>
     [PublicAPI]
     public class JsonProperty2JsonPath
     {
+        /// <summary>
+        /// The top-level JSON property this mapping applies to.
+        /// </summary>
         public string JsonPropertyName { get; set; }
+
+        /// <summary>
+        /// The JSONPath expression evaluated against <see cref="JsonPropertyName"/>'s value.
+        /// </summary>
         public string JsonPath { get; set; }
+
+        /// <summary>
+        /// The property name to store the result under on the resulting <see
+        /// cref="System.Dynamic.ExpandoObject"/>. Defaults to <see cref="JsonPropertyName"/> until
+        /// explicitly set.
+        /// </summary>
         public string NewPropertyName
         {
             get => _newPropertyName ?? JsonPropertyName;
@@ -16,6 +33,10 @@ namespace EtlKit.Helper
         }
         private string _newPropertyName;
 
+        /// <summary>
+        /// Whether this mapping has all required fields set (<see cref="JsonPropertyName"/>, <see
+        /// cref="JsonPath"/>, <see cref="NewPropertyName"/>).
+        /// </summary>
         public bool Validate()
         {
             if (
@@ -116,8 +137,8 @@ namespace EtlKit.Helper
             {
                 var jsonObject = JToken.Load(reader);
                 foreach (
-                    var pl in PathLookups.Where(
-                        l => l.JsonPropertyName == propertyName && l.Validate()
+                    var pl in PathLookups.Where(l =>
+                        l.JsonPropertyName == propertyName && l.Validate()
                     )
                 )
                 {
@@ -136,16 +157,16 @@ namespace EtlKit.Helper
             switch (tokens.Count)
             {
                 case 1:
-                    {
-                        JToken t = tokens[0];
-                        val = ParseToken(t);
-                        break;
-                    }
+                {
+                    JToken t = tokens[0];
+                    val = ParseToken(t);
+                    break;
+                }
                 case > 1:
-                    {
-                        val = tokens.Select(ParseToken).ToList();
-                        break;
-                    }
+                {
+                    val = tokens.Select(ParseToken).ToList();
+                    break;
+                }
             }
             return val;
         }
@@ -177,7 +198,7 @@ namespace EtlKit.Helper
                 JsonToken.Null => true,
                 JsonToken.Date => true,
                 JsonToken.Bytes => true,
-                _ => false
+                _ => false,
             };
         }
     }

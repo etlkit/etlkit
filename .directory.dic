@@ -32,6 +32,7 @@ Config
 config
 conn
 Const
+ClickHouse
 csproj
 CSV
 Csv
@@ -136,6 +137,7 @@ mysql
 NCHAR
 newdynamic
 Newtonsoft
+NLog
 NK
 noredirect
 notmatchingcols

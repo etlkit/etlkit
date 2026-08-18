@@ -1,8 +1,6 @@
 using System.Linq;
-
 using EtlKit.Common;
 using EtlKit.Common.DataFlow;
-
 using Microsoft.Extensions.Logging;
 
 namespace EtlKit.DataFlow
@@ -259,11 +257,30 @@ namespace EtlKit.DataFlow
         }
     }
 
+    /// <summary>
+    /// The built-in calculation applied to a group of rows sharing the same grouping key in <see
+    /// cref="Aggregation{TInput,TOutput}"/>.
+    /// </summary>
     public enum AggregationMethod
     {
+        /// <summary>
+        /// Adds up the values in the group.
+        /// </summary>
         Sum,
+
+        /// <summary>
+        /// Takes the smallest value in the group.
+        /// </summary>
         Min,
+
+        /// <summary>
+        /// Takes the largest value in the group.
+        /// </summary>
         Max,
+
+        /// <summary>
+        /// Counts the number of rows in the group.
+        /// </summary>
         Count,
     }
 

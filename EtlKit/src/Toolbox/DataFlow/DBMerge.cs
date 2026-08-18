@@ -473,17 +473,53 @@ namespace EtlKit.DataFlow
         public Task Completion => DestinationTable.Completion;
     }
 
+    /// <summary>
+    /// Controls how <see cref="DbMerge{TInput}"/> determines which rows to delete from the
+    /// destination, and whether the source itself already carries deletion markers.
+    /// </summary>
     public enum DeltaMode
     {
+        /// <summary>
+        /// Default mode: the source is a full snapshot. Rows present only in the destination (missing
+        /// from the source) are deleted.
+        /// </summary>
         Full = 0,
+
+        /// <summary>
+        /// Like <see cref="Full"/>, but skips truncation and deletion entirely — rows missing from the
+        /// source are left untouched in the destination.
+        /// </summary>
         NoDeletions = 1,
+
+        /// <summary>
+        /// The source is itself a changeset (e.g. from a CDC source), not a full snapshot. Deletions
+        /// are recognized via <c>MergeProperties.DeletionProperties</c> rather than by absence from the
+        /// source; requires at least one compare column and disallows truncation.
+        /// </summary>
         Delta = 2,
     }
 
+    /// <summary>
+    /// Configures which properties <see cref="DbMerge{TInput}"/> uses to identify, compare, and mark
+    /// rows for deletion. Populated automatically from <c>[IdColumn]</c>/<c>[CompareColumn]</c>/<c>[DeleteColumn]</c>
+    /// attributes when not set explicitly.
+    /// </summary>
     public class MergeProperties
     {
+        /// <summary>
+        /// Names of the properties that uniquely identify a row, used to match source and destination rows.
+        /// </summary>
         public List<string> IdPropertyNames { get; set; } = new();
+
+        /// <summary>
+        /// Names of the properties compared to detect whether a matched row changed (needs updating).
+        /// </summary>
         public List<string> ComparePropertyNames { get; set; } = new();
+
+        /// <summary>
+        /// Property name/value pairs that mark a source row as a deletion when <see
+        /// cref="DeltaMode.Delta"/> is used (property equals value means "delete this row").
+        /// </summary>
         public Dictionary<string, object> DeletionProperties { get; set; } = new();
         internal string ChangeActionPropertyName { get; set; } = "ChangeAction";
         internal string ChangeDatePropertyName { get; set; } = "ChangeDate";

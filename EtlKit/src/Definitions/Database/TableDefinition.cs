@@ -1,24 +1,44 @@
 using System.Linq;
-
-using EtlKit.Helper;
-using EtlKit.Primitives;
-
 using EtlKit.Common;
 using EtlKit.ConnectionManager;
 using EtlKit.ControlFlow;
+using EtlKit.Helper;
+using EtlKit.Primitives;
 
 namespace EtlKit
 {
+    /// <summary>
+    /// Describes a table's structure — name and columns — for use with tasks such as
+    /// <c>CreateTableTask</c>, and as read back by <see cref="GetDefinitionFromTableName"/>.
+    /// </summary>
     [PublicAPI]
     public class TableDefinition
     {
+        /// <summary>
+        /// The table's name.
+        /// </summary>
         public string Name { get; set; }
+
+        /// <summary>
+        /// The table's columns, in order.
+        /// </summary>
         public List<TableColumn> Columns { get; set; }
+
+        /// <summary>
+        /// Name of the primary key constraint, if any.
+        /// </summary>
         public string PrimaryKeyConstraintName { get; set; }
 
+        /// <summary>
+        /// The sorting key emitted as the <c>ORDER BY</c> clause when the table has no primary key
+        /// column (defaults to the first column's name). Only for ClickHouse.
+        /// </summary>
         // Only for ClickHouse
         public string OrderBy { get; set; }
 
+        /// <summary>
+        /// Index into <see cref="Columns"/> of the identity column, or <see langword="null"/> if there is none.
+        /// </summary>
         public int? IDColumnIndex
         {
             get
@@ -30,17 +50,29 @@ namespace EtlKit
             }
         }
 
+        /// <summary>
+        /// Creates a definition with no name and an empty column list.
+        /// </summary>
         public TableDefinition()
         {
             Columns = new List<TableColumn>();
         }
 
+        /// <summary>
+        /// Creates a definition with the given name and an empty column list.
+        /// </summary>
+        /// <param name="name">The table's name.</param>
         public TableDefinition(string name)
             : this()
         {
             Name = name;
         }
 
+        /// <summary>
+        /// Creates a definition with the given name and columns.
+        /// </summary>
+        /// <param name="name">The table's name.</param>
+        /// <param name="columns">The table's columns, in order.</param>
         public TableDefinition(string name, List<TableColumn> columns)
             : this(name)
         {
@@ -48,15 +80,28 @@ namespace EtlKit
         }
 
         /// <summary>
-        /// Only for ClickHouse
+        /// The table engine clause, emitted as <c>ENGINE = ...</c> (defaults to <c>MergeTree()</c>).
+        /// Only for ClickHouse.
         /// </summary>
         public string Engine { get; set; }
 
         private static readonly string[] trueArray = new[] { "yes", "true", "on", "1", "да" };
 
+        /// <summary>
+        /// Creates the table described by this definition via <paramref name="connectionManager"/>.
+        /// </summary>
+        /// <param name="connectionManager">The connection to create the table on.</param>
         public void CreateTable(IConnectionManager connectionManager) =>
             CreateTableTask.Create(connectionManager, this);
 
+        /// <summary>
+        /// Reads back the structure of an existing table from the database, using the engine-specific
+        /// metadata query for <paramref name="connectionManager"/>'s <see
+        /// cref="EtlKit.Primitives.ConnectionManagerType"/>.
+        /// </summary>
+        /// <param name="connectionManager">Connection to read metadata from (cloned internally, so an open cursor on the original is not affected).</param>
+        /// <param name="tableName">Name of the table to read, optionally schema-qualified.</param>
+        /// <exception cref="EtlKitException"><paramref name="tableName"/> does not exist, or the connection's engine is not supported.</exception>
         public static TableDefinition GetDefinitionFromTableName(
             IConnectionManager connectionManager,
             string tableName

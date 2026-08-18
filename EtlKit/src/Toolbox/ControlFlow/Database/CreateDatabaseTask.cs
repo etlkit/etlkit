@@ -138,11 +138,30 @@ END
                 : string.Empty;
     }
 
+    /// <summary>
+    /// SQL Server database recovery model, set by <see cref="CreateDatabaseTask"/> when creating a database.
+    /// </summary>
     public enum RecoveryModel
     {
+        /// <summary>
+        /// Leaves the recovery model at the server default; no <c>ALTER DATABASE ... SET RECOVERY</c>
+        /// statement is issued.
+        /// </summary>
         Default,
+
+        /// <summary>
+        /// Simple recovery: the transaction log is truncated automatically, no log backups possible.
+        /// </summary>
         Simple,
+
+        /// <summary>
+        /// Bulk-logged recovery: minimally logs bulk operations while still supporting log backups.
+        /// </summary>
         BulkLogged,
+
+        /// <summary>
+        /// Full recovery: every transaction is fully logged, supporting point-in-time restore.
+        /// </summary>
         Full,
     }
 }

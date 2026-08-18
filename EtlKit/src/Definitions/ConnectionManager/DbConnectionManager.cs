@@ -1,62 +1,103 @@
 using System.Diagnostics;
-
-using EtlKit.Primitives;
-
 using EtlKit.Common;
 using EtlKit.ControlFlow;
+using EtlKit.Primitives;
 
 namespace EtlKit.ConnectionManager
 {
+    /// <summary>
+    /// Base <see cref="IConnectionManager"/> implementation shared by every ADO.NET-based connection
+    /// manager: connection lifecycle, command execution, transactions, and the retry/clone/dispose
+    /// machinery. Derived classes provide the ADO.NET <typeparamref name="TConnection"/> type and the
+    /// engine-specific quoting, culture, and bulk-insert behavior.
+    /// </summary>
+    /// <typeparam name="TConnection">The ADO.NET connection type for this database engine.</typeparam>
     [PublicAPI]
     [DebuggerDisplay("{ConnectionManagerType}:{ConnectionString}")]
     [MustDisposeResource]
     public abstract class DbConnectionManager<TConnection> : IConnectionManager
         where TConnection : class, IDbConnection, new()
     {
+        /// <inheritdoc />
         public abstract ConnectionManagerType ConnectionManagerType { get; }
 
+        /// <inheritdoc />
         public int MaxLoginAttempts { get; set; } = 3;
 
+        /// <inheritdoc />
         public virtual bool LeaveOpen
         {
             get => _leaveOpen || Transaction != null;
             set => _leaveOpen = value;
         }
 
+        /// <inheritdoc />
+        /// <remarks>
+        /// This base implementation always reports <see langword="false"/> and throws on set; derived
+        /// classes may override to support it.
+        /// </remarks>
         public bool IsInBulkInsert
         {
             get => false;
             set => throw new NotSupportedException();
         }
 
+        /// <inheritdoc />
         public IDbConnectionString ConnectionString { get; set; }
 
+        /// <summary>
+        /// The underlying ADO.NET connection, or <see langword="null"/> until <see cref="Open"/> has
+        /// been called.
+        /// </summary>
         [CanBeNull]
         protected TConnection DbConnection { get; set; }
 
+        /// <inheritdoc />
         public ConnectionState? State => DbConnection?.State;
 
+        /// <inheritdoc />
         [CanBeNull]
         public IDbTransaction Transaction { get; set; }
 
         private bool _leaveOpen;
 
+        /// <inheritdoc />
         public abstract string QB { get; }
+
+        /// <inheritdoc />
         public abstract string QE { get; }
+
+        /// <inheritdoc />
         public abstract CultureInfo ConnectionCulture { get; }
+
+        /// <inheritdoc />
         public virtual bool SupportDatabases { get; } = true;
+
+        /// <inheritdoc />
         public virtual bool SupportProcedures { get; } = true;
+
+        /// <inheritdoc />
         public virtual bool SupportSchemas { get; } = true;
+
+        /// <inheritdoc />
         public virtual bool SupportComputedColumns { get; } = true;
 
+        /// <summary>
+        /// Creates a connection manager with no connection string set yet.
+        /// </summary>
         protected DbConnectionManager() { }
 
+        /// <summary>
+        /// Creates a connection manager for the given connection string.
+        /// </summary>
+        /// <param name="connectionString">Connection string pointing at the database server.</param>
         protected DbConnectionManager(IDbConnectionString connectionString)
             : this()
         {
             ConnectionString = connectionString;
         }
 
+        /// <inheritdoc />
         public void Open()
         {
             if (LeaveOpen)
@@ -116,6 +157,8 @@ namespace EtlKit.ConnectionManager
             throw lastException ?? new EtlKitException("Could not connect to database!");
         }
 
+        /// <inheritdoc />
+        /// <exception cref="EtlKitException"><see cref="DbConnection"/> is <see langword="null"/> (the connection has not been opened).</exception>
         public IDbCommand CreateCommand(
             string commandText,
             IEnumerable<IQueryParameter> parameterList
@@ -145,9 +188,12 @@ namespace EtlKit.ConnectionManager
         }
 
         /// <summary>
-        /// Map QueryParameter to Command parameter
+        /// Copies <paramref name="source"/>'s name, <see cref="System.Data.DbType"/>, and value onto
+        /// <paramref name="destination"/>. Derived classes override to customize per-engine parameter
+        /// binding.
         /// </summary>
-        /// <returns></returns>
+        /// <param name="source">The query parameter to copy from.</param>
+        /// <param name="destination">The ADO.NET command parameter to copy onto.</param>
         protected virtual void MapQueryParameterToCommandParameter(
             IQueryParameter source,
             IDbDataParameter destination
@@ -158,6 +204,7 @@ namespace EtlKit.ConnectionManager
             destination.Value = source.Value;
         }
 
+        /// <inheritdoc />
         public int ExecuteNonQuery(
             string command,
             IEnumerable<IQueryParameter> parameterList = null
@@ -167,6 +214,7 @@ namespace EtlKit.ConnectionManager
             return cmd.ExecuteNonQuery();
         }
 
+        /// <inheritdoc />
         public object ExecuteScalar(
             string command,
             IEnumerable<IQueryParameter> parameterList = null
@@ -176,6 +224,11 @@ namespace EtlKit.ConnectionManager
             return cmd.ExecuteScalar();
         }
 
+        /// <inheritdoc />
+        /// <remarks>
+        /// Closes the connection when the reader is disposed, unless <see cref="LeaveOpen"/> is <see
+        /// langword="true"/>.
+        /// </remarks>
         public IDataReader ExecuteReader(
             string command,
             IEnumerable<IQueryParameter> parameterList = null
@@ -187,31 +240,37 @@ namespace EtlKit.ConnectionManager
             );
         }
 
+        /// <inheritdoc />
         public IConnectionManager CloneIfAllowed()
         {
             return LeaveOpen ? this : Clone();
         }
 
+        /// <inheritdoc />
         public void BeginTransaction(IsolationLevel isolationLevel)
         {
             Open();
             Transaction = DbConnection?.BeginTransaction(isolationLevel);
         }
 
+        /// <inheritdoc />
         public void BeginTransaction() => BeginTransaction(IsolationLevel.Unspecified);
 
+        /// <inheritdoc />
         public void CommitTransaction()
         {
             Transaction?.Commit();
             CloseTransaction();
         }
 
+        /// <inheritdoc />
         public void RollbackTransaction()
         {
             Transaction?.Rollback();
             CloseTransaction();
         }
 
+        /// <inheritdoc />
         public void CloseTransaction()
         {
             Transaction?.Dispose();
@@ -219,16 +278,29 @@ namespace EtlKit.ConnectionManager
             CloseIfAllowed();
         }
 
+        /// <inheritdoc />
         public abstract void PrepareBulkInsert(string tableName);
+
+        /// <inheritdoc />
         public abstract void CleanUpBulkInsert(string tableName);
 
+        /// <inheritdoc />
         public abstract void BulkInsert(ITableData data, string tableName);
+
+        /// <inheritdoc />
         public abstract void BeforeBulkInsert(string tableName);
+
+        /// <inheritdoc />
         public abstract void AfterBulkInsert(string tableName);
 
         #region IDisposable Support
         private bool _disposedValue; // To detect redundant calls
 
+        /// <summary>
+        /// Disposes <see cref="Transaction"/> and <see cref="DbConnection"/> when <paramref
+        /// name="disposing"/> is <see langword="true"/>; safe to call more than once.
+        /// </summary>
+        /// <param name="disposing"><see langword="true"/> when called from <see cref="Dispose()"/> rather than a finalizer.</param>
         protected virtual void Dispose(bool disposing)
         {
             if (_disposedValue)
@@ -246,12 +318,16 @@ namespace EtlKit.ConnectionManager
             _disposedValue = true;
         }
 
+        /// <summary>
+        /// Disposes the connection and transaction via <see cref="Dispose(bool)"/>.
+        /// </summary>
         public void Dispose()
         {
             Dispose(true);
             GC.SuppressFinalize(this);
         }
 
+        /// <inheritdoc />
         public void CloseIfAllowed()
         {
             if (!LeaveOpen)
@@ -260,13 +336,16 @@ namespace EtlKit.ConnectionManager
             }
         }
 
+        /// <inheritdoc />
         public void Close()
         {
             Dispose();
         }
 
+        /// <inheritdoc />
         public abstract IConnectionManager Clone();
 
+        /// <inheritdoc />
         public virtual bool IndexExists(ITask callingTask, string sql)
         {
             return new SqlTask(callingTask, sql).ExecuteScalarAsBool();

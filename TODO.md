@@ -61,6 +61,9 @@
 - [Three copies of `ExpandoObjectConverter` (Kafka, AI, Rest) — consolidate into Common](docs/tech-debt/TECH-DEBT-ExpandoObjectConverter-Consolidation.md)
   - Copies already disagree: only Kafka honors `PropertyNamingPolicy`, only AI preserves null array elements; XML docs drifted between copies in PR #4
   - Direction: one public converter in `EtlKit.Common` (naming policy honored, nulls preserved), migrate the three call sites, move the AI tests to Common.Tests
+- [`DbConnectionString.ToString()` bypasses the `GetConnectionString()` normalization](docs/tech-debt/TECH-DEBT-DbConnectionString-ToString-Divergence.md)
+  - `Value` routes through the virtual `GetConnectionString()`, but `ToString()` returns `Builder.ConnectionString` directly — `SqlConnectionString` (the SSPI rewrite) reports two different strings for the same instance; internals only consume `.Value`, so the divergence is public-surface-only
+  - Direction: one-line fix (`ToString() => GetConnectionString()`) plus a `ToString() == Value` regression test on `SqlConnectionString`; surfaced by PR #4 review
 
 ## Other
 

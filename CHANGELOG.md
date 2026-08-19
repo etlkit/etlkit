@@ -93,6 +93,16 @@ renamed to match the new package identity. All `AddEtlBox*` calls must be update
 
 🐛 Bug Fixes
 
+- Fixed (RSSL-11946): `ScriptedRowTransformation` no longer treats Roslyn compilation warnings as a
+  compilation failure. Only diagnostics with `Error` severity abort a mapping; warnings are logged
+  once per distinct message and the compiled script runs. A mapping that binds a `Newtonsoft.Json`
+  type such as `JObject` (which implements `IDynamicMetaObjectProvider`) pulls
+  `System.Linq.Expressions` into the script compilation, and because `Newtonsoft.Json` is built
+  against version 6.0.0.0 while the host runtime ships a newer one, Roslyn reports CS1701 assembly
+  unification warnings. Those warnings previously failed the whole ETL package with
+  `ArgumentException: Could not compile script for ...` on .NET 8 and later. Behaviour change: with
+  `NullableContextOptions.Disable` a mapping that uses a `string?` annotation now compiles with a
+  CS8632 warning instead of being routed to the error output.
 - Fixed (RSSL-11885): `EtlKit.Scripting` bumps `Microsoft.CodeAnalysis.CSharp.Scripting` from 4.8.0
   to 4.9.2. The netstandard2.0 binary is compiled against `System.Collections.Immutable 8.0.0.0`
   (elevated transitively by Npgsql's netstandard2.0 dependency group), but MSCA 4.8.0 metadata

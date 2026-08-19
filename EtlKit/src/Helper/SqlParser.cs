@@ -5,9 +5,18 @@ using TSQL.Tokens;
 
 namespace EtlKit.Helper
 {
+    /// <summary>
+    /// Lightweight T-SQL parsing utilities.
+    /// </summary>
     [PublicAPI]
     public static class SqlParser
     {
+        /// <summary>
+        /// Extracts the top-level select-list column names/expressions from a <c>SELECT</c> statement,
+        /// splitting on commas outside of parentheses. Returns an empty list if <paramref name="sql"/>
+        /// does not parse as a single <c>SELECT</c> statement.
+        /// </summary>
+        /// <param name="sql">A SQL <c>SELECT</c> statement.</param>
         public static List<string> ParseColumnNames(string sql)
         {
             var result = new List<string>();

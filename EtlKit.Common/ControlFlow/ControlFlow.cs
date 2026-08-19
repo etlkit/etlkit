@@ -170,17 +170,35 @@ namespace EtlKit.Common.ControlFlow
         }
     }
 
+    /// <summary>
+    /// The structured log state passed to <see cref="ILogger.Log{TState}"/> by the <see
+    /// cref="ControlFlow"/> class's <c>Trace</c>/<c>Debug</c>/<c>Info</c>/<c>Warn</c>/<c>Error</c>
+    /// logger extension methods. Enumerating the properties (<c>Type</c>, <c>Action</c>, <c>Hash</c>,
+    /// <c>Stage</c>, <c>LoadProcessKey</c>) lets structured logging providers — e.g. the NLog database
+    /// target configured by <c>DatabaseLoggingConfiguration</c> — read the individual fields instead of
+    /// just the message text.
+    /// </summary>
     public class MyLogEvent : IEnumerable<KeyValuePair<string, object>>
     {
         readonly List<KeyValuePair<string, object>> _properties = new();
 
+        /// <summary>
+        /// The plain-text log message.
+        /// </summary>
         public string Message { get; }
 
+        /// <summary>
+        /// Creates a log event with the given message and no properties yet.
+        /// </summary>
+        /// <param name="message">The plain-text log message.</param>
         public MyLogEvent(string message)
         {
             Message = message;
         }
 
+        /// <summary>
+        /// Enumerates the properties added via <see cref="WithProperty"/>, in the order they were added.
+        /// </summary>
         public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
         {
             return _properties.GetEnumerator();
@@ -191,12 +209,21 @@ namespace EtlKit.Common.ControlFlow
             return GetEnumerator();
         }
 
+        /// <summary>
+        /// Adds a named property to this log event and returns this instance, for chaining.
+        /// </summary>
+        /// <param name="name">Property name.</param>
+        /// <param name="value">Property value.</param>
         public MyLogEvent WithProperty(string name, object value)
         {
             _properties.Add(new KeyValuePair<string, object>(name, value));
             return this;
         }
 
+        /// <summary>
+        /// Formatter passed to <see cref="ILogger.Log{TState}"/> that renders a <see
+        /// cref="MyLogEvent"/> as its plain <see cref="Message"/>, ignoring the exception argument.
+        /// </summary>
         public static Func<MyLogEvent, Exception, string> Formatter { get; } = (l, _) => l.Message;
     }
 }

@@ -24,8 +24,16 @@ namespace EtlKit.DataFlow
     [AttributeUsage(AttributeTargets.Property)]
     public class RetrieveColumnAttribute : Attribute
     {
+        /// <summary>
+        /// Name of the value property on the lookup source object to copy from.
+        /// </summary>
         public string LookupSourcePropertyName { get; set; }
 
+        /// <summary>
+        /// Marks the decorated property to receive the value of <paramref
+        /// name="lookupSourcePropertyName"/> from the matched lookup source object.
+        /// </summary>
+        /// <param name="lookupSourcePropertyName">Name of the value property on the lookup source object to copy from.</param>
         public RetrieveColumnAttribute(string lookupSourcePropertyName)
         {
             LookupSourcePropertyName = lookupSourcePropertyName;

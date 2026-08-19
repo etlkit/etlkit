@@ -8,6 +8,11 @@ using TypeInfo = EtlKit.Common.DataFlow.TypeInfo;
 
 namespace EtlKit.DataFlow;
 
+/// <summary>
+/// A pass-through transformation that bulk-inserts every row into a database table as it flows
+/// through, using the destination table's structure to build a compatible bulk-insert payload.
+/// </summary>
+/// <typeparam name="TInput">Type of the rows flowing through (input and output).</typeparam>
 [PublicAPI]
 public class DbRowTransformation<TInput> : RowTransformation<TInput>
 {
@@ -38,6 +43,9 @@ public class DbRowTransformation<TInput> : RowTransformation<TInput>
     [CanBeNull]
     private IConnectionManager _ownBulkInsertConnectionManager;
 
+    /// <summary>
+    /// Creates a new instance with no table name or table definition set yet.
+    /// </summary>
     public DbRowTransformation()
     {
         InitObjects();
@@ -55,6 +63,10 @@ public class DbRowTransformation<TInput> : RowTransformation<TInput>
         };
     }
 
+    /// <summary>
+    /// Creates a new instance targeting the given table.
+    /// </summary>
+    /// <param name="tableName">Name of the destination table.</param>
     public DbRowTransformation(string tableName)
         : this()
     {
@@ -62,6 +74,11 @@ public class DbRowTransformation<TInput> : RowTransformation<TInput>
         InitObjects();
     }
 
+    /// <summary>
+    /// Creates a new instance targeting the given table via the given connection manager.
+    /// </summary>
+    /// <param name="connectionManager">Connection to the database that hosts the destination table.</param>
+    /// <param name="tableName">Name of the destination table.</param>
     public DbRowTransformation(IConnectionManager connectionManager, string tableName)
         : this(tableName)
     {

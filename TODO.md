@@ -76,7 +76,7 @@
     broader driver-package/DI modularization
 - [UseRowAccessor mode for ScriptedRowTransformation](docs/tech-debt/TECH-DEBT-ScriptedTransformation-UseRowAccessor.md)
   - Fixes a real bug: scripts with Roslyn warnings only (e.g. CS0472) are incorrectly rejected outright
-  - Opt-in `Row.Field` accessor sidesteps the compile errors that null/missing fields currently cause, which today produce a silently-null output instead
+  - Null fields compile to `dynamic` and blow up with CS0656 because `Microsoft.CSharp` is never referenced (RSSL-12005) — that half has a one-line fix in `ScriptBuilder`; opt-in `Row.Field` still covers the absent-field case
 - [EtlKit.DynamicLinq AssemblyLoadContext unloading](docs/tech-debt/TECH-DEBT-DynamicLinq-AssemblyLoadContext.md)
   - Multi-target to `net6.0` and wrap `DynamicClassFactory.CreateType` in a collectible ALC, with eviction added to `ExpandoTypeMapper._fastPathCache`
   - Deferred until it can land together with the sibling `ScriptBuilder` ALC work

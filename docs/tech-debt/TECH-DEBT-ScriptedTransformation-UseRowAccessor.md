@@ -5,15 +5,17 @@
 `ScriptedRowTransformation` generates a per-shape static C# class for each unique `ExpandoObject`
 schema and uses it as the Roslyn `globalsType`. This approach has two failure modes:
 
-1. **Null-valued fields** — `ScriptBuilder` infers `null` values as `object` (because `null` has no
-   runtime type). Arithmetic expressions such as `Score + 1` then fail at **compile time** with
-   CS0019 ("operator '+' cannot be applied to 'object' and 'int'"). With `FailOnMissingField=false`
-   the engine silently returns a null runner, so the output field becomes `null` instead of carrying
-   out the intended computation.
+1. **Null-valued fields** — `ScriptBuilder` types `null` values as `dynamic` (because `null` has
+   no runtime type). **Any** operation on such a field then fails at **compile time** with CS0656
+   ("Missing compiler required member `Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create`")
+   — `Score + 1`, `(Name ?? "").Replace(...)`, member access, even `Name?.ToString()`. With the
+   default `FailOnMissingField=true` the whole transformation throws `ArgumentException`; only
+   with `FailOnMissingField=false` does the engine return a null runner and the output field
+   become `null`.
 
 2. **Absent fields** — if a field is missing from the `ExpandoObject`, the generated globals type
-   has no corresponding property. The expression fails to compile (undeclared identifier), again
-   producing `null` output silently.
+   has no corresponding property. The expression fails to compile (undeclared identifier), and
+   the same `FailOnMissingField` split applies: throw by default, silent `null` when off.
 
 A secondary bug compounds the issue: `GetScriptRunner` rejects scripts with **any** Roslyn
 diagnostic, including mere warnings. For example, the expression `Score != null ? Score + 1 : 0`
@@ -22,14 +24,38 @@ rejected even though the script is semantically valid.
 
 ## Root Cause
 
-`ScriptBuilder.BuildClassCode` maps null property values to `FullTypeName(null)` → `"object"`.
-The generated constructor assignment is `Score = (object)extensions["Score"]`, so the Roslyn
-type of `Score` inside the script is `object`. Standard numeric operators do not apply to `object`,
-causing compile-time failure rather than a runtime null dereference.
+`ScriptBuilder.BuildClassCode` maps null property values to `FullTypeName(null)` → `"dynamic"`
+(`ScriptBuilder.cs`, `FullTypeName`: `type?.FullName?.Replace('+', '.') ?? "dynamic"`), so the
+generated member is `public dynamic Score { get; }`.
+
+That declaration compiles fine on its own — `DynamicAttribute` is in the reference set. The
+failure is one level up, in the **script** compilation:
+`GetReferencedAssemblies(IDictionary<string, object?>)` seeds only `typeof(Attribute).Assembly`,
+`typeof(DynamicAttribute).Assembly` and `System.Runtime`, plus the assemblies of the row's
+*actual* value types. `Microsoft.CSharp` therefore never reaches `ScriptOptions.AddReferences`,
+and every operator or member access on a `dynamic` field needs the DLR call site from
+`Microsoft.CSharp.RuntimeBinder` → CS0656, regardless of the script text.
 
 Roslyn issue [#3194](https://github.com/dotnet/roslyn/issues/3194) prevents using `IDynamicMetaObjectProvider`
 (i.e. `DynamicObject`) directly as `globalsType` — top-level member access generates compile errors.
 This is why the per-shape static class workaround was originally adopted.
+
+> **History.** Until commit `91a2856f` (RSSL-11105, 2025-09-16) `FullTypeName` fell back to
+> `"object"`, which produced CS0019 on arithmetic. This document originally described that older
+> behaviour; it is corrected here. Tracked as RSSL-12005.
+
+### Simpler immediate fix
+
+Adding `typeof(Microsoft.CSharp.RuntimeBinder.Binder).Assembly` to that seed set removes CS0656
+for every `dynamic` field at once, without `UseRowAccessor`. Verified: the same mapping that
+throws today compiles and returns an empty string once the reference is present. Callers can
+already opt in without a library change by setting `AdditionalAssemblyNames = ["Microsoft.CSharp"]`
+on the step — in package XML,
+`<AdditionalAssemblyNames><string>Microsoft.CSharp</string></AdditionalAssemblyNames>`.
+
+This does **not** subsume `UseRowAccessor`: absent fields (failure mode 2) still fail to compile
+as undeclared identifiers, and the per-shape runner cache remains. It does mean the null-field
+half of this debt has a one-line fix that should land first.
 
 ## Proposed Fix
 
@@ -122,8 +148,8 @@ public sealed class ScriptGlobals<T>
 | Scenario                                 | `UseRowAccessor=false` (default)         | `UseRowAccessor=true`                       |
 |------------------------------------------|------------------------------------------|---------------------------------------------|
 | Field present, non-null                  | Works                                    | Works (`Row.Field`)                         |
-| Field present, null                      | Compile error → silent null              | `RuntimeBinderException` caught → null      |
-| Field absent                             | Compile error → silent null              | `RuntimeBinderException` caught → null      |
+| Field present, null                      | CS0656 → throws; null if not failing     | `RuntimeBinderException` caught → null      |
+| Field absent                             | CS0103 → throws; null if not failing     | `RuntimeBinderException` caught → null      |
 | `FailOnMissingField=true` + absent field | Throws at compile time                   | Throws `RuntimeBinderException` at runtime  |
 | Script with warnings (e.g. CS0472)       | Incorrectly rejected (BUG)               | Fixed (errors only)                         |
 | `PassThrough=true`                       | Copies input fields to output            | Identical — independent of `UseRowAccessor` |

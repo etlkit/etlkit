@@ -302,6 +302,10 @@ SOURCE CODE:
         {
             typeof(Attribute).Assembly,
             typeof(DynamicAttribute).Assembly,
+            // Required for fields declared as `dynamic` (the value was null, so no runtime
+            // type is known): without this reference any operator or member access on such
+            // a field fails with CS0656 (DLR call sites live in Microsoft.CSharp.RuntimeBinder).
+            typeof(Microsoft.CSharp.RuntimeBinder.Binder).Assembly,
             // Required when struct types from non-core assemblies (e.g. JsonElement) appear as
             // property types: Roslyn resolves ValueType from System.Runtime, not System.Private.CoreLib.
             Assembly.Load(new AssemblyName("System.Runtime")),

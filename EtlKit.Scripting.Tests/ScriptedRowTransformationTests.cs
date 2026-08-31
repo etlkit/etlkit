@@ -74,6 +74,34 @@ public class ScriptedRowTransformationTests
     }
 
     [Fact]
+    public void ShouldTransformExpandoObjectWithNullFieldValue()
+    {
+        // Arrange — the key exists but its value is null, so the generated globals type
+        // declares the field as `dynamic` and the mapping expression requires
+        // Microsoft.CSharp (DLR call sites) to compile.
+        var row = new ExpandoObject() as IDictionary<string, object?>;
+        row["client"] = "SOMEBODY";
+        row["phone_number"] = null;
+
+        var memorySource = new MemorySource();
+        memorySource.DataAsList.Add((ExpandoObject)row);
+        var script = new ScriptedRowTransformation<ExpandoObject, ExpandoObject>();
+        script.Mappings.Add("phone_number", "(phone_number ?? \"\").Replace(\"'\", \"\")");
+        var memoryDestination = new MemoryDestination<ExpandoObject>();
+        memorySource.LinkTo(script);
+        script.LinkTo(memoryDestination);
+
+        // Act
+        memorySource.Execute(CancellationToken.None);
+        memoryDestination.Wait();
+
+        // Assert
+        Assert.Single(memoryDestination.Data);
+        var result = (IDictionary<string, object?>)memoryDestination.Data.First();
+        Assert.Equal("", result["phone_number"]);
+    }
+
+    [Fact]
     public void ShouldTransformExpandoObjectWithMissingFieldOnSource()
     {
         // Arrange

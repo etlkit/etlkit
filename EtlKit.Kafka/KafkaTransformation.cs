@@ -160,6 +160,21 @@ namespace EtlKit.DataFlow
             _producer = producer;
         }
 
+        /// <summary>
+        /// Constructor with producer and an injected logger, for unit testing only.
+        /// Injecting the logger keeps the instance off the static
+        /// <see cref="ControlFlow.LoggerFactory"/> fallback, so a test observing this
+        /// transformation's log records cannot observe those of anything else.
+        /// </summary>
+        protected KafkaTransformation(
+            IProducer<TKafkaKey, TKafkaValue> producer,
+            ILogger<KafkaTransformation<TInput, TKafkaKey, TKafkaValue>>? logger
+        )
+            : this(logger)
+        {
+            _producer = producer;
+        }
+
         public override void LinkErrorTo(IDataFlowLinkTarget<EtlKitError> target) =>
             ErrorHandler.LinkErrorTo(target, SourceBlock.Completion);
 
@@ -384,6 +399,15 @@ namespace EtlKit.DataFlow
         /// </summary>
         protected KafkaTransformation(IProducer<string, TKafkaValue> producer)
             : base(producer) { }
+
+        /// <summary>
+        /// Constructor with producer and an injected logger, for unit testing only.
+        /// </summary>
+        protected KafkaTransformation(
+            IProducer<string, TKafkaValue> producer,
+            ILogger<KafkaTransformation<TInput, string, TKafkaValue>>? logger
+        )
+            : base(producer, logger) { }
     }
 
     /// <summary>

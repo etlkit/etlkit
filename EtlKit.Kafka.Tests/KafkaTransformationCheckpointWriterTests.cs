@@ -2,6 +2,7 @@ using Confluent.Kafka;
 using EtlKit.Common.DataFlow;
 using EtlKit.DataFlow;
 using EtlKit.Primitives;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
 namespace EtlKit.Kafka.Tests;
@@ -12,6 +13,11 @@ namespace EtlKit.Kafka.Tests;
 // unconfirmed or failed message. This is the exact precondition CheckpointWriter's at-least-once
 // design states for its upstream ("a record reaching the writer implies it was already durably
 // written") — previously only implied by two independent test suites, never pinned as a pair.
+//
+// Every task here is built with an injected NullLogger. A delivery failure is part of the scenario,
+// and without injection that Error would be written through the process-global
+// ControlFlow.LoggerFactory — which another test class, running in parallel, may have pointed at a
+// mock it asserts on.
 public class KafkaTransformationCheckpointWriterTests
 {
     private sealed record Row(long Position, string Value);
@@ -19,7 +25,7 @@ public class KafkaTransformationCheckpointWriterTests
     private sealed class TestableKafkaTransformation : KafkaTransformation<Row, string>
     {
         public TestableKafkaTransformation(IProducer<string, string> producer)
-            : base(producer) { }
+            : base(producer, NullLogger<KafkaTransformation<Row, string, string>>.Instance) { }
 
         protected override string BuildMessageValue(Row input) => input.Value;
     }
@@ -62,14 +68,17 @@ public class KafkaTransformationCheckpointWriterTests
         CheckpointWriter<Row?, long> Writer
     ) NewPipeline(InMemoryCheckpointStore<long> store, string checkpointId, string? failValue)
     {
-        var source = new MemorySource<Row>(
-            new[] { new Row(1, "first"), new Row(2, "second"), new Row(3, "third") }
-        );
+        var source = new MemorySource<Row>(NullLogger<MemorySource<Row>>.Instance)
+        {
+            Data = new[] { new Row(1, "first"), new Row(2, "second"), new Row(3, "third") },
+        };
         var transformation = new TestableKafkaTransformation(NewProducerMock(failValue).Object)
         {
             TopicName = "test-topic",
         };
-        var writer = new CheckpointWriter<Row?, long>
+        var writer = new CheckpointWriter<Row?, long>(
+            NullLogger<CheckpointWriter<Row?, long>>.Instance
+        )
         {
             CheckpointStore = store,
             CheckpointId = checkpointId,
@@ -139,7 +148,9 @@ public class KafkaTransformationCheckpointWriterTests
             checkpointId,
             failValue: "second"
         );
-        var errorDest = new MemoryDestination<EtlKitError>();
+        var errorDest = new MemoryDestination<EtlKitError>(
+            NullLogger<MemoryDestination<EtlKitError>>.Instance
+        );
         transformation.LinkErrorTo(errorDest);
 
         await source.ExecuteAsync();

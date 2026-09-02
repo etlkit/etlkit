@@ -123,6 +123,11 @@ throws `ArgumentException` and stops the flow. When `false`, the affected output
 transform.FailOnMissingField = false; // tolerate missing or uncompilable fields
 ```
 
+Only diagnostics with `Error` severity count as a compilation failure. Compiler warnings — for
+example CS1701 assembly unification warnings raised when a referenced library was built against
+another version of a framework assembly — are written to the log (once per distinct message) and
+the compiled script is used as usual.
+
 ### `AdditionalAssemblyNames`
 
 Names (or file paths) of assemblies to load before compiling scripts. Accepts:

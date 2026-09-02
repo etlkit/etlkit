@@ -1,12 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
-
-using EtlKit.Primitives;
-
 using EtlKit.Common;
 using EtlKit.Common.ControlFlow;
 using EtlKit.Common.Logging;
 using EtlKit.ControlFlow;
+using EtlKit.Primitives;
 
 namespace EtlKit.Logging
 {
@@ -196,12 +194,34 @@ FROM {Tn.QuotedFullName}"
         }
     }
 
+    /// <summary>
+    /// Selects which row(s) <see cref="ReadLoadProcessTableTask"/> reads from the load process table.
+    /// </summary>
     public enum ReadOptions
     {
+        /// <summary>
+        /// Reads the process with the given id.
+        /// </summary>
         ReadSingleProcess,
+
+        /// <summary>
+        /// Reads every process in the table, without filtering.
+        /// </summary>
         ReadAllProcesses,
+
+        /// <summary>
+        /// Reads the most recent process that finished, whether it succeeded or was aborted.
+        /// </summary>
         ReadLastFinishedProcess,
+
+        /// <summary>
+        /// Reads the most recent process that finished successfully.
+        /// </summary>
         ReadLastSuccessful,
+
+        /// <summary>
+        /// Reads the most recent process that was aborted.
+        /// </summary>
         ReadLastAborted,
     }
 }

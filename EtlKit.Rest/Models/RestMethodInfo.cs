@@ -2,6 +2,11 @@ using System.Collections.Generic;
 
 namespace EtlKit.Rest.Models
 {
+    /// <summary>
+    /// Describes one REST call: HTTP method and headers used as-is, plus <see cref="Url"/> and <see
+    /// cref="Body"/> as <a href="https://shopify.github.io/liquid/">Liquid</a> templates rendered
+    /// against the input row.
+    /// </summary>
     public sealed class RestMethodInfo
     {
         /// <summary>

@@ -46,7 +46,7 @@ two properties: Id of type int and Value of type string.
 Working with dynamic objects has some drawbacks, as .NET is a strongly typed language. Of course you
 can also use a generic object to type the DbSource.
 
-Let's assume we create a POCO (Plain old component object) `MySimpleRow` that looks like this:
+Let's assume we create a POCO (Plain Old CLR Object) `MySimpleRow` that looks like this:
 
 ```csharp
 public class MySimpleRow {
@@ -87,7 +87,7 @@ It is initialized with a table name. Unlike other Destinations, the DbDestinatio
 the database in batches. The default batch size is 1000 rows - the DbDestination waits until it's
 input buffer has reached the batch size before it bulk inserts the data into the database.
 
-The following example would transfer data from the destination to the source:
+The following example would transfer data from the source to the destination:
 
 ```csharp
 DbSource source = new DbSource("SourceTable");
@@ -96,7 +96,7 @@ DbDestination dest = new DbDestination("DestinationTable");
 source.LinkTo(dest);
 //Start the data flow
 source.Execute();
-dest.Wait()
+dest.Wait();
 ```
 
 ## Connection manager
@@ -119,7 +119,7 @@ with it a connection manager.
 Here is an example creating a connection manager for Sql Server and pass it to a DbSource:
 
 ```csharp
-DbSource source = DbSource (
+DbSource source = new DbSource(
     new SqlConnectionManager("Data Source=.;Integrated Security=SSPI;Initial Catalog=EtlKit;")
     , "SourceTable"
 );
@@ -131,7 +131,7 @@ look different.
 This is how you create a connection manager for MySql:
 
 ```csharp
-MySqlConnectionManager connectionManager = new MySqlConnectionManager("Server=10.37.128.2;Database=EtlKit_ControlFlow;Uid=etlkit;Pwd=etlkitpassword;";
+MySqlConnectionManager connectionManager = new MySqlConnectionManager("Server=10.37.128.2;Database=EtlKit_ControlFlow;Uid=etlkit;Pwd=etlkitpassword;");
 ```
 
 Here the example code for creating a connection manager for Postgres:
@@ -144,6 +144,19 @@ Creation of a connection manager for SQLite:
 
 ```csharp
 SQLiteConnectionManager connectionManager = new SQLiteConnectionManager("Data Source=.\\db\\SQLiteControlFlow.db;Version=3;");
+```
+
+Creation of a connection manager for ClickHouse (requires the `EtlKit.ClickHouse` package):
+
+```csharp
+ClickHouseConnectionManager connectionManager = new ClickHouseConnectionManager("Host=localhost;Port=9000;Database=demo;User=default;");
+```
+
+For Sql Server Analysis Services (SSAS), the `AdomdConnectionManager` connects via ADOMD - typically
+used to run XMLA statements:
+
+```csharp
+AdomdConnectionManager connectionManager = new AdomdConnectionManager("Data Source=localhost;Catalog=AdventureWorks;");
 ```
 
 ### Default ConnectionManager
@@ -171,10 +184,10 @@ functionalities, e.g. like getting a connection string for the database storing 
 
 ```csharp
 SqlConnectionString etlkitConnString = new SqlConnectionString("Data Source=.;Integrated Security=SSPI;Initial Catalog=EtlKit;");
-SqlConnectionString masterConnString = etlkitConnString.GetMasterConnection();
+SqlConnectionString masterConnString = etlkitConnString.CloneWithMasterDbName();
 
-//masterConnString is equal to "Data Source=.;Integrated Security=SSPI;"
-SqlConnectionManager conectionToMaster = new SqlConnectionManager(masterConnString);
+//masterConnString now points to the master database (Initial Catalog=master)
+SqlConnectionManager connectionToMaster = new SqlConnectionManager(masterConnString);
 ```
 
 #### ODBC Connections
@@ -186,8 +199,8 @@ connect to SQL Server or Access databases via ODBC.
 Here is how you can connect via ODBC:
 
 ```csharp
-DbSource source = DbSource (
-    new SqlODBCConnectionManager("Driver={SQL Server};Server=.;Database=EtlKit_ControlFlow;Trusted_Connection=Yes"),
+DbSource source = new DbSource(
+    new SqlOdbcConnectionManager("Driver={SQL Server};Server=.;Database=EtlKit_ControlFlow;Trusted_Connection=Yes"),
     "SourceTable"
 );
 ```
@@ -212,8 +225,8 @@ To create a connection to an Access Database, use the `AccessOdbcConnectionManag
 `OdbcConnectionString`.
 
 ```csharp
-DbDestination dest = DbDestination (
-    new AccessOdbcConnectionManager(new OdbcConnectionString("Driver={Microsoft Access Driver (*.mdb, *.accdb)}DBQ=C:\DB\Test.mdb")),
+DbDestination dest = new DbDestination(
+    new AccessOdbcConnectionManager(new OdbcConnectionString(@"Driver={Microsoft Access Driver (*.mdb, *.accdb)};DBQ=C:\DB\Test.mdb")),
     "DestinationTable"
 );
 ```
@@ -259,15 +272,15 @@ or if you want to provide your own meta information, you can pass a `TableDefini
 This could look like this:
 
 ```csharp
-var TableDefinition = new TableDefinition("tableName"
-    , new List<TableColumn>() {
-    new TableColumn("Id", "BIGINT", allowNulls:false,  isPrimaryKey: true, isIdentity:true)),
-    new TableColumn("OtherCol", "NVARCHAR(100)", allowNulls: true)
-});
+var tableDefinition = new TableDefinition("tableName",
+    new List<TableColumn>() {
+        new TableColumn("Id", "BIGINT", allowNulls: false, isPrimaryKey: true, isIdentity: true),
+        new TableColumn("OtherCol", "NVARCHAR(100)", allowNulls: true)
+    });
 
-var DbSource<type> = new DbSource<type>() {
-  SourceTableDefinition = TableDefinition
-}
+var source = new DbSource<MySimpleRow>() {
+  SourceTableDefinition = tableDefinition
+};
 ```
 
 EtlKit will use this meta data instead to get the right column names.

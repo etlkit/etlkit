@@ -42,7 +42,7 @@ This is the same separation that exists between `RowDuplication` and `RowMultipl
 If the predicate throws and an error destination is linked via `LinkErrorTo`, the failing row is forwarded there with the exception attached. Without an error destination the exception propagates and stops the flow.
 
 ```csharp
-ErrorMemoryDestination errorDest = new ErrorMemoryDestination();
+MemoryDestination<EtlKitError> errorDest = new MemoryDestination<EtlKitError>();
 filtration.LinkErrorTo(errorDest);
 ```
 
@@ -242,4 +242,4 @@ Implementation in `EtlKit.DynamicLinq/`:
 - `ExpandoTypeMapper.cs` — internal static class. Handles the fast/slow path routing for `Map(ExpandoObject)` plus the reflection-based recursive mapping for nested shapes.
 - `AssemblyResolver.cs` — internal static helper. `Load(string)` with the three-step resolution fallback (AppDomain → `Assembly.Load(AssemblyName)` → `Assembly.LoadFrom(path)`) and `GetExportedTypesSafe(Assembly)` for partial-load resilience.
 - `DynamicLinqTypeProvider.cs` — internal `IDynamicLinqCustomTypeProvider` implementation. Holds the registered custom types and the namespace imports, used as `ParsingConfig.CustomTypeProvider`.
-- `EtlKitDynamicLinqServiceCollectionExtensions.cs` — DI registration helpers.
+- `EtlBoxDynamicLinqServiceCollectionExtensions.cs` — DI registration helpers.

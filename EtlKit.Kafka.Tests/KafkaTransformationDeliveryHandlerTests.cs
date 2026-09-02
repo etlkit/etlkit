@@ -1,33 +1,45 @@
-using EtlKit.Common.ControlFlow;
-using EtlKit.DataFlow;
 using Confluent.Kafka;
+using EtlKit.DataFlow;
 using EtlKit.Primitives;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using TransformationLogger = Microsoft.Extensions.Logging.ILogger<EtlKit.DataFlow.KafkaTransformation<
+    string,
+    string,
+    string
+>>;
 
 namespace EtlKit.Kafka.Tests;
 
+// Loggers are injected through constructors rather than published on the process-global
+// ControlFlow.LoggerFactory: that static is shared by every test class in this assembly, and xUnit
+// runs classes in parallel, so a mock installed there also collects the log records of whatever
+// else happens to be running. That is what made ShouldNotLogError_WhenDeliveryReportSucceeds flaky
+// — a concurrent delivery failure in another class landed an Error in this class's mock and broke
+// its Times.Never verification. With injection each mock is reachable only by its own pipeline.
 public class KafkaTransformationDeliveryHandlerTests
 {
     private class TestableKafkaTransformation : KafkaTransformation<string, string>
     {
-        public TestableKafkaTransformation(IProducer<string, string> producer)
-            : base(producer) { }
+        public TestableKafkaTransformation(
+            IProducer<string, string> producer,
+            TransformationLogger logger
+        )
+            : base(producer, logger) { }
 
         protected override string BuildMessageValue(string input) => input;
     }
 
-    [Fact]
-    public void ShouldLogError_WhenDeliveryReportHasError()
+    private static Mock<TransformationLogger> NewLoggerMock()
     {
-        // Arrange
-        var mockLogger = new Mock<ILogger>();
+        var mockLogger = new Mock<TransformationLogger>();
         mockLogger.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
-        var mockFactory = new Mock<ILoggerFactory>();
-        mockFactory.Setup(f => f.CreateLogger(It.IsAny<string>())).Returns(mockLogger.Object);
-        Common.ControlFlow.ControlFlow.LoggerFactory = mockFactory.Object;
+        return mockLogger;
+    }
 
-        var capturedHandlers = new List<Action<DeliveryReport<string, string>>>();
+    private static Mock<IProducer<string, string>> NewProducerMock(Error deliveryError)
+    {
         var mockProducer = new Mock<IProducer<string, string>>();
         mockProducer
             .Setup(p =>
@@ -38,31 +50,50 @@ public class KafkaTransformationDeliveryHandlerTests
                 )
             )
             .Callback<string, Message<string, string>, Action<DeliveryReport<string, string>>>(
-                (_, _, handler) => capturedHandlers.Add(handler)
+                (_, message, handler) =>
+                    handler(
+                        new DeliveryReport<string, string>
+                        {
+                            Error = deliveryError,
+                            Message = message,
+                        }
+                    )
             );
+        return mockProducer;
+    }
 
-        var transformation = new TestableKafkaTransformation(mockProducer.Object)
+    [Fact]
+    public void ShouldSendToErrorBufferAndLogError_WhenDeliveryReportHasError()
+    {
+        // Arrange
+        var mockLogger = NewLoggerMock();
+        var mockProducer = NewProducerMock(
+            new Error(ErrorCode.BrokerNotAvailable, "Broker not available")
+        );
+
+        using var transformation = new TestableKafkaTransformation(
+            mockProducer.Object,
+            mockLogger.Object
+        )
         {
             TopicName = "test-topic",
         };
-        var source = new MemorySource<string>(new[] { "test-value" });
-        var dest = new MemoryDestination<string?>();
+        var source = new MemorySource<string>(NullLogger<MemorySource<string>>.Instance)
+        {
+            Data = new List<string> { "test-value" },
+        };
+        var dest = new MemoryDestination<string?>(NullLogger<MemoryDestination<string?>>.Instance);
+        var errorDest = new MemoryDestination<EtlKitError>(
+            NullLogger<MemoryDestination<EtlKitError>>.Instance
+        );
         source.LinkTo(transformation);
         transformation.LinkTo(dest);
+        transformation.LinkErrorTo(errorDest);
+
+        // Act
         source.Execute();
         dest.Wait();
-
-        Assert.Single(capturedHandlers);
-
-        // Act: Kafka reports an error
-        capturedHandlers[0]
-            (
-                new DeliveryReport<string, string>
-                {
-                    Error = new Error(ErrorCode.BrokerNotAvailable, "Broker not available"),
-                    Message = new Message<string, string> { Value = "test-value" },
-                }
-            );
+        errorDest.Wait();
 
         // Assert
         mockLogger.Verify(
@@ -80,54 +111,34 @@ public class KafkaTransformationDeliveryHandlerTests
                 ),
             Times.Once
         );
+
+        Assert.Empty(dest.Data);
+        Assert.Single(errorDest.Data);
     }
 
     [Fact]
     public void ShouldNotLogError_WhenDeliveryReportSucceeds()
     {
         // Arrange
-        var mockLogger = new Mock<ILogger>();
-        mockLogger.Setup(x => x.IsEnabled(It.IsAny<LogLevel>())).Returns(true);
-        var mockFactory = new Mock<ILoggerFactory>();
-        mockFactory.Setup(f => f.CreateLogger(It.IsAny<string>())).Returns(mockLogger.Object);
-        Common.ControlFlow.ControlFlow.LoggerFactory = mockFactory.Object;
+        var mockLogger = NewLoggerMock();
+        var mockProducer = NewProducerMock(new Error(ErrorCode.NoError));
 
-        var capturedHandlers = new List<Action<DeliveryReport<string, string>>>();
-        var mockProducer = new Mock<IProducer<string, string>>();
-        mockProducer
-            .Setup(p =>
-                p.Produce(
-                    It.IsAny<string>(),
-                    It.IsAny<Message<string, string>>(),
-                    It.IsAny<Action<DeliveryReport<string, string>>>()
-                )
-            )
-            .Callback<string, Message<string, string>, Action<DeliveryReport<string, string>>>(
-                (_, _, handler) => capturedHandlers.Add(handler)
-            );
-
-        var transformation = new TestableKafkaTransformation(mockProducer.Object)
+        using var transformation = new TestableKafkaTransformation(
+            mockProducer.Object,
+            mockLogger.Object
+        )
         {
             TopicName = "test-topic",
         };
-        var source = new MemorySource<string>(new[] { "test-value" });
-        var dest = new MemoryDestination<string?>();
+        var source = new MemorySource<string>(NullLogger<MemorySource<string>>.Instance)
+        {
+            Data = new List<string> { "test-value" },
+        };
+        var dest = new MemoryDestination<string?>(NullLogger<MemoryDestination<string?>>.Instance);
         source.LinkTo(transformation);
         transformation.LinkTo(dest);
         source.Execute();
         dest.Wait();
-
-        Assert.Single(capturedHandlers);
-
-        // Act: Kafka reports success
-        capturedHandlers[0]
-            (
-                new DeliveryReport<string, string>
-                {
-                    Error = new Error(ErrorCode.NoError),
-                    Message = new Message<string, string> { Value = "test-value" },
-                }
-            );
 
         // Assert
         mockLogger.Verify(
@@ -141,6 +152,8 @@ public class KafkaTransformationDeliveryHandlerTests
                 ),
             Times.Never
         );
+
+        Assert.Single(dest.Data);
     }
 
     [Fact]
@@ -158,13 +171,21 @@ public class KafkaTransformationDeliveryHandlerTests
             )
             .Throws(new InvalidOperationException("Simulated produce failure"));
 
-        var transformation = new TestableKafkaTransformation(mockProducer.Object)
+        using var transformation = new TestableKafkaTransformation(
+            mockProducer.Object,
+            NullLogger<KafkaTransformation<string, string, string>>.Instance
+        )
         {
             TopicName = "test-topic",
         };
-        var errorDest = new MemoryDestination<EtlKitError>();
-        var source = new MemorySource<string>(new[] { "test-value" });
-        var dest = new MemoryDestination<string?>();
+        var errorDest = new MemoryDestination<EtlKitError>(
+            NullLogger<MemoryDestination<EtlKitError>>.Instance
+        );
+        var source = new MemorySource<string>(NullLogger<MemorySource<string>>.Instance)
+        {
+            Data = new List<string> { "test-value" },
+        };
+        var dest = new MemoryDestination<string?>(NullLogger<MemoryDestination<string?>>.Instance);
         source.LinkTo(transformation);
         transformation.LinkTo(dest);
         transformation.LinkErrorTo(errorDest);

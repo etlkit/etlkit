@@ -5,9 +5,8 @@ using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-
+using EtlKit.Common.ControlFlow;
 using EtlKit.Common.DataFlow;
-
 using JetBrains.Annotations;
 using Microsoft.CodeAnalysis;
 using Microsoft.CSharp.RuntimeBinder;
@@ -255,8 +254,16 @@ public class ScriptedRowTransformation<TInput, TOutput> : RowTransformation<TInp
             {
                 var runner = builder.CreateRunner<object>(Mappings[key]);
                 var diagnostics = runner.Script.Compile();
+                var errors = diagnostics
+                    .Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error)
+                    .ToList();
 
-                if (!diagnostics.Any())
+                // Warnings are reported, but never abort the transformation: a script that
+                // references an assembly built against another version of a framework assembly
+                // produces CS1701 unification warnings, while the compiled script runs correctly.
+                LogCompilationWarnings(key, diagnostics);
+
+                if (errors.Count == 0)
                 {
                     return runner;
                 }
@@ -265,11 +272,39 @@ public class ScriptedRowTransformation<TInput, TOutput> : RowTransformation<TInp
                 {
                     throw new ArgumentException(
                         $"Could not compile script for '{typeof(TOutput).FullName}.{key}' => {Mappings[key]}.",
-                        diagnostics.First().GetMessage()
+                        errors[0].GetMessage()
                     );
                 }
 
                 return null;
             }
         );
+
+    private void LogCompilationWarnings(string key, IEnumerable<Diagnostic> diagnostics)
+    {
+        if (DisableLogging)
+        {
+            return;
+        }
+
+        // Roslyn repeats an assembly unification warning for every referencing assembly,
+        // so identical messages are collapsed into a single log entry.
+        var messages = diagnostics
+            .Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Warning)
+            .Select(diagnostic => diagnostic.GetMessage())
+            .Distinct();
+
+        foreach (var message in messages)
+        {
+            Logger.Warn(
+                // ReSharper disable once TemplateIsNotCompileTimeConstantProblem
+                $"Script for '{typeof(TOutput).FullName}.{key}' compiled with warning: {message}",
+                TaskType,
+                "LOG",
+                TaskHash,
+                Common.ControlFlow.ControlFlow.Stage,
+                Common.ControlFlow.ControlFlow.CurrentLoadProcess?.Id
+            );
+        }
+    }
 }

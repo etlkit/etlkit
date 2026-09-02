@@ -24,8 +24,16 @@ namespace EtlKit.DataFlow
     [AttributeUsage(AttributeTargets.Property)]
     public class MatchColumnAttribute : Attribute
     {
+        /// <summary>
+        /// Name of the matching property on the lookup source object.
+        /// </summary>
         public string LookupSourcePropertyName { get; set; }
 
+        /// <summary>
+        /// Marks the decorated property as the match key, compared against <paramref
+        /// name="lookupSourcePropertyName"/> on the lookup source object.
+        /// </summary>
+        /// <param name="lookupSourcePropertyName">Name of the matching property on the lookup source object.</param>
         public MatchColumnAttribute(string lookupSourcePropertyName)
         {
             LookupSourcePropertyName = lookupSourcePropertyName;

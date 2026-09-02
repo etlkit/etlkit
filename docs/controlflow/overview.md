@@ -51,26 +51,26 @@ First, we need to setup a connection manager in order to connect with database.
 This is the same connection manager as used within the data flow part.
 
 ```csharp
-SqlConnectionManager connectionManager = new SqlConnectionManager("Data Source=.; Database=Sample; Integrated Security=SSPI"");
+SqlConnectionManager connectionManager = new SqlConnectionManager("Data Source=.; Database=Sample; Integrated Security=SSPI");
 ```
 
 Now you can use a `RowCountTask` to query the number of rows within a table with only one line.
 
 ```csharp
-int count = RowCountTask.Count(connectionManager, "demotable");
+int? count = RowCountTask.Count(connectionManager, "demotable");
 ```
 
 Optionally, you can set up a default connection that is used every time you don't provide a connection manager.
 Simple set the property `DefaultDbConnection` on the static `ControlFlow` class.
 
 ```csharp
-ControlFlow.DefaultDbConnection = new SqlConnectionManager(new SqlonnectionString("Data Source=.; Database=Sample; Integrated Security=SSPI""));
+ControlFlow.DefaultDbConnection = new SqlConnectionManager(new SqlConnectionString("Data Source=.; Database=Sample; Integrated Security=SSPI"));
 ```
 
 Now a RowCount is as simple as this:
 
 ```csharp
-int count = RowCountTask.Count("demotable");
+int? count = RowCountTask.Count("demotable");
 ```
 
 Internally, an ADO.NET connection is opened up (the default ADO.NET connection pooling is used)
@@ -156,7 +156,7 @@ If you are interesting in retrieving a TableDefinition object from an existing d
 the static method `GetDefinitionFromTableName` on the `TableDefinition` class:
 
 ```csharp
-TableDefinition.GetDefinitionFromTableName("demoTable", connectionManager);
+TableDefinition.GetDefinitionFromTableName(connectionManager, "demoTable");
 ```
 
 ### Views
@@ -217,7 +217,7 @@ Schema are only available for Sql Server and Postgres databases. For MySql, use 
 
 ```csharp
 //Create a schema
-CreateSchemaTask.CreateOrAlter(connectionManager, "SchemaName");
+CreateSchemaTask.Create(connectionManager, "SchemaName");
 
 //Drop a schema
 DropSchemaTask.DropIfExists(connectionManager, "SchemaName");
@@ -232,7 +232,7 @@ This is not supported with SQLite.
 
 ```csharp
 //Create a database
-CreateDatabaseTask.CreateOrAlter(connectionManager, "DBName");
+CreateDatabaseTask.Create(connectionManager, "DBName");
 
 //Drop a database
 DropDatabaseTask.DropIfExists(connectionManager, "DBName");
@@ -248,7 +248,7 @@ This is where you could use the ConnectionString-Wrapper for you database. E.g.,
 
 ```csharp
 PostgresConnectionString conStringWrapper = new PostgresConnectionString("Server=10.37.128.2;Database=EtlKit_DataFlow;User Id=postgres;Password=etlkitpassword;");
-PostgresConnectionString connectionWithoutCatalog = conStringWrapper.GetMasterConnection();
+PostgresConnectionString connectionWithoutCatalog = conStringWrapper.CloneWithMasterDbName();
 PostgresConnectionManager connectionManager = new PostgresConnectionManager(connectionWithoutCatalog);
 ```
 
@@ -306,7 +306,7 @@ object result = SqlTask.ExecuteScalar(connectionManager, "Execute scalar",
 
 //with type conversion
 double? result = SqlTask.ExecuteScalar<double>(connectionManager,"Execute scalar with datatype",
-    $@"SELECT CAST(1.343 AS NUMERIC(4,3)) AS ScalarResult"));
+    $@"SELECT CAST(1.343 AS NUMERIC(4,3)) AS ScalarResult");
 ```
 
 #### Result sets

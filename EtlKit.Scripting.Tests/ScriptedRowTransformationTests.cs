@@ -1,8 +1,8 @@
 using System.Dynamic;
 using System.Reflection;
 using EtlKit.DataFlow;
-using EtlKit.Scripting;
 using EtlKit.Primitives;
+using EtlKit.Scripting;
 using JetBrains.Annotations;
 using Microsoft.CodeAnalysis;
 
@@ -71,6 +71,34 @@ public class ScriptedRowTransformationTests
         var second = (IDictionary<string, object?>)list[1];
         Assert.Equal("7d51954d-5a06-4226-b7a3-defcdf0246a4", first["ResultId"]);
         Assert.Null(second["ResultId"]);
+    }
+
+    [Fact]
+    public void ShouldTransformExpandoObjectWithNullFieldValue()
+    {
+        // Arrange — the key exists but its value is null, so the generated globals type
+        // declares the field as `dynamic` and the mapping expression requires
+        // Microsoft.CSharp (DLR call sites) to compile.
+        var row = new ExpandoObject() as IDictionary<string, object?>;
+        row["client"] = "SOMEBODY";
+        row["phone_number"] = null;
+
+        var memorySource = new MemorySource();
+        memorySource.DataAsList.Add((ExpandoObject)row);
+        var script = new ScriptedRowTransformation<ExpandoObject, ExpandoObject>();
+        script.Mappings.Add("phone_number", "(phone_number ?? \"\").Replace(\"'\", \"\")");
+        var memoryDestination = new MemoryDestination<ExpandoObject>();
+        memorySource.LinkTo(script);
+        script.LinkTo(memoryDestination);
+
+        // Act
+        memorySource.Execute(CancellationToken.None);
+        memoryDestination.Wait();
+
+        // Assert
+        Assert.Single(memoryDestination.Data);
+        var result = (IDictionary<string, object?>)memoryDestination.Data.First();
+        Assert.Equal("", result["phone_number"]);
     }
 
     [Fact]
@@ -553,10 +581,11 @@ public class ScriptedRowTransformationTests
     }
 
     [Fact]
-    public void NullableContextOptions_Disable_RejectsNullableAnnotationSyntax()
+    public void NullableContextOptions_Disable_AllowsNullableAnnotationSyntaxWithWarning()
     {
-        // Arrange. A nullable annotation produces CS8632 when the script is compiled
-        // with nullable disabled; any diagnostic blocks the runner and routes to errors.
+        // Arrange. A nullable annotation produces the CS8632 warning when the script is compiled
+        // with nullable disabled. Warnings do not block the runner, so the row is transformed
+        // and nothing is routed to the error output.
         var memorySource = new MemorySource();
         memorySource.DataAsList.Add(CreateTestDataItem(1, "Test"));
         var script = new ScriptedRowTransformation<ExpandoObject, ExpandoObject>();
@@ -573,7 +602,10 @@ public class ScriptedRowTransformationTests
         errorDestination.Wait();
 
         // Assert
-        Assert.Single(errorDestination.Data);
+        Assert.Empty(errorDestination.Data);
+        Assert.Single(memoryDestination.Data);
+        var row = (IDictionary<string, object?>)memoryDestination.Data.First();
+        Assert.Equal("Test", row["Result"]);
     }
 
     [Fact]
@@ -649,6 +681,75 @@ public class ScriptedRowTransformationTests
         Assert.Single(memoryDestination.Data);
         var row = (IDictionary<string, object?>)memoryDestination.Data.First();
         Assert.Equal("Test", row["Result"]);
+    }
+
+    [Fact]
+    public void ShouldTransformWhenReferencedAssemblyProducesUnificationWarning()
+    {
+        // Arrange - Newtonsoft.Json is built against System.Linq.Expressions 6.0.0.0, while the
+        // host runtime ships a newer version of it. Binding JObject, which implements
+        // IDynamicMetaObjectProvider, pulls that assembly into the script compilation, so Roslyn
+        // reports CS1701 assembly unification warnings for the mapping below.
+        var item = new ExpandoObject() as IDictionary<string, object?>;
+        item["ApiResponseJson"] = "{\"payload\":{\"phoneNumber\":\"79001234567\"}}";
+
+        var memorySource = new MemorySource();
+        memorySource.DataAsList.Add((ExpandoObject)item);
+
+        var script = new ScriptedRowTransformation<ExpandoObject, ExpandoObject>
+        {
+            FailOnMissingField = true,
+        };
+        script.Mappings.Add(
+            "PhoneNumber",
+            "Newtonsoft.Json.Linq.JObject.Parse(ApiResponseJson).SelectToken(\"payload.phoneNumber\")?.ToString() ?? \"7777777777\""
+        );
+        script.AdditionalAssemblyNames = ["Newtonsoft.Json.dll"];
+
+        var memoryDestination = new MemoryDestination<ExpandoObject>();
+        memorySource.LinkTo(script);
+        script.LinkTo(memoryDestination);
+
+        // Act
+        memorySource.Execute(CancellationToken.None);
+        memoryDestination.Wait();
+
+        // Assert
+        Assert.Single(memoryDestination.Data);
+        var row = (IDictionary<string, object?>)memoryDestination.Data.First();
+        Assert.Equal("79001234567", row["PhoneNumber"]);
+    }
+
+    [Fact]
+    public void ShouldTransformWhenScriptProducesCompilerWarning()
+    {
+        // Arrange - the mapping reads an obsolete member, so the script compilation reports a
+        // CS0618 warning. Only compilation errors may abort the transformation.
+        var memorySource = new MemorySource();
+        memorySource.DataAsList.Add(CreateTestDataItem(1, "Test"));
+
+        var script = new ScriptedRowTransformation<ExpandoObject, ExpandoObject>
+        {
+            FailOnMissingField = true,
+        };
+        script.Mappings.Add("Result", "EtlKit.Scripting.Tests.ObsoleteValueSource.Value");
+        script.AdditionalAssemblyNames =
+        [
+            typeof(ScriptedRowTransformationTests).Assembly.GetName().Name!,
+        ];
+
+        var memoryDestination = new MemoryDestination<ExpandoObject>();
+        memorySource.LinkTo(script);
+        script.LinkTo(memoryDestination);
+
+        // Act
+        memorySource.Execute(CancellationToken.None);
+        memoryDestination.Wait();
+
+        // Assert
+        Assert.Single(memoryDestination.Data);
+        var row = (IDictionary<string, object?>)memoryDestination.Data.First();
+        Assert.Equal("obsolete", row["Result"]);
     }
 
     private static ExpandoObject CreateTestDataItem(int id, string name)

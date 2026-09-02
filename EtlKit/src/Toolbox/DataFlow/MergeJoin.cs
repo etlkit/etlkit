@@ -1,8 +1,6 @@
-﻿using EtlKit.Primitives;
-
-using EtlKit.Common.ControlFlow;
+﻿using EtlKit.Common.ControlFlow;
 using EtlKit.Common.DataFlow;
-
+using EtlKit.Primitives;
 using Microsoft.Extensions.Logging;
 
 namespace EtlKit.DataFlow
@@ -119,20 +117,31 @@ namespace EtlKit.DataFlow
             Transformation.LinkErrorTo(target);
     }
 
+    /// <summary>
+    /// One of the two link targets of a <see cref="MergeJoin{TInput1,TInput2,TOutput}"/> (its <see
+    /// cref="MergeJoin{TInput1,TInput2,TOutput}.Target1"/>/<see
+    /// cref="MergeJoin{TInput1,TInput2,TOutput}.Target2"/>), wrapping one side of the underlying <see
+    /// cref="JoinBlock{T1,T2}"/>.
+    /// </summary>
+    /// <typeparam name="TInput">Type of the rows accepted by this side of the join.</typeparam>
     [PublicAPI]
     public class MergeJoinTarget<TInput> : GenericTask, IDataFlowDestination<TInput>
     {
+        /// <inheritdoc />
         public ITargetBlock<TInput> TargetBlock { get; set; }
 
+        /// <inheritdoc />
         public void Wait()
         {
             TargetBlock.Completion.Wait();
         }
 
+        /// <inheritdoc />
         public Task Completion => TargetBlock.Completion;
 
         private List<Task> PredecessorCompletions { get; set; } = new();
 
+        /// <inheritdoc />
         public void AddPredecessorCompletion(Task completion)
         {
             PredecessorCompletions.Add(completion);
@@ -151,6 +160,12 @@ namespace EtlKit.DataFlow
                 });
         }
 
+        /// <summary>
+        /// Wraps <paramref name="joinTarget"/> as a link target, copying identity and logging settings
+        /// from <paramref name="parent"/>.
+        /// </summary>
+        /// <param name="parent">The owning <see cref="MergeJoin{TInput1,TInput2,TOutput}"/>.</param>
+        /// <param name="joinTarget">The underlying join block side this instance wraps.</param>
         public MergeJoinTarget(ITask parent, ITargetBlock<TInput> joinTarget)
         {
             TargetBlock = joinTarget;

@@ -21,6 +21,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <InternalsVisibleTo Include="EtlKit.MongoDB.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="JetBrains.Annotations" Version="2023.3.0" />
     <PackageReference Include="MongoDB.Driver" Version="3.8.0" />
     <PackageReference Include="System.Threading.Tasks.Dataflow" Version="7.0.0" />

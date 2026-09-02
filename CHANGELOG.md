@@ -2,6 +2,98 @@
 
 All notable changes to this project will be documented in this file.
 
+<a name="2.1.0"></a>
+
+# 2.1.0 (2026-09-02)
+
+✨ Features
+
+- `MongoChangeStreamSource<TOutput>` gained an explicit start position. Three additive
+  properties control where a change stream starts when no checkpoint exists and how a stored token
+  is applied on restart: `StartAtOperationTime` (`DateTimeOffset?`, cold-start point in time),
+  `StartAfter` (`string?`, resume token to start strictly after) and `CheckpointResumeMode`
+  (new `ChangeStreamResumeMode` enum, `ResumeAfter` by default, `StartAfter` to resume past an
+  `invalidate` event). Exactly one of `resumeAfter`/`startAfter`/`startAtOperationTime` reaches
+  `ChangeStreamOptions`; a stored checkpoint always outranks the configured seeds. Contradictory
+  configuration (both seeds set, or an operation time outside the BSON timestamp range) throws
+  `InvalidOperationException` before any connection is attempted. New helper
+  `MongoChangeStreamPosition.Current(...)` snapshots the deployment's cluster time so callers do
+  not depend on the client clock. Without a seed the source previously started wherever `Watch()`
+  landed and silently lost every event written between process start and cursor open.
+- Non-generic `CheckpointWriter` (`ExpandoObject` rows, `long` position exposed as
+  `PositionColumn`) and non-generic `DbCheckpointStore` (`long` position) in `EtlKit.Common`, so
+  checkpointing can be declared in XML-defined flows. `DataFlowXmlReader` resolves interface
+  properties by simple type name and cannot close an open generic, which made the generic
+  `CheckpointWriter<TInput, TPosition>` and `DbCheckpointStore<TPosition>` unusable from XML.
+- `KafkaTransformation` is now two chained dataflow stages: a fire-and-forget
+  produce stage, so librdkafka keeps batching on the wire, and a confirm stage that awaits delivery
+  reports strictly in row order and forwards a row only once its delivery is confirmed. A delivery
+  failure is attributed to the row that caused it and routed to `ErrorHandler` (or thrown) before
+  any later row passes. New `MaxUnconfirmedMessages` (default `1000`) bounds how far the produce
+  stage can race ahead of the confirm stage; it is applied as `BoundedCapacity` of both stages, so
+  the steady-state ceiling of unconfirmed rows is roughly twice the value. `KafkaTransformation`
+  now implements `IDisposable`.
+
+🐛 Bug Fixes
+
+- Fixed: `KafkaTransformation` no longer swallows errors from a misconfigured or
+  unreachable Kafka broker. Delivery errors reported in the `DeliveryReport` are raised as
+  `ProduceException` for the failing row and propagate through the error handler or fail the flow.
+- Fixed: `MongoChangeStreamSource` stopped spinning at full CPU after the server closed
+  the change stream cursor (for example after an `invalidate`). The outer retry loop was removed;
+  when `MoveNext` returns `false` the source logs a warning and completes. On a standalone
+  deployment `MongoChangeStreamPosition.Current` now throws `InvalidOperationException` naming the
+  replica-set requirement instead of a bare `KeyNotFoundException`.
+- Fixed: `EtlKit.Scripting` bumps `Microsoft.CodeAnalysis.CSharp.Scripting` from
+  4.8.0 to 4.9.2. The netstandard2.0 binary is compiled against `System.Collections.Immutable`
+  8.0.0.0, but MSCA 4.8.0 only guaranteed 7.0.0 to consumers, so `ScriptedTransformation` failed
+  with `FileNotFoundException` on net6.0+ hosts. MSCA 4.9.2 declares the 8.0.0 floor in every
+  dependency group.
+- Fixed: `ScriptedRowTransformation` no longer fails a mapping on Roslyn compiler
+  warnings. Mappings that bind Newtonsoft.Json types pull `System.Linq.Expressions` into the script
+  compilation and trigger CS1701 unification warnings on newer runtimes although the script runs
+  correctly. Only `Error` severity diagnostics abort a mapping; warnings are logged once per
+  distinct message.
+- Fixed: scripts compiled by `EtlKit.Scripting` with dynamic globals now reference
+  `Microsoft.CSharp`. Any operation on a null-valued `ExpandoObject` field (declared as `dynamic`
+  in the generated globals type) previously failed with CS0656 because DLR call-site support was
+  never seeded into the compilation references.
+- Fixed: `DbConnectionManager` recreates the connection between open retries and
+  surfaces the first real exception instead of the last. `ClickHouse.Ado` refuses to reopen a
+  connection whose previous `Open()` failed ("Connection already open.") while still reporting the
+  state as not open, so the old retry loop looped on that misleading error instead of recovering.
+
+📝 Documentation
+
+- XML documentation coverage of the public API raised from 61% to 94% across `EtlKit.Primitives`,
+  `EtlKit.Common`, `EtlKit`, `EtlKit.ClickHouse` and `EtlKit.Logging.Database` (GitHub PR #4).
+  Contributed by Yan Shokurov (@yanshokurov-ctrl), the first external contributor to EtlKit. The two
+  remaining gaps are tracked in `docs/changelog/TECH-DEBT-XML-Documentation-Coverage.md`.
+- New component guides: declarative XML data flows (`EtlKit.Serialization`), `KafkaJsonSource`,
+  `RestTransformation`, `AIBatchTransformation`, `RabbitMqTransformation`; new sections for
+  `SqlQuery`/`SqlCommandTransformation`, `CrossJoin`, ClickHouse and Adomd connection managers.
+- All 16 data flow, control flow and example guides were verified against the current code and
+  corrected (class names, method signatures, non-compiling samples inherited from ETLBox docs).
+- Kafka docs: `ProducerConfig.MessageTimeoutMs` remarks corrected (librdkafka default of 5 minutes
+  applies unless set), `MaxUnconfirmedMessages` documents the ~2x in-flight ceiling.
+- `DbConnectionString` base class documented; a `ToString()` divergence between drivers is recorded
+  as tech debt.
+
+🔧 Internal
+
+- CI: test service images pinned to fixed tags (ClickHouse 25.8 LTS, PostgreSQL 16,
+  MySQL 8.0, Azure SQL Edge 1.0.7, Kafka 3.8.1) and a readiness gate for ClickHouse; `:latest`
+  had drifted to a build that crashed on the runners.
+- Kafka tests inject their loggers instead of publishing mocks on the process-global
+  `ControlFlow.LoggerFactory`, which made parallel test classes fail each other. A
+  producer+logger constructor was added to `KafkaTransformation` for that purpose.
+- MongoDB tests share one container and helper set; the change stream tests cover resume past an
+  `invalidate`.
+- Tech debt recorded in `docs/tech-debt/`: multi-targeting (`netstandard2.0;net6.0;net8.0`),
+  `Sequence<T>` shadowing `Tasks`/`Execute`, three copies of `ExpandoObjectConverter`, unified
+  timeout and cancellation, disposing graph components, aligning `KafkaSource` offset commits with
+  the checkpoint model, generic type arguments in XML pipeline notation.
+
 <a name="2.0"></a>
 
 # 2.0.0

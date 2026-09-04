@@ -11,6 +11,7 @@
     <RepositoryUrl>https://git.rapidsoft.ru/open-source/etlkit</RepositoryUrl>
     <PackageTags>etl elt ssis dataflow controlflow data integration etlkit</PackageTags>
     <PackageIcon>icon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   

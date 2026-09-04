@@ -4,6 +4,8 @@ param (
     [string]$configEnvironment
 )
 
+$ErrorActionPreference = 'Stop'
+
 
 function Merge-Tokens
 {
@@ -107,7 +109,7 @@ if ($PSBoundParameters.ContainsKey('configEnvironment') -eq $false) {
     $configPath = Show-Menu
 }
 else {
-    $configPath = [System.IO.Path]::Combine('config', "$configEnvironment.json")
+    $configPath = Join-Path $PSScriptRoot 'config' "$configEnvironment.json"
 }
 echo "Applying config $configPath ..."
 $config = (Get-Content $configPath | Out-String | ConvertFrom-Json | ConvertTo-Hashtable)

@@ -30,6 +30,17 @@ components by name through `DataFlowXmlReader`. Three things stood in the way:
 3. **The run never ended.** The source polls until cancelled, which is right for a resident service
    and wrong for a package started by a scheduler every minute — there is nobody to cancel it.
 
+4. **The source fought the rest of the flow for one connection.** This only surfaced once a real
+   XML package ran end to end. `DataFlowXmlReader` hands out **one connection manager per connection
+   string**, shared by the source, the destination and the checkpoint store. A manager is not
+   shared-safe: with the default `LeaveOpen` its `Open()` *closes and replaces* the underlying
+   connection. Every other database component in EtlKit knows this and works on
+   `CloneIfAllowed()` (`DbTask`, `DbDestination`, `DbRowTransformation`) — but
+   `PostgresXminTailSource` and `DbCheckpointStore` used the shared instance directly. The store
+   commits a position per record while the source is polling, so it pulled the connection out from
+   under the source's open reader: `Received backend message BindComplete while expecting
+   ReadyForQueryMessage`. It is a race, so it passed as often as it failed.
+
 ## Fix
 
 Three additive changes, all backward compatible:
@@ -48,6 +59,12 @@ Three additive changes, all backward compatible:
   rows, instead of sleeping `PollingInterval`. Each scheduled run drains whatever accumulated since
   the last one and terminates on its own; the checkpoint is untouched, so the next run resumes where
   the previous one committed.
+
+- `PostgresXminTailSource` and `DbCheckpointStore` now take `CloneIfAllowed()` of their connection
+  manager, like every other database component. The source additionally drains a batch into memory
+  and releases the reader **before** emitting any row downstream — holding a reader open across
+  `SendAsync` is what let a shared connection be swapped mid-iteration. `BatchSize` bounds what is
+  held, which is the point of batching in the first place.
 
 Nothing else was needed: the non-generic `CheckpointWriter` / `DbCheckpointStore` (with
 `PositionColumn` instead of a `Position` delegate) already close the generic parameters XML cannot

@@ -565,4 +565,78 @@ public sealed class PostgresXminTailSourceTests : IClassFixture<PostgresContaine
             StringComparison.Ordinal
         );
     }
+
+    [Fact]
+    public void Execute_CheckpointStoreSharesConnectionManager_DoesNotCorruptTheReader()
+    {
+        // A pipeline built from a declarative definition gets ONE connection manager per connection
+        // string, shared by the source, the destination and the checkpoint store. A manager is not
+        // shared-safe — with the default LeaveOpen it closes and replaces its connection on each
+        // Open() — so the store, which commits a position per record while the source is polling,
+        // would otherwise pull the connection out from under the source's reader. Several rounds,
+        // each smaller than the pending rows, to exercise the interleaving repeatedly.
+        const string tableName = "events_shared_connection_test";
+        const string checkpointTable = "events_shared_connection_checkpoint";
+        const string checkpointId = "shared-cm";
+        using var conn = new NpgsqlConnection(_fixture.ConnectionString);
+        conn.Open();
+        SetupTestTable(conn, tableName);
+        ExecuteSql(
+            conn,
+            $"""
+            DROP TABLE IF EXISTS {checkpointTable};
+            CREATE TABLE {checkpointTable} (checkpoint_id TEXT PRIMARY KEY, position BIGINT NOT NULL)
+            """
+        );
+        for (var i = 0; i < 6; i++)
+            InsertRow(conn, tableName, $"row-{i}");
+
+        // Default LeaveOpen (false) — exactly the manager an XML-defined flow builds and shares.
+        using var shared = new PostgresConnectionManager(_fixture.ConnectionString);
+        var store = new DbCheckpointStore<long>
+        {
+            ConnectionManager = shared,
+            TableName = checkpointTable,
+            KeyColumn = "checkpoint_id",
+            PositionColumn = "position",
+        };
+
+        var delivered = new List<string>();
+        var record = new RowTransformation<ExpandoObject>(row =>
+        {
+            delivered.Add((string)((IDictionary<string, object?>)row)["name"]!);
+            return row;
+        });
+        var writer = new CheckpointWriter
+        {
+            CheckpointStore = store,
+            CheckpointId = checkpointId,
+            PositionColumn = "id",
+        };
+
+        var source = new PostgresXminTailSource<ExpandoObject>
+        {
+            ConnectionManager = shared,
+            TableName = tableName,
+            Schema = "public",
+            OrderByColumns = new[] { "id" },
+            CheckpointStore = store,
+            CheckpointId = checkpointId,
+            BatchSize = 2,
+            StopWhenEmpty = true,
+        };
+        source.LinkTo(record);
+        record.LinkTo(writer);
+
+        source.Execute(CancellationToken.None);
+        writer.Wait();
+
+        Assert.Equal(6, delivered.Count);
+        var (found, position) = store
+            .LoadAsync(checkpointId, CancellationToken.None)
+            .GetAwaiter()
+            .GetResult();
+        Assert.True(found);
+        Assert.Equal(6L, position);
+    }
 }

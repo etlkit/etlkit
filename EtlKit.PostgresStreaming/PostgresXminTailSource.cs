@@ -105,30 +105,69 @@ public class PostgresXminTailSource<TOutput> : DataFlowSource<TOutput>, IDataFlo
     private void RunPollingLoop(CancellationToken ct)
     {
         var rowMapper = ResolveRowMapper();
+        // Every other database component in EtlKit works on its own clone of the connection manager
+        // (see DbTask, DbDestination, DbRowTransformation), because a manager is not shared-safe:
+        // with the default LeaveOpen it closes and replaces its connection on each Open(). A
+        // pipeline built from a declarative definition hands the SAME manager to the source, the
+        // destination and the checkpoint store, so without a clone of its own this source would
+        // fight the rest of the flow for one connection.
+        var connection = ConnectionManager.CloneIfAllowed();
+        try
+        {
+            RunPollingLoop(connection, rowMapper, ct);
+        }
+        finally
+        {
+            connection.CloseIfAllowed();
+        }
+    }
+
+    private void RunPollingLoop(
+        IConnectionManager connection,
+        Func<IDataRecord, TOutput> rowMapper,
+        CancellationToken ct
+    )
+    {
         var cursor = LoadCursor(ct);
+
+        var batch = new List<TOutput>(BatchSize);
 
         while (!ct.IsCancellationRequested)
         {
-            var frontier = GetFrontier();
-            var rowsRead = 0;
+            var frontier = GetFrontier(connection);
             object?[]? lastCursorValues = null;
+            batch.Clear();
 
-            using var reader = ExecuteQuery(frontier, cursor);
-            while (reader.Read())
+            // The batch is drained into memory and the reader released before a single row goes
+            // downstream. Holding the reader open across SendAsync would break any pipeline whose
+            // destination shares this connection manager — and sharing is the norm, not the
+            // exception: a pipeline built from a declarative definition gets one connection manager
+            // per connection string. Since that manager closes and replaces its connection on every
+            // Open(), a downstream INSERT would pull the connection out from under this reader
+            // mid-iteration ("Received backend message BindComplete while expecting
+            // ReadyForQueryMessage"). BatchSize bounds what is held.
+            using (var reader = ExecuteQuery(connection, frontier, cursor))
+            {
+                while (reader.Read())
+                {
+                    ct.ThrowIfCancellationRequested();
+                    batch.Add(rowMapper(reader));
+                    lastCursorValues = ReadCursorValues(reader);
+                }
+            }
+
+            foreach (var output in batch)
             {
                 ct.ThrowIfCancellationRequested();
-                var output = rowMapper(reader);
                 // Propagate the source's cancellation token into SendAsync so that
                 // backpressure from a bounded downstream buffer doesn't trap the
                 // polling loop after Cancel() — see RSSL-11703 regression test
                 // Execute_CancellationDuringBlockedSendAsync_ReturnsPromptly.
                 Buffer.SendAsync(output, ct).GetAwaiter().GetResult();
-                lastCursorValues = ReadCursorValues(reader);
-                rowsRead++;
                 LogProgress();
             }
 
-            if (rowsRead > 0 && lastCursorValues != null)
+            if (batch.Count > 0 && lastCursorValues != null)
             {
                 // Advance the ephemeral in-memory read cursor for the next batch. The durable
                 // checkpoint is NOT written here — a downstream CheckpointWriter commits it after
@@ -185,27 +224,31 @@ public class PostgresXminTailSource<TOutput> : DataFlowSource<TOutput>, IDataFlo
         return (TOutput)(object)row;
     }
 
-    private long GetFrontier()
+    private static long GetFrontier(IConnectionManager connection)
     {
-        ConnectionManager.Open();
+        connection.Open();
         try
         {
-            var result = ConnectionManager.ExecuteScalar(
+            var result = connection.ExecuteScalar(
                 "SELECT pg_snapshot_xmin(pg_current_snapshot())::text::bigint"
             );
             return Convert.ToInt64(result);
         }
         finally
         {
-            ConnectionManager.CloseIfAllowed();
+            connection.CloseIfAllowed();
         }
     }
 
-    private IDataReader ExecuteQuery(long frontier, object?[]? cursor)
+    private IDataReader ExecuteQuery(
+        IConnectionManager connection,
+        long frontier,
+        object?[]? cursor
+    )
     {
         var sql = BuildQuery(frontier, cursor, out var parameters);
-        ConnectionManager.Open();
-        return ConnectionManager.ExecuteReader(sql, parameters);
+        connection.Open();
+        return connection.ExecuteReader(sql, parameters);
     }
 
     private string BuildQuery(

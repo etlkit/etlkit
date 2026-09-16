@@ -103,7 +103,7 @@ public sealed class XmlPackageTailReadTests : IClassFixture<PostgresContainerFix
             <OrderByColumns>
               <Column>stream_position</Column>
             </OrderByColumns>
-            <BatchSize>2</BatchSize>
+            <BatchSize>1</BatchSize>
             <StopWhenEmpty>true</StopWhenEmpty>
             <CheckpointId>@checkpointId@</CheckpointId>
             <CheckpointStore type="DbCheckpointStore">

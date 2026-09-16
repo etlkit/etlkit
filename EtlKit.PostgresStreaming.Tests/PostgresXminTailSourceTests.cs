@@ -1,4 +1,5 @@
 using System.Data;
+using System.Dynamic;
 using System.Reflection;
 using System.Threading.Tasks.Dataflow;
 using EtlKit.Common.DataFlow;
@@ -468,5 +469,100 @@ public sealed class PostgresXminTailSourceTests : IClassFixture<PostgresContaine
         destination.Wait();
 
         Assert.Equal(new[] { "one", "two", "three" }, results);
+    }
+
+    [Fact]
+    public void Execute_StopWhenEmpty_FinishesRunWithoutCancellation()
+    {
+        // A scheduled package has no one to cancel it: the run must drain the tail and end itself.
+        const string tableName = "events_stop_when_empty_test";
+        using var conn = new NpgsqlConnection(_fixture.ConnectionString);
+        conn.Open();
+        SetupTestTable(conn, tableName);
+        InsertRow(conn, tableName, "one");
+        InsertRow(conn, tableName, "two");
+        InsertRow(conn, tableName, "three");
+
+        var results = new List<string>();
+        var destination = new CustomDestination<(long Id, string Name)>(r => results.Add(r.Name));
+        using var cm = CreateConnectionManager();
+
+        var source = new PostgresXminTailSource<(long Id, string Name)>
+        {
+            ConnectionManager = cm,
+            TableName = tableName,
+            Schema = "public",
+            OrderByColumns = new[] { "id" },
+            // Smaller than the row count, so the run has to poll again and see an empty batch.
+            BatchSize = 2,
+            StopWhenEmpty = true,
+            PollingInterval = TimeSpan.FromMinutes(5),
+            RowMapper = r => ((long)r["id"], (string)r["name"]),
+        };
+        source.LinkTo(destination);
+
+        source.Execute(CancellationToken.None);
+        destination.Wait();
+
+        Assert.Equal(new[] { "one", "two", "three" }, results);
+    }
+
+    [Fact]
+    public void Execute_WithoutRowMapper_MapsColumnsOntoExpandoObjectRow()
+    {
+        const string tableName = "events_default_mapper_test";
+        using var conn = new NpgsqlConnection(_fixture.ConnectionString);
+        conn.Open();
+        SetupTestTable(conn, tableName);
+        InsertRow(conn, tableName, "alpha");
+
+        var rows = new List<IDictionary<string, object?>>();
+        var destination = new CustomDestination<ExpandoObject>(r =>
+            rows.Add((IDictionary<string, object?>)r)
+        );
+        using var cm = CreateConnectionManager();
+
+        var source = new PostgresXminTailSource<ExpandoObject>
+        {
+            ConnectionManager = cm,
+            TableName = tableName,
+            Schema = "public",
+            OrderByColumns = new[] { "id" },
+            StopWhenEmpty = true,
+        };
+        source.LinkTo(destination);
+
+        source.Execute(CancellationToken.None);
+        destination.Wait();
+
+        var row = Assert.Single(rows);
+        Assert.Equal("alpha", row["name"]);
+        Assert.Equal(1L, row["id"]);
+        // The xmin frontier value is an artifact of the polling query, not a column of the table.
+        Assert.DoesNotContain("_xmin_val", row.Keys);
+    }
+
+    [Fact]
+    public void Execute_WithoutRowMapper_AndNonDynamicOutput_ExplainsWhatIsMissing()
+    {
+        using var cm = CreateConnectionManager();
+        var source = new PostgresXminTailSource<(long Id, string Name)>
+        {
+            ConnectionManager = cm,
+            TableName = "irrelevant",
+            OrderByColumns = new[] { "id" },
+            StopWhenEmpty = true,
+        };
+        source.LinkTo(new CustomDestination<(long Id, string Name)>(_ => { }));
+
+        var error = Assert.Throws<InvalidOperationException>(
+            () => source.Execute(CancellationToken.None)
+        );
+
+        Assert.Contains(
+            nameof(PostgresXminTailSource<ExpandoObject>.RowMapper),
+            error.Message,
+            StringComparison.Ordinal
+        );
     }
 }

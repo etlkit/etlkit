@@ -1,17 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Dynamic;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Dataflow;
-
-using EtlKit.Primitives;
-
 using EtlKit.Common.ControlFlow;
 using EtlKit.Common.DataFlow;
 using EtlKit.Common.DataFlow.Streaming;
-
+using EtlKit.Primitives;
 using JetBrains.Annotations;
 
 namespace EtlKit.DataFlow;
@@ -26,7 +24,7 @@ namespace EtlKit.DataFlow;
 /// Set <see cref="GenericTask.ConnectionManager"/> before calling <see cref="Execute"/>.
 /// </remarks>
 [PublicAPI]
-public class PostgresXminTailSource<TOutput> : DataFlowSource<TOutput>
+public class PostgresXminTailSource<TOutput> : DataFlowSource<TOutput>, IDataFlowSource<TOutput>
 {
     /// <summary>Table to poll. Must expose the system column <c>xmin</c>.</summary>
     public string TableName { get; set; } = null!;
@@ -50,6 +48,19 @@ public class PostgresXminTailSource<TOutput> : DataFlowSource<TOutput>
     public TimeSpan PollingInterval { get; set; } = TimeSpan.FromSeconds(1);
 
     /// <summary>
+    /// Finish the flow after the first polling round that returns no rows, instead of waiting
+    /// <see cref="PollingInterval"/> for more. Defaults to <c>false</c> — endless streaming.
+    /// </summary>
+    /// <remarks>
+    /// Set it when the pipeline is a scheduled job rather than a long-running service: the run
+    /// drains whatever accumulated since the previous one and then terminates on its own, so the
+    /// schedule decides when the next batch of work starts and no <see cref="CancellationToken"/>
+    /// is needed to end the run. Checkpointing is unaffected — the next run resumes from the
+    /// position committed downstream.
+    /// </remarks>
+    public bool StopWhenEmpty { get; set; }
+
+    /// <summary>
     /// Loads the resume position across restarts (load-only — the source never commits).
     /// If <c>null</c>, the source always starts from the beginning of the table.
     /// The durable position is advanced downstream by a <c>CheckpointWriter</c> after the
@@ -64,8 +75,16 @@ public class PostgresXminTailSource<TOutput> : DataFlowSource<TOutput>
     /// </summary>
     public string CheckpointId { get; set; } = null!;
 
-    /// <summary>Maps a data record row to the output type. Required.</summary>
-    public Func<IDataRecord, TOutput> RowMapper { get; set; } = null!;
+    /// <summary>
+    /// Maps a data record row to the output type. Optional when <typeparamref name="TOutput"/> is
+    /// <see cref="ExpandoObject"/> — every selected column is then copied onto the row under its
+    /// own name, the same dynamic mapping <c>DbSource</c> applies. Required for any other type,
+    /// and the only way to map one from a declarative pipeline definition is to leave it unset.
+    /// </summary>
+    public Func<IDataRecord, TOutput>? RowMapper { get; set; }
+
+    // Alias under which the xmin frontier value is selected by every polling query.
+    private const string XminValueAlias = "_xmin_val";
 
     /// <inheritdoc/>
     public override void Execute(CancellationToken cancellationToken)
@@ -85,6 +104,7 @@ public class PostgresXminTailSource<TOutput> : DataFlowSource<TOutput>
 
     private void RunPollingLoop(CancellationToken ct)
     {
+        var rowMapper = ResolveRowMapper();
         var cursor = LoadCursor(ct);
 
         while (!ct.IsCancellationRequested)
@@ -97,7 +117,7 @@ public class PostgresXminTailSource<TOutput> : DataFlowSource<TOutput>
             while (reader.Read())
             {
                 ct.ThrowIfCancellationRequested();
-                var output = RowMapper(reader);
+                var output = rowMapper(reader);
                 // Propagate the source's cancellation token into SendAsync so that
                 // backpressure from a bounded downstream buffer doesn't trap the
                 // polling loop after Cancel() — see RSSL-11703 regression test
@@ -115,11 +135,54 @@ public class PostgresXminTailSource<TOutput> : DataFlowSource<TOutput>
                 // the destination persists (at-least-once). See ICheckpointStore.
                 cursor = lastCursorValues;
             }
+            else if (StopWhenEmpty)
+            {
+                return;
+            }
             else
             {
                 Task.Delay(PollingInterval, ct).Wait(ct);
             }
         }
+    }
+
+    private Func<IDataRecord, TOutput> ResolveRowMapper()
+    {
+        if (RowMapper != null)
+        {
+            return RowMapper;
+        }
+
+        if (typeof(TOutput) != typeof(ExpandoObject))
+        {
+            throw new InvalidOperationException(
+                $"{nameof(RowMapper)} is required for output type '{typeof(TOutput)}'. "
+                    + $"Only {nameof(ExpandoObject)} rows are mapped by default."
+            );
+        }
+
+        return MapRowToExpandoObject;
+    }
+
+    // Column-name-keyed dynamic mapping, matching what DbSource does for ExpandoObject rows. The
+    // xmin frontier alias is an artifact of the polling query rather than a column of the table,
+    // so it is left off the row and downstream components see the table's own shape.
+    private static TOutput MapRowToExpandoObject(IDataRecord record)
+    {
+        var row = new ExpandoObject();
+        IDictionary<string, object?> fields = row;
+        for (var i = 0; i < record.FieldCount; i++)
+        {
+            var name = record.GetName(i);
+            if (string.Equals(name, XminValueAlias, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            fields[name] = record.IsDBNull(i) ? null : record.GetValue(i);
+        }
+
+        return (TOutput)(object)row;
     }
 
     private long GetFrontier()
@@ -154,7 +217,7 @@ public class PostgresXminTailSource<TOutput> : DataFlowSource<TOutput>
         parameters = new List<IQueryParameter>();
         var query = new StringBuilder();
 
-        query.Append("SELECT *, xmin::text::bigint AS _xmin_val FROM ");
+        query.Append($"SELECT *, xmin::text::bigint AS {XminValueAlias} FROM ");
         query.Append(QuotedTableRef());
         query.Append(" WHERE xmin::text::bigint < @_frontier");
         parameters.Add(new QueryParameter("_frontier", frontier));

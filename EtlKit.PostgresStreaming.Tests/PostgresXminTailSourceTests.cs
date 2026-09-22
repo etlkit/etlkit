@@ -1,4 +1,5 @@
 using System.Data;
+using System.Dynamic;
 using System.Reflection;
 using System.Threading.Tasks.Dataflow;
 using EtlKit.Common.DataFlow;
@@ -468,5 +469,174 @@ public sealed class PostgresXminTailSourceTests : IClassFixture<PostgresContaine
         destination.Wait();
 
         Assert.Equal(new[] { "one", "two", "three" }, results);
+    }
+
+    [Fact]
+    public void Execute_StopWhenEmpty_FinishesRunWithoutCancellation()
+    {
+        // A scheduled package has no one to cancel it: the run must drain the tail and end itself.
+        const string tableName = "events_stop_when_empty_test";
+        using var conn = new NpgsqlConnection(_fixture.ConnectionString);
+        conn.Open();
+        SetupTestTable(conn, tableName);
+        InsertRow(conn, tableName, "one");
+        InsertRow(conn, tableName, "two");
+        InsertRow(conn, tableName, "three");
+
+        var results = new List<string>();
+        var destination = new CustomDestination<(long Id, string Name)>(r => results.Add(r.Name));
+        using var cm = CreateConnectionManager();
+
+        var source = new PostgresXminTailSource<(long Id, string Name)>
+        {
+            ConnectionManager = cm,
+            TableName = tableName,
+            Schema = "public",
+            OrderByColumns = new[] { "id" },
+            // Smaller than the row count, so the run has to poll again and see an empty batch.
+            BatchSize = 2,
+            StopWhenEmpty = true,
+            PollingInterval = TimeSpan.FromMinutes(5),
+            RowMapper = r => ((long)r["id"], (string)r["name"]),
+        };
+        source.LinkTo(destination);
+
+        source.Execute(CancellationToken.None);
+        destination.Wait();
+
+        Assert.Equal(new[] { "one", "two", "three" }, results);
+    }
+
+    [Fact]
+    public void Execute_WithoutRowMapper_MapsColumnsOntoExpandoObjectRow()
+    {
+        const string tableName = "events_default_mapper_test";
+        using var conn = new NpgsqlConnection(_fixture.ConnectionString);
+        conn.Open();
+        SetupTestTable(conn, tableName);
+        InsertRow(conn, tableName, "alpha");
+
+        var rows = new List<IDictionary<string, object?>>();
+        var destination = new CustomDestination<ExpandoObject>(r =>
+            rows.Add((IDictionary<string, object?>)r)
+        );
+        using var cm = CreateConnectionManager();
+
+        var source = new PostgresXminTailSource<ExpandoObject>
+        {
+            ConnectionManager = cm,
+            TableName = tableName,
+            Schema = "public",
+            OrderByColumns = new[] { "id" },
+            StopWhenEmpty = true,
+        };
+        source.LinkTo(destination);
+
+        source.Execute(CancellationToken.None);
+        destination.Wait();
+
+        var row = Assert.Single(rows);
+        Assert.Equal("alpha", row["name"]);
+        Assert.Equal(1L, row["id"]);
+        // The xmin frontier value is an artifact of the polling query, not a column of the table.
+        Assert.DoesNotContain("_xmin_val", row.Keys);
+    }
+
+    [Fact]
+    public void Execute_WithoutRowMapper_AndNonDynamicOutput_ExplainsWhatIsMissing()
+    {
+        using var cm = CreateConnectionManager();
+        var source = new PostgresXminTailSource<(long Id, string Name)>
+        {
+            ConnectionManager = cm,
+            TableName = "irrelevant",
+            OrderByColumns = new[] { "id" },
+            StopWhenEmpty = true,
+        };
+        source.LinkTo(new CustomDestination<(long Id, string Name)>(_ => { }));
+
+        var error = Assert.Throws<InvalidOperationException>(
+            () => source.Execute(CancellationToken.None)
+        );
+
+        Assert.Contains(
+            nameof(PostgresXminTailSource<ExpandoObject>.RowMapper),
+            error.Message,
+            StringComparison.Ordinal
+        );
+    }
+
+    [Fact]
+    public void Execute_CheckpointStoreSharesConnectionManager_DoesNotCorruptTheReader()
+    {
+        // A pipeline built from a declarative definition gets ONE connection manager per connection
+        // string, shared by the source, the destination and the checkpoint store. A manager is not
+        // shared-safe — with the default LeaveOpen it closes and replaces its connection on each
+        // Open() — so the store, which commits a position per record while the source is polling,
+        // would otherwise pull the connection out from under the source's reader. Several rounds,
+        // each smaller than the pending rows, to exercise the interleaving repeatedly.
+        const string tableName = "events_shared_connection_test";
+        const string checkpointTable = "events_shared_connection_checkpoint";
+        const string checkpointId = "shared-cm";
+        using var conn = new NpgsqlConnection(_fixture.ConnectionString);
+        conn.Open();
+        SetupTestTable(conn, tableName);
+        ExecuteSql(
+            conn,
+            $"""
+            DROP TABLE IF EXISTS {checkpointTable};
+            CREATE TABLE {checkpointTable} (checkpoint_id TEXT PRIMARY KEY, position BIGINT NOT NULL)
+            """
+        );
+        for (var i = 0; i < 6; i++)
+            InsertRow(conn, tableName, $"row-{i}");
+
+        // Default LeaveOpen (false) — exactly the manager an XML-defined flow builds and shares.
+        using var shared = new PostgresConnectionManager(_fixture.ConnectionString);
+        var store = new DbCheckpointStore<long>
+        {
+            ConnectionManager = shared,
+            TableName = checkpointTable,
+            KeyColumn = "checkpoint_id",
+            PositionColumn = "position",
+        };
+
+        var delivered = new List<string>();
+        var record = new RowTransformation<ExpandoObject>(row =>
+        {
+            delivered.Add((string)((IDictionary<string, object?>)row)["name"]!);
+            return row;
+        });
+        var writer = new CheckpointWriter
+        {
+            CheckpointStore = store,
+            CheckpointId = checkpointId,
+            PositionColumn = "id",
+        };
+
+        var source = new PostgresXminTailSource<ExpandoObject>
+        {
+            ConnectionManager = shared,
+            TableName = tableName,
+            Schema = "public",
+            OrderByColumns = new[] { "id" },
+            CheckpointStore = store,
+            CheckpointId = checkpointId,
+            BatchSize = 2,
+            StopWhenEmpty = true,
+        };
+        source.LinkTo(record);
+        record.LinkTo(writer);
+
+        source.Execute(CancellationToken.None);
+        writer.Wait();
+
+        Assert.Equal(6, delivered.Count);
+        var (found, position) = store
+            .LoadAsync(checkpointId, CancellationToken.None)
+            .GetAwaiter()
+            .GetResult();
+        Assert.True(found);
+        Assert.Equal(6L, position);
     }
 }

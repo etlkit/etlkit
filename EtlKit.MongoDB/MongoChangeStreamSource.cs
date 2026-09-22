@@ -4,6 +4,7 @@ using System.Threading.Tasks.Dataflow;
 using EtlKit.Common.ControlFlow;
 using EtlKit.Common.DataFlow;
 using EtlKit.Common.DataFlow.Streaming;
+using EtlKit.Primitives;
 using JetBrains.Annotations;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -19,7 +20,7 @@ namespace EtlKit.DataFlow;
 /// so that processing can safely restart from the last committed position.
 /// </remarks>
 [PublicAPI]
-public class MongoChangeStreamSource<TOutput> : DataFlowSource<TOutput>
+public class MongoChangeStreamSource<TOutput> : DataFlowSource<TOutput>, IDataFlowSource<TOutput>
 {
     /// <summary>MongoDB client used to access the database and collection.</summary>
     public IMongoClient MongoClient { get; set; } = null!;

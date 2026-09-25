@@ -53,6 +53,13 @@
   - Direction: disable auto-commit, emit `TopicPartitionOffset` with each record, commit strictly
     forward per partition in a terminal committer mirroring `CheckpointWriter` (Kafka's consumer
     group offset IS the checkpoint store)
+- [Advance the checkpoint when a batch produces no output rows](docs/tech-debt/TECH-DEBT-Checkpoint-Advance-On-Empty-Output.md)
+  - A record that yields no rows — a row-multiplying step returning an empty set, or a filter
+    downstream of the source — never reaches `CheckpointWriter`, so the durable position does not
+    move past it and every later run re-reads it
+  - Direction: on successful completion the terminal writer commits the source's read position if it
+    is ahead of the last row-derived one; opt-in, forward-only, and scoped to `StopWhenEmpty` first,
+    since a resident consumer needs safe commit points while the flow is still running
 - [Tests mutate the global `ControlFlow.LoggerFactory`](docs/tech-debt/TECH-DEBT-Test-Global-LoggerFactory.md)
   - A task with no injected logger falls back to the process-wide static, so a test that replaces it
     hands its mock to components owned by other test classes running in parallel — one class fails on

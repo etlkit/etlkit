@@ -54,22 +54,58 @@ of it has completed, so at that moment "read" and "persisted" coincide.
 
 Shape of the change:
 
-1. Streaming sources expose the position of the last fully drained batch — a property, or a small
-   interface implemented by `PostgresXminTailSource` and `MongoChangeStreamSource`.
+1. Streaming sources expose the position they reached — a property, or a small interface implemented
+   by `PostgresXminTailSource` and `MongoChangeStreamSource`. The source publishes it **only when it
+   left the polling loop because the stream was drained** (`StopWhenEmpty`), and leaves it unset on
+   cancellation. That is the signal the writer acts on; see "Why the source has to say it" below.
 2. `CheckpointWriter` gains an opt-in property that turns this on, deserialized from XML the same
    way `CheckpointStore` already is.
-3. The commit happens only on successful completion and only forward. A faulted or cancelled run
-   commits nothing beyond what its rows delivered, and the position never moves backwards.
+3. The commit is forward-only and never moves the position backwards. A faulted run commits nothing
+   beyond what its rows delivered: a fault reaches the writer through `CheckCompleteAction` →
+   `TargetBlock.Fault`, and `CleanUp` runs in `finally` either way, so
+   `TargetAction.Completion .IsFaulted` is enough to tell.
 4. It stays opt-in: in a pipeline that branches below the source, "no rows at this writer" does not
    mean "nothing left to do", and silently committing past those records would be wrong.
 
-Scoping the first iteration to `StopWhenEmpty` keeps the semantics simple — the run ended, so
-everything it emitted has landed. A resident consumer needs safe commit points while the flow is
-still running (buffer drained, nothing in flight), which is a harder problem and can follow.
+### Why the source has to say it
+
+The writer cannot tell a cancelled run from a successful one by its own completion. Both sources
+complete the buffer in a `finally` and only then rethrow:
+
+```csharp
+try { RunPollingLoop(cancellationToken); }
+finally { Buffer.Complete(); LogFinish(); }
+cancellationToken.ThrowIfCancellationRequested();
+```
+
+So on cancellation everything below the source completes normally, exactly as it does on a clean
+run, and the writer would happily commit a position the flow never finished processing. Hence the
+condition is not "the flow completed" but "the source reached the end of the stream", and only the
+source knows that.
+
+### The two positions must live in the same space
+
+The source's cursor is a tuple over `OrderByColumns` (`object?[]`), while the checkpoint store is
+typed `ICheckpointStore<long>` and `LoadCursor` seeds a **single-column** tuple from it. The
+writer's position comes from a row field via `Position` / `PositionColumn` — a value that has
+already been through the transformations between source and writer.
+
+These coincide only when `OrderByColumns` holds exactly one column and the writer reads its
+`PositionColumn` from that same column. Otherwise the writer would store a value from a different
+space, and the next run could resume ahead of data it never processed. The contract has to state
+this, and the implementation has to check it rather than assume it — today nothing does, and even
+plain resume is already implicitly single-column.
+
+### Scope and tests
+
+Scoping the first iteration to `StopWhenEmpty` keeps the semantics simple — the source drained the
+stream, so everything it emitted has landed. A resident consumer needs safe commit points while the
+flow is still running (buffer drained, nothing in flight), which is a harder problem and can follow.
 
 Tests to pin the contract: a record that yields no output rows leaves the checkpoint past it once
-the run completes; a faulted run and a cancelled run do not advance it; a repeated run never moves
-it backwards.
+the run drains the stream; a faulted run and a cancelled run do not advance it; a repeated run never
+moves it backwards; a configuration whose `OrderByColumns` and `PositionColumn` disagree is
+rejected.
 
 ## References
 

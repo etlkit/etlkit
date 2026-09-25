@@ -57,9 +57,12 @@
   - A record that yields no rows — a row-multiplying step returning an empty set, or a filter
     downstream of the source — never reaches `CheckpointWriter`, so the durable position does not
     move past it and every later run re-reads it
-  - Direction: on successful completion the terminal writer commits the source's read position if it
-    is ahead of the last row-derived one; opt-in, forward-only, and scoped to `StopWhenEmpty` first,
-    since a resident consumer needs safe commit points while the flow is still running
+  - Direction: when the source reports that it drained the stream, the terminal writer commits the
+    position it reached if that is ahead of the last row-derived one; opt-in and forward-only. The
+    source has to be the one to say it — both sources complete the buffer in a `finally` before
+    rethrowing, so from below a cancelled run looks identical to a clean one
+  - Constraint to pin in the contract and check in code: the two positions share a space only when
+    `OrderByColumns` is one column and the writer's `PositionColumn` is that same column
 - [Tests mutate the global `ControlFlow.LoggerFactory`](docs/tech-debt/TECH-DEBT-Test-Global-LoggerFactory.md)
   - A task with no injected logger falls back to the process-wide static, so a test that replaces it
     hands its mock to components owned by other test classes running in parallel — one class fails on

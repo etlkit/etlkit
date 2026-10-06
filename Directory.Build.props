@@ -7,7 +7,6 @@
     <WarningsNotAsErrors>$(NoWarn);CS0618;CS1574</WarningsNotAsErrors>
     <AnalysisLevel>latest</AnalysisLevel>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <PackageProjectUrl>https://www.rapidsoft.ru</PackageProjectUrl>
     <RepositoryUrl>https://git.rapidsoft.ru/open-source/etlkit</RepositoryUrl>
     <PackageTags>etl elt ssis dataflow controlflow data integration etlkit</PackageTags>
     <PackageIcon>icon.png</PackageIcon>

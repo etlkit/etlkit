@@ -4,7 +4,7 @@
     <Copyright>© 2018 Andreas Lennartz, © 2021-2026 RapidSoft</Copyright>
     <PackageAuthors>RapidSoft</PackageAuthors>
     <PackageOwners>RapidSoft</PackageOwners>
-    <PackageProjectUrl>https://rapidsoft.ru/</PackageProjectUrl>
+    <PackageProjectUrl>https://www.etlkit.org</PackageProjectUrl>
     <RepositoryUrl>https://github.com/etlkit/etlkit.git</RepositoryUrl>
     <PackageCopyright>$(Copyright)</PackageCopyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>

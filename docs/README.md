@@ -1,6 +1,7 @@
 # EtlKit Documentation
 
-For API reference documentation, see the [hosted API docs](https://etlkit.github.io/etlkit/).
+Project website: [www.etlkit.org](https://www.etlkit.org). For API reference documentation, see the
+[hosted API docs](https://etlkit.github.io/etlkit/).
 
 ## Getting Started
 

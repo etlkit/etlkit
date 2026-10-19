@@ -11,6 +11,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\EtlKit.PostgresStreaming\EtlKit.PostgresStreaming.csproj" />
+    <ProjectReference Include="..\EtlKit.Serialization\EtlKit.Serialization.csproj" />
     <ProjectReference Include="..\EtlKit.Primitives\EtlKit.Primitives.csproj" />
     <ProjectReference Include="..\EtlKit\EtlKit.csproj" />
   </ItemGroup>

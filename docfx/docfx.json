@@ -80,7 +80,7 @@
     ],
     "globalMetadata": {
       "_appTitle": "EtlKit Documentation",
-      "_appFooter": "EtlKit \u2014 It's all in the box",
+      "_appFooter": "EtlKit \u2014 It's all in the box \u00b7 <a href=\"https://www.etlkit.org\">www.etlkit.org</a>",
       "_enableSearch": true
     }
   }

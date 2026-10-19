@@ -2,6 +2,48 @@
 
 All notable changes to this project will be documented in this file.
 
+<a name="2.2.0"></a>
+
+# 2.2.0 (2026-10-06)
+
+✨ Features
+
+- `PostgresXminTailSource<TOutput>` can be declared in XML-defined flows and run from a scheduler.
+  It now declares `IDataFlowSource<TOutput>`, so `DataFlowXmlReader` finds it by name;
+  `MongoChangeStreamSource<TOutput>` got the same declaration. `RowMapper` is optional: for
+  `ExpandoObject` output it defaults to the column-name-keyed mapping `DbSource` uses, and the
+  internal `_xmin_val` frontier column is left off the row. For any other output type an unset
+  mapper fails with an explicit message. New `StopWhenEmpty` (default `false`) ends the flow after
+  the first polling round that returns no rows, so a scheduled run drains what accumulated and
+  terminates without a cancellation token; the next run resumes from the committed checkpoint.
+  Together with the non-generic `CheckpointWriter` and `DbCheckpointStore`, a checkpointed tail
+  read needs no compiled code.
+
+🐛 Bug Fixes
+
+- Fixed: `PostgresXminTailSource` and `DbCheckpointStore` work on `CloneIfAllowed()` of their
+  connection manager, like every other database component. `DataFlowXmlReader` shares one manager
+  per connection string, and a per-record checkpoint commit could replace the connection under the
+  source's open reader (`Received backend message BindComplete while expecting
+  ReadyForQueryMessage`), intermittently. The source also reads a whole batch into memory and
+  releases the reader before emitting rows; `BatchSize` bounds what is held.
+- Fixed: every package now declares `PackageReadmeFile`. The README was packed into all 15
+  packages, but only `EtlKit` declared it, so the other 14 packages had no README on nuget.org.
+
+📝 Documentation
+
+- The README, the guides, the API docs footer and the NuGet "Project website" link point to
+  [www.etlkit.org](https://www.etlkit.org).
+- `docs/dataflow/streaming-sources.md` covers XML-defined tail reads and scheduled runs.
+- Tech debt recorded in `docs/tech-debt/`: a public API snapshot with a review plan, and a
+  checkpoint that does not advance past records that produce no output rows.
+
+🔧 Internal
+
+- `test/Set-Configuration.ps1` resolves the config environment path relative to the script and
+  stops on the first error, so a run from the repository root no longer produces configs with empty
+  hosts.
+
 <a name="2.1.0"></a>
 
 # 2.1.0 (2026-09-02)

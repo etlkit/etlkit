@@ -2,6 +2,9 @@
 
 EtlKit is a fully open-source (MIT) ETL library and data integration toolbox for .NET.
 
+Website: [www.etlkit.org](https://www.etlkit.org) · Guides: [docs](docs/README.md) · API reference:
+[etlkit.github.io/etlkit](https://etlkit.github.io/etlkit/)
+
 This project originated as a fork of the original ETLBox library by Andreas Lennartz. Starting
 with version 2.0, the original author decided to close the source and commercialize its newer
 branch. EtlKit continues the open-source 1.x lineage, keeping it up to date with modern .NET and

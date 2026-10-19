@@ -63,6 +63,12 @@ public class DbCheckpointStore<TPosition> : ICheckpointStore<TPosition>
 
     private string Q(string identifier) => ConnectionManager.QB + identifier + ConnectionManager.QE;
 
+    // Each call works on its own clone, as every other database component in EtlKit does (see
+    // DbTask): a connection manager is not shared-safe — with the default LeaveOpen it closes and
+    // replaces its connection on each Open(). The store is typically handed the same manager as the
+    // source and the destination of the flow, and commits land while the source is mid-read.
+    private IConnectionManager Connection() => ConnectionManager.CloneIfAllowed();
+
     /// <inheritdoc/>
     public Task<(bool Found, TPosition Position)> LoadAsync(
         string checkpointId,
@@ -71,10 +77,11 @@ public class DbCheckpointStore<TPosition> : ICheckpointStore<TPosition>
     {
         var sql =
             $"SELECT {Q(PositionColumn)} FROM {TableName} WHERE {Q(KeyColumn)} = @_checkpointId";
-        ConnectionManager.Open();
+        var connection = Connection();
+        connection.Open();
         try
         {
-            var result = ConnectionManager.ExecuteScalar(sql, new[] { KeyParam(checkpointId) });
+            var result = connection.ExecuteScalar(sql, new[] { KeyParam(checkpointId) });
             if (result is null or DBNull)
                 return Task.FromResult((false, default(TPosition)!));
             var position = (TPosition)
@@ -83,7 +90,7 @@ public class DbCheckpointStore<TPosition> : ICheckpointStore<TPosition>
         }
         finally
         {
-            ConnectionManager.CloseIfAllowed();
+            connection.CloseIfAllowed();
         }
     }
 
@@ -92,17 +99,18 @@ public class DbCheckpointStore<TPosition> : ICheckpointStore<TPosition>
     {
         var parameters = new[] { KeyParam(checkpointId), PositionParam(position) };
 
-        ConnectionManager.Open();
+        var connection = Connection();
+        connection.Open();
         try
         {
-            var updated = ConnectionManager.ExecuteNonQuery(
+            var updated = connection.ExecuteNonQuery(
                 $"UPDATE {TableName} SET {Q(PositionColumn)} = @_position "
                     + $"WHERE {Q(KeyColumn)} = @_checkpointId",
                 parameters
             );
             if (updated == 0)
             {
-                ConnectionManager.ExecuteNonQuery(
+                connection.ExecuteNonQuery(
                     $"INSERT INTO {TableName} ({Q(KeyColumn)}, {Q(PositionColumn)}) "
                         + "VALUES (@_checkpointId, @_position)",
                     parameters
@@ -112,7 +120,7 @@ public class DbCheckpointStore<TPosition> : ICheckpointStore<TPosition>
         }
         finally
         {
-            ConnectionManager.CloseIfAllowed();
+            connection.CloseIfAllowed();
         }
     }
 

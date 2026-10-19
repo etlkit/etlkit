@@ -3,6 +3,9 @@
 Streaming sources continuously tail an external system and emit records into the data flow until
 cancelled. They are designed for long-running, event-driven pipelines — unlike batch sources, they
 never signal completion on their own and must be stopped via a `CancellationToken`.
+`PostgresXminTailSource` can also run in a bounded mode that ends the flow once the tail is drained,
+for pipelines that are scheduled rather than resident — see
+[Running on a schedule](#running-on-a-schedule-stopwhenempty).
 
 Both sources described here support **resumable, at-least-once processing** through the
 `ICheckpointStore<TPosition>` abstraction plus a terminal `CheckpointWriter<TInput, TPosition>`.
@@ -333,6 +336,128 @@ The source never commits — the `CheckpointWriter` does, after the destination,
 > sequence, not an app-generated value: the cursor's order must match the database's transaction
 > (`xid`) order, or the frontier can silently drop events under concurrent (multi-writer) ingest.
 
+### Dynamic rows
+
+`RowMapper` is optional when the output type is `ExpandoObject`: every selected column is then
+copied onto the row under its own name, the same dynamic mapping `DbSource` applies. This is what
+makes the source usable from a pipeline defined in XML, where a mapping delegate cannot be
+expressed.
+
+```csharp
+var source = new PostgresXminTailSource<ExpandoObject>
+{
+    ConnectionManager = cm,
+    TableName         = "orders",
+    OrderByColumns    = new[] { "stream_position" },
+    // no RowMapper — rows arrive as { id = ..., stream_position = ..., status = ... }
+};
+```
+
+The `xmin` frontier value the source selects alongside the table's columns is an artifact of the
+polling query, so it is left off the row: downstream components see the table's own shape.
+
+For any other output type `RowMapper` is required, and leaving it unset fails the run with an
+explicit error rather than a `NullReferenceException` on the first row.
+
+### Running on a schedule (StopWhenEmpty)
+
+By default the source polls forever and only a `CancellationToken` ends the run. Set
+`StopWhenEmpty` to finish the flow after the first polling round that returns no rows:
+
+```csharp
+var source = new PostgresXminTailSource<ExpandoObject>
+{
+    ConnectionManager = cm,
+    TableName         = "orders",
+    OrderByColumns    = new[] { "stream_position" },
+    BatchSize         = 500,
+    StopWhenEmpty     = true,
+    CheckpointStore   = store,
+    CheckpointId      = "orders-consumer",
+};
+
+source.LinkTo(destinationTransform);
+source.Execute(CancellationToken.None); // returns once the tail is drained
+```
+
+Each run drains whatever accumulated since the previous one and then terminates on its own, so the
+schedule — not a cancellation token — decides when the next batch of work starts. Checkpointing is
+unaffected: the next run resumes from the position committed downstream, so a scheduled pipeline
+reads only the tail instead of rescanning the table.
+
+### Defining the flow in XML
+
+Nothing in the tail-read pipeline needs compiled code. `RowMapper` defaults to the dynamic mapping,
+`CheckpointWriter` takes the position as a **column name** (`PositionColumn`) instead of a delegate,
+and the non-generic `CheckpointWriter` / `DbCheckpointStore` close the generic parameters that XML
+cannot supply (`ExpandoObject` rows, `long` positions).
+
+The destination is modelled as a pass-through transformation so that the writer commits **after**
+the row was durably written — here `SqlCommandTransformation`, which runs its statement per row and
+re-emits the row:
+
+```xml
+<PostgresXminTailSource>
+  <ConnectionManager type="PostgresConnectionManager">
+    <ConnectionString type="PostgresConnectionString">
+      <Value>Host=...;Database=...</Value>
+    </ConnectionString>
+  </ConnectionManager>
+  <TableName>ContactsEvents</TableName>
+  <Schema>cdb1</Schema>
+  <OrderByColumns>
+    <Column>StreamPosition</Column>
+  </OrderByColumns>
+  <AdditionalWhere>"EventSourceSystem" = 'cj-cxd-platform'</AdditionalWhere>
+  <BatchSize>500</BatchSize>
+  <StopWhenEmpty>true</StopWhenEmpty>
+  <CheckpointId>export-cj</CheckpointId>
+  <CheckpointStore type="DbCheckpointStore">
+    <ConnectionManager type="PostgresConnectionManager">
+      <ConnectionString type="PostgresConnectionString">
+        <Value>Host=...;Database=...</Value>
+      </ConnectionString>
+    </ConnectionManager>
+    <TableName>export."StreamCheckpoints"</TableName>
+    <KeyColumn>CheckpointId</KeyColumn>
+    <PositionColumn>Position</PositionColumn>
+  </CheckpointStore>
+  <LinkTo>
+    <SqlCommandTransformation>
+      <ConnectionManager type="PostgresConnectionManager">
+        <ConnectionString type="PostgresConnectionString">
+          <Value>Host=...;Database=...</Value>
+        </ConnectionString>
+      </ConnectionManager>
+      <SqlTemplate>insert into export."Target" ("StreamPosition") values ({{ StreamPosition }})</SqlTemplate>
+      <LinkTo>
+        <CheckpointWriter>
+          <CheckpointId>export-cj</CheckpointId>
+          <PositionColumn>StreamPosition</PositionColumn>
+          <CheckpointStore type="DbCheckpointStore">
+            <ConnectionManager type="PostgresConnectionManager">
+              <ConnectionString type="PostgresConnectionString">
+                <Value>Host=...;Database=...</Value>
+              </ConnectionString>
+            </ConnectionManager>
+            <TableName>export."StreamCheckpoints"</TableName>
+            <KeyColumn>CheckpointId</KeyColumn>
+            <PositionColumn>Position</PositionColumn>
+          </CheckpointStore>
+        </CheckpointWriter>
+      </LinkTo>
+    </SqlCommandTransformation>
+  </LinkTo>
+</PostgresXminTailSource>
+```
+
+Source and writer must carry the **same** `CheckpointId`, and `PositionColumn` on the writer must
+name a column the transformation passes through — drop it and the checkpoint has nothing to commit.
+
+> The package requires `EtlKit.PostgresStreaming` to be present next to the host that executes it:
+> the XML reader resolves component names by scanning the assemblies in the application directory,
+> so a missing package surfaces as "could not find type by name", not as a build error.
+
 ### Filtering rows
 
 Use `AdditionalWhere` to apply a server-side predicate on top of the xmin fence:
@@ -374,9 +499,10 @@ ULID) and not derived from xmin itself.
 | `TableName` | required | Table to poll (must expose the `xmin` system column) |
 | `Schema` | `"public"` | Schema that contains the table |
 | `OrderByColumns` | required | Columns used for ordering and cursor pagination |
-| `RowMapper` | required | Maps `IDataRecord` to `TOutput` |
+| `RowMapper` | required, except for `ExpandoObject` output | Maps `IDataRecord` to `TOutput`; defaults to column-name-keyed dynamic rows |
 | `BatchSize` | 500 | Rows per polling round |
 | `PollingInterval` | 1 second | Pause between rounds when no rows are found |
+| `StopWhenEmpty` | `false` (endless) | Finish the flow after the first empty polling round |
 | `AdditionalWhere` | `null` | Extra SQL predicate appended with AND |
 | `CheckpointStore` | `null` (start from beginning) | `ICheckpointStore<long>` for the cursor (load-only) |
 | `CheckpointId` | required if `CheckpointStore` set | This consumer's checkpoint key |

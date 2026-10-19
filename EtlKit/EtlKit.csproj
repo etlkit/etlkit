@@ -9,7 +9,6 @@
       data flow components backed by TPL Dataflow.
     </Description>
     <RootNamespace>EtlKit</RootNamespace>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>

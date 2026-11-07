@@ -52,7 +52,8 @@ it directly.
   `TypeConventions`. The built-in managers override it with their own; by default it follows the engine
   the manager reports as `ConnectionManagerType`, so a custom subclass that reports PostgreSQL keeps
   getting the PostgreSQL rules, while MySQL and ADOMD, which have no special rules, keep every data type
-  unchanged. A subclass can override the property to supply its own rules.
+  unchanged. A subclass can override the property to supply its own rules. A subclass of a built-in
+  manager inherits that manager's rules, even if it overrides `ConnectionManagerType`.
 - The SQL Server (native and ODBC), PostgreSQL, SQLite and Access rules are internal classes next to
   their connection managers. The ClickHouse rule lives in `EtlKit.ClickHouse`.
 - `CreateTableTask` takes a column's SQL type from its connection manager's conventions, so the
@@ -98,8 +99,13 @@ The two private copies are gone: the nested `Parameter` of `DbCheckpointStore` a
 - [ ] Split the SQL Server, PostgreSQL, MySQL, SQLite and Access connection managers, together with
   their conventions, into their own packages, as ClickHouse already is; add DI registration where
   that modularization introduces it.
-- [ ] Remove the obsolete `DataTypeConverter` and `EngineKeyedTypeConventions` (with the second copy of
-  the ClickHouse rule) in the next major version, together with the tests of the obsolete members.
+- [ ] Remove the obsolete `DataTypeConverter` in the next major version, together with the tests of its
+  members.
+- [ ] Decide what replaces `EngineKeyedTypeConventions`. It is not obsolete: it is the default of
+  `TypeConventions` and the source of the rules for a custom `IConnectionManager`, so removing it changes
+  the DDL of custom managers and is a breaking change. Custom managers first need a public way to get an
+  engine's rules, for example public convention classes. The second copy of the ClickHouse rule and its
+  drift test go away with it.
 - [ ] The other `switch (ConnectionManagerType)` statements (identity, `NOT NULL`, comments, quoting
   helpers) in `CreateTableTask` and about thirty other files are a separate, larger refactoring.
 

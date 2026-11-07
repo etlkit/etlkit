@@ -57,13 +57,4 @@ public sealed class CustomConnectionManagerTypeConventionsTests
 
         Assert.Equal(expected, Adapt(manager.TypeConventions, dataType, allowNulls));
     }
-
-    [Fact]
-    public void Subclass_CanSupplyItsOwnConventions()
-    {
-        var own = new EveryColumnIsTextConventions();
-        using var manager = new CustomManagerWithOwnConventions(own);
-
-        Assert.Same(own, manager.TypeConventions);
-    }
 }

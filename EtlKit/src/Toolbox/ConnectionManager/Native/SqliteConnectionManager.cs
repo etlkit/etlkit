@@ -1,9 +1,6 @@
 using System.Linq;
-
-using EtlKit.Primitives;
-
 using EtlKit.ConnectionManager.Helpers;
-
+using EtlKit.Primitives;
 using Microsoft.Data.Sqlite;
 
 namespace EtlKit.ConnectionManager
@@ -30,6 +27,10 @@ namespace EtlKit.ConnectionManager
         public override bool SupportProcedures { get; }
         public override bool SupportSchemas { get; }
         public override bool SupportComputedColumns { get; }
+
+        /// <inheritdoc />
+        /// <remarks>SQLite rules: <c>INT</c> and <c>BIGINT</c> become <c>INTEGER</c>.</remarks>
+        public override IDbTypeConventions TypeConventions { get; } = new SqliteTypeConventions();
 
         public bool ModifyDBSettings { get; set; }
 

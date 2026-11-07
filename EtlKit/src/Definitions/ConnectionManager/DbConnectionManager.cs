@@ -15,7 +15,9 @@ namespace EtlKit.ConnectionManager
     [PublicAPI]
     [DebuggerDisplay("{ConnectionManagerType}:{ConnectionString}")]
     [MustDisposeResource]
-    public abstract class DbConnectionManager<TConnection> : IConnectionManager
+    public abstract class DbConnectionManager<TConnection>
+        : IConnectionManager,
+            IDbTypeConventionsProvider
         where TConnection : class, IDbConnection, new()
     {
         /// <inheritdoc />
@@ -81,6 +83,20 @@ namespace EtlKit.ConnectionManager
 
         /// <inheritdoc />
         public virtual bool SupportComputedColumns { get; } = true;
+
+        private IDbTypeConventions _typeConventions;
+
+        /// <summary>
+        /// The engine-specific rules for the SQL type a column is created with, used for example by
+        /// <see cref="CreateTableTask"/>. Defaults to the rules of the engine this manager reports as its
+        /// <see cref="ConnectionManagerType"/> (every data type unchanged for an engine without special
+        /// rules), so a custom manager is treated as the engine it reports. Derived classes override this
+        /// to supply their own rules.
+        /// </summary>
+        public virtual IDbTypeConventions TypeConventions =>
+            _typeConventions ??= new EngineKeyedTypeConventions(ConnectionManagerType);
+
+        IDbTypeConventions IDbTypeConventionsProvider.TypeConventions => TypeConventions;
 
         /// <summary>
         /// Creates a connection manager with no connection string set yet.

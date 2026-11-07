@@ -26,7 +26,7 @@ namespace EtlKit.TestShared.Helper
                     ",",
                     TableDefinition.Columns.Select(col =>
                     {
-                        int length = DataTypeConverter.GetStringLengthFromCharString(col.DataType);
+                        int length = SqlTypeMapper.GetStringLengthFromCharString(col.DataType);
                         return HashHelper.RandomString(length);
                     })
                 );

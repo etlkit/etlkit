@@ -36,6 +36,11 @@ namespace EtlKit.ConnectionManager
         /// <inheritdoc />
         public override CultureInfo ConnectionCulture => CultureInfo.CurrentCulture;
 
+        /// <inheritdoc />
+        /// <remarks>SQL Server rules: <c>TEXT</c> becomes <c>VARCHAR(MAX)</c>.</remarks>
+        public override IDbTypeConventions TypeConventions { get; } =
+            new SqlServerTypeConventions();
+
         /// <summary>
         /// Creates a connection manager with no connection string set yet.
         /// </summary>

@@ -60,6 +60,13 @@ namespace EtlKit.ConnectionManager
         /// <remarks>Always <see langword="false"/>; MS Access has no computed columns.</remarks>
         public override bool SupportComputedColumns { get; }
 
+        /// <inheritdoc />
+        /// <remarks>
+        /// MS Access rules: <c>INT</c> becomes <c>INTEGER</c>, a leading <c>N</c> is dropped from
+        /// <c>char(N)</c>-style types, and those above 255 characters become <c>LONGTEXT</c>.
+        /// </remarks>
+        public override IDbTypeConventions TypeConventions { get; } = new AccessTypeConventions();
+
         /// <summary>
         /// Creates a connection manager with no connection string set yet. Always keeps the connection open (<see cref="LeaveOpen"/>).
         /// </summary>

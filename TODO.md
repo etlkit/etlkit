@@ -134,6 +134,15 @@
   - Generate `ref/PublicApi.g.cs` per packable project with `Meziantou.Framework.PublicApiGenerator.MSBuild`
   - Commit snapshots; CI fails when the committed snapshot is stale (`VerifyNoChangeOnBuild`)
   - Audit generated surface for accidentally public types; optional package validation (ApiCompat)
+- [Async-first data flow and control flow](docs/tech-debt/TECH-DEBT-Async-First.md)
+  - TPL Dataflow already takes async delegates; the synchrony sits in the contracts: sources
+    implement `void Execute`, `IConnectionManager` is built on `IDbCommand`/`IDataReader`, base
+    classes accept only sync delegates, so REST/AI/scripted transformations block a worker thread
+    per call and every source pins a thread-pool thread
+  - Direction in six phases: `DbCommand`-based connection manager and async contracts (breaking,
+    rides with multi-targeting), async delegates in `RowTransformation`/`CustomDestination`/batch
+    destination, then sources, control-flow tasks, ambient `ControlFlow` statics, and an analyzer
+    against new `.Wait()`/`.Result` in library code; sync entry points stay as wrappers
 
 ## Other
 

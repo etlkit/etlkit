@@ -143,6 +143,9 @@
     rides with multi-targeting), async delegates in `RowTransformation`/`CustomDestination`/batch
     destination, then sources, control-flow tasks, ambient `ControlFlow` statics, and an analyzer
     against new `.Wait()`/`.Result` in library code; sync entry points stay as wrappers
+  - An `IAsyncEnumerable<T>` source/destination pair is the single interop point with
+    Akka.Streams, redb-route, Channels, EF Core and gRPC streams; no per-framework adapter
+    packages, and no dependency on frameworks that target `net8.0` only
 
 ## Other
 

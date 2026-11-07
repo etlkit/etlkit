@@ -89,8 +89,14 @@ calls to `ExecuteAsync`. The synchronous API is the one the tests exercise.
    an `IHostedService` or from a message-driven host means `Task.Run` around a blocking call, plus
    shared statics across concurrent pipelines.
 4. **No `IAsyncEnumerable<T>` boundary.** Sources cannot consume an asynchronous stream from
-   another library, and destinations cannot expose one, which blocks interoperability with
-   message-routing frameworks whose SQL and HTTP components produce `IAsyncEnumerable<T>` bodies.
+   another library, and destinations cannot expose one. `IAsyncEnumerable<T>` is the one stream
+   shape the rest of the .NET ecosystem agrees on: Akka.Streams converts to and from it in both
+   directions, message-routing frameworks such as redb-route hand SQL and HTTP results over as
+   `IAsyncEnumerable<T>` bodies, `System.Threading.Channels` exposes `ReadAllAsync()`, EF Core
+   exposes `AsAsyncEnumerable()`, and gRPC server streams expose `ReadAllAsync()`. One source and
+   one destination over `IAsyncEnumerable<T>` connect EtlKit to all of them, where today each
+   framework would need its own adapter package, and the `netstandard2.0` ones could not even
+   reference the frameworks that target `net8.0`.
 
 ## Direction
 
@@ -163,7 +169,9 @@ Not breaking: the synchronous overloads stay.
       `JsonTextReader.ReadAsync`, `XmlReader.ReadAsync` with `XmlReaderSettings.Async`).
 - [ ] `DataFlowStreamSource`/`DataFlowStreamDestination`: await the `HttpClient` calls.
 - [ ] Add an `IAsyncEnumerable<T>` source (`AsyncEnumerableSource<T>`) and expose
-      `IAsyncEnumerable<T>` from `MemoryDestination` or a dedicated destination.
+      `IAsyncEnumerable<T>` from `MemoryDestination` or a dedicated destination. This pair is the
+      interoperability point with Akka.Streams, redb-route, Channels, EF Core, and gRPC (problem
+      4); framework-specific adapter packages are not planned while this boundary covers them.
 - [ ] `ExcelSource` and `KafkaSource` stay synchronous inside: ExcelDataReader has no async read, and
       `Confluent.Kafka` consumption is a blocking `Consume` call. Their `ExecuteAsync` runs the loop
       on a dedicated long-running task and awaits it; that is the documented exception, not a

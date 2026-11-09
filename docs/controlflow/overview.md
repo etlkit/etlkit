@@ -302,6 +302,13 @@ it directly instead:
 new QueryParameter("value1", DbType.Int32, 1)
 ```
 
+A parameter created with a `DbType` keeps that `DbType`, and its `Type` holds the name of the `DbType`
+value (for example `"Int32"`), not a SQL type name. To copy such a parameter, pass its `DbType`:
+
+```csharp
+new QueryParameter(parameter.Name, parameter.DBType, parameter.Value)
+```
+
 ### Reading result sets
 
 #### Scalar values

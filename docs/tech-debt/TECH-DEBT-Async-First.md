@@ -14,9 +14,11 @@ order in which the change can land without a big-bang rewrite.
 
 ## Current state
 
-**Platform.** Shipped packages target `netstandard2.0`. That target has no `IAsyncEnumerable<T>`
-or `IAsyncDisposable` without `Microsoft.Bcl.AsyncInterfaces`, and no default interface methods, so
-any member added to a public interface breaks external implementations. `IConnectionManager`
+**Platform.** Shipped packages target `netstandard2.0`, except `EtlKit.ClickHouse`
+(`netstandard2.1`) and `EtlKit.MongoDB` (`net6.0`). The `netstandard2.0` target has no
+`IAsyncEnumerable<T>` or `IAsyncDisposable` without `Microsoft.Bcl.AsyncInterfaces`, and no default
+interface methods, so any member added to a public interface breaks external implementations.
+`IConnectionManager`
 (`EtlKit.Primitives/IConnectionManager.cs`) is written against `IDbCommand` and `IDataReader`,
 interfaces that have no asynchronous methods at all. The asynchronous methods live on the abstract
 classes `DbConnection`, `DbCommand`, and `DbDataReader`, which are available on `netstandard2.0`.
@@ -36,8 +38,9 @@ builds its `TransformBlock` over that synchronous delegate. `RowBatchTransformat
 `DataFlowBatchDestination.WriteBatch` calls `BulkInsert` synchronously inside an `ActionBlock`.
 `ErrorHandler.Send` blocks on `Wait()`.
 
-**Components.** Thirty-three library files contain a blocking call (`.Wait()`, `.Result`,
-`GetAwaiter().GetResult()`). The pattern `Buffer.SendAsync(row).Wait()` inside a synchronous
+**Components.** The intended blocking wrappers are `DataFlowDestination.Wait`, `Pipeline.Wait`,
+`DbMerge.Wait`, and `MergeJoinTarget.Wait`; everything below blocks inside component logic
+instead. The pattern `Buffer.SendAsync(row).Wait()` inside a synchronous
 `Execute` appears in `CustomSource`, `MemorySource`, `DbSource`, `CsvSource`, `JsonSource`,
 `XmlSource`, `ExcelSource`, `CrossJoin`, `Aggregation`, `BlockTransformation`, `KafkaSource`,
 `MongoChangeStreamSource`, and `PostgresXminTailSource`. Sync-over-async sits where the work is
@@ -53,10 +56,22 @@ asynchronous by nature:
 | `CheckpointWriter` | `CommitMaxAsync(...).GetAwaiter().GetResult()` |
 | `DbConnectionManager` | `Task.Delay(1000).Wait()` between login attempts |
 | `DataFlowStreamSource` | `HttpClient.GetStreamAsync(uri).Result` |
+| `DataFlowStreamDestination` | `CanWriteCompletionSource.Task.Wait()`, `HttpResponseMessage.Result` |
+| `HttpRequestExtensions` | `content.CopyToAsync(stream).Wait()` |
+| `SqlQueryTransformation` | per input row: inner `DbSource.Execute()` then `MemoryDestination.Wait()` |
+| `LookupTransformation.LoadLookupData` | `Source.Execute(...)` then `LookupBuffer.Wait()` |
 
-Each of these holds a TPL Dataflow worker thread for the duration of an I/O call. With the default
-`MaxDegreeOfParallelism` of 1 the throughput of a REST, AI, or scripted transformation is bounded by
-one blocked thread per block instead of by the number of requests in flight.
+Each of these holds a TPL Dataflow worker thread for the duration of an I/O call. The throughput
+limit today is `MaxDegreeOfParallelism`: no transformation exposes it, and
+`TransformBlockWithCompletion` creates its `TransformBlock` without `ExecutionDataflowBlockOptions`,
+so every REST, AI, or scripted transformation runs one request at a time whether its delegate
+blocks or awaits. An asynchronous delegate frees the thread; only a configurable
+`MaxDegreeOfParallelism` turns that into several requests in flight.
+
+`SqlQueryTransformation` and `LookupTransformation` are a case of their own: they run a nested
+`DbSource` through `Execute()` and `Wait()` from inside a block delegate. Once `Execute()` becomes
+a wrapper over `ExecuteAsync()`, these two sites turn into sync-over-async inside the pipeline and
+are exactly what the phase 6 analyzer has to flag.
 
 **Control flow.** About thirty tasks under `EtlKit/src/Toolbox/ControlFlow` and
 `EtlKit/src/Toolbox/Logging` expose `void Execute()` and static facades such as
@@ -112,16 +127,20 @@ synchronous surface keeps working throughout.
       `IAsyncDisposable` are available on every TFM.
 - [ ] Move `IConnectionManager` from `IDbCommand`/`IDataReader` to `DbCommand`/`DbDataReader`.
       `CreateCommand` returns `DbCommand`, `ExecuteReader` returns `DbDataReader`. Every in-repo
-      implementation already derives from `DbConnectionManager<TConnection, ...>`; the test double
-      `RecordingConnectionManager` is the one direct implementation to update.
+      implementation derives from `DbConnectionManager<TConnection>`; the two private test doubles
+      named `RecordingConnectionManager` in `TestDatabaseConnectors` implement the interface
+      directly and are updated with it.
 
 Breaking: `IConnectionManager` has 330 call sites in the repository, most of them reading
-`IDataReader`. Pairs with the major version the multi-targeting work already needs.
+`IDataReader`. This phase needs a major release. `TECH-DEBT-Multi-Targeting.md` on its own keeps
+`netstandard2.0` and breaks nothing; it can ship in the same release but is not what requires it.
 
 ### Phase 1: contracts in Primitives and Common
 
-- [ ] `DataFlowSource<TOutput>`: `ExecuteAsync(CancellationToken)` becomes the abstract member,
-      `Execute(CancellationToken)` becomes the blocking wrapper. `IDataFlowSource<T>` keeps both
+- [ ] `DataFlowSource<TOutput>`: `ExecuteAsync(CancellationToken)` becomes virtual and keeps the
+      `Task.Factory.StartNew` body as its default, so every existing `Execute` override keeps
+      compiling and running. Sources override `ExecuteAsync` one by one in phase 3, and the member
+      becomes abstract there, once the last source has moved. `IDataFlowSource<T>` keeps both
       members, the documentation flips which one is primary.
 - [ ] `IConnectionManager`: add `OpenAsync`, `ExecuteNonQueryAsync`, `ExecuteScalarAsync`,
       `ExecuteReaderAsync`, `BulkInsertAsync`, `BeginTransactionAsync`, `CommitTransactionAsync`,
@@ -135,9 +154,8 @@ Breaking: `IConnectionManager` has 330 call sites in the repository, most of the
 - [ ] Replace `Task.Delay(1000).Wait()` in `DbConnectionManager.TryOpenConnectionXTimes` with an
       awaited delay in the async path.
 
-Breaking for external subclasses of `DataFlowSource` (they override `ExecuteAsync` instead of
-`Execute`) and for external implementations of `IConnectionManager`. Neither is known to exist
-outside this repository.
+Breaking for external implementations of `IConnectionManager`; none is known to exist outside
+this repository. External subclasses of `DataFlowSource` keep working until the end of phase 3.
 
 ### Phase 2: base classes, no source changes yet
 
@@ -150,10 +168,16 @@ outside this repository.
 - [ ] `DataFlowBatchDestination`: `WriteBatchAsync` over `ActionBlock<TInput[]>(Func<_, Task>)`,
       calling `BulkInsertAsync`.
 - [ ] `ErrorHandler.Send`: await the error buffer instead of `Wait()`.
+- [ ] Expose `MaxDegreeOfParallelism` and `EnsureOrdered` on `RowTransformation` (passed through
+      `TransformBlockWithCompletion` as `ExecutionDataflowBlockOptions`) and on
+      `RowBatchTransformation`, which today hardcodes `MaxDegreeOfParallelism = 1`.
 - [ ] Rewrite `RestTransformation`, `AIBatchTransformation`, `ScriptedRowTransformation`, and
-      `CheckpointWriter` onto the async delegates. This is the first user-visible gain: I/O-bound
-      transformations stop blocking worker threads, and `MaxDegreeOfParallelism` starts to mean
-      requests in flight.
+      `CheckpointWriter` onto the async delegates. Together with the previous item this is the
+      first user-visible gain: I/O-bound transformations stop blocking worker threads, and a
+      `MaxDegreeOfParallelism` above 1 runs that many requests in flight.
+- [ ] `SqlQueryTransformation` and `LookupTransformation`: replace the nested `Execute()` and
+      `Wait()` on the inner `DbSource` with `await ExecuteAsync(ct)` and `await Completion` inside
+      the async delegate.
 
 Not breaking: the synchronous overloads stay.
 
@@ -167,7 +191,11 @@ Not breaking: the synchronous overloads stay.
       model. The row-mapping delegates (`DefineActions`) are reusable; only the driving loop moves.
 - [ ] `CsvSource`, `JsonSource`, `XmlSource`: use the readers' own async APIs (`CsvReader.ReadAsync`,
       `JsonTextReader.ReadAsync`, `XmlReader.ReadAsync` with `XmlReaderSettings.Async`).
-- [ ] `DataFlowStreamSource`/`DataFlowStreamDestination`: await the `HttpClient` calls.
+- [ ] `DataFlowStreamSource`, `DataFlowStreamDestination`, and `HttpRequestExtensions`: await the
+      `HttpClient` and `CopyToAsync` calls and the write-completion source.
+- [ ] Make `ExecuteAsync` abstract and `Execute(CancellationToken)` the blocking wrapper once every
+      source in the repository overrides it. This is the step that breaks external subclasses of
+      `DataFlowSource`.
 - [ ] Add an `IAsyncEnumerable<T>` source (`AsyncEnumerableSource<T>`) and expose
       `IAsyncEnumerable<T>` from `MemoryDestination` or a dedicated destination. This pair is the
       interoperability point with Akka.Streams, redb-route, Channels, EF Core, and gRPC (problem
@@ -200,8 +228,10 @@ value of the ambient context.
 
 - [ ] Enable an analyzer that flags `.Wait()`, `.Result`, and `GetAwaiter().GetResult()` in
       library projects (for example `VSTHRD002` from `Microsoft.VisualStudio.Threading.Analyzers`),
-      with suppressions only at the documented blocking points: `Execute()`, `Wait()`, and the two
-      dedicated-thread sources.
+      with suppressions only at the documented blocking points: the `Execute()` and `Wait()`
+      wrappers themselves and the two dedicated-thread sources. A wrapper called from inside a
+      block delegate, as `SqlQueryTransformation` and `LookupTransformation` do today, is not a
+      blocking point and stays flagged.
 - [ ] Document the convention in `docs/dataflow/`: implement the async member, never block inside
       a block delegate, observe the token.
 - [ ] Tests stay on the synchronous entry points; new tests for async components use
@@ -215,11 +245,14 @@ The synchronous entry points remain and become thin wrappers:
 wrapper cannot deadlock there; a caller inside a UI or legacy ASP.NET context uses the async entry
 points. The 766 synchronous call sites in tests therefore need no change when a phase lands.
 
-Phases 0 and 1 are the breaking ones and should land together in one major release with
-multi-targeting. The alternative, parallel `IAsyncConnectionManager` and `IAsyncDataFlowSource`
-interfaces next to the existing ones, avoids the break but doubles the public surface for as long
-as both exist; given that no external implementers of these contracts are known, the break is the
-cheaper path.
+Phases 0 and 1 are the breaking ones and need a major release. Multi-targeting
+(`TECH-DEBT-Multi-Targeting.md`) keeps `netstandard2.0` and breaks nothing on its own; it can ship
+in the same release, but it is this document that requires the major version. The last step of
+phase 3, making `ExecuteAsync` abstract, breaks external subclasses of `DataFlowSource` and either
+lands in that same release or waits for the next major one. The alternative, parallel
+`IAsyncConnectionManager` and `IAsyncDataFlowSource` interfaces next to the existing ones, avoids
+the break but doubles the public surface for as long as both exist; given that no external
+implementers of these contracts are known, the break is the cheaper path.
 
 ## Non-goals
 
@@ -230,7 +263,8 @@ cheaper path.
 
 ## Relation to other tech-debt documents
 
-- `TECH-DEBT-Multi-Targeting.md`: phase 0 depends on it and shares the major release.
+- `TECH-DEBT-Multi-Targeting.md`: phase 0 builds on it. The two can share a release, but only
+  phases 0 and 1 here are breaking; multi-targeting itself is not.
 - `TECH-DEBT-Unified-Timeout-Cancellation.md`: item 4 (honor the token end to end) is a by-product
   of phases 2 and 3.
 - `TECH-DEBT-Test-Global-LoggerFactory.md`: phase 5 generalizes its direction to the other statics.

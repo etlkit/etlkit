@@ -43,8 +43,9 @@ postgres/etlkitpassword), MySQL (:3306, root/etlkitpassword), ClickHouse (:9000)
 Two main subsystems inside `EtlKit/src/`:
 
 - **Data Flow** (`Toolbox/DataFlow/`) - Sources, transformations, destinations connected via
-  `LinkTo()` pattern. Built on TPL Dataflow (`ActionBlock`, `BatchBlock`). Async-first with
-  `Task`-based APIs.
+  `LinkTo()` pattern. Built on TPL Dataflow (`ActionBlock`, `BatchBlock`). Component contracts
+  are synchronous (`Execute()`, `Wait()`) with `ExecuteAsync`/`Completion` as wrappers; the
+  async-first plan is `docs/tech-debt/TECH-DEBT-Async-First.md`.
 - **Control Flow** (`Toolbox/ControlFlow/`) - DDL/DML tasks for database management (e.g.,
   `CreateTableTask.Create()`).
 

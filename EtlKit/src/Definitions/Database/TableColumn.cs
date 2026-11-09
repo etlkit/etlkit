@@ -1,4 +1,4 @@
-using EtlKit.ConnectionManager;
+using EtlKit.Common;
 
 namespace EtlKit
 {
@@ -61,13 +61,13 @@ namespace EtlKit
         /// <summary>
         /// The .NET <see cref="Type"/> equivalent of <see cref="DataType"/>.
         /// </summary>
-        public Type NETDataType => Type.GetType(DataTypeConverter.GetNETObjectTypeString(DataType));
+        public Type NETDataType => Type.GetType(SqlTypeMapper.GetNETObjectTypeString(DataType));
 
         /// <summary>
         /// The <see cref="System.DateTimeKind"/> implied by <see cref="DataType"/>, for date/time
         /// columns; <see langword="null"/> for non-date/time columns.
         /// </summary>
-        public DateTimeKind? NETDateTimeKind => DataTypeConverter.GetNETDateTimeKind(DataType);
+        public DateTimeKind? NETDateTimeKind => SqlTypeMapper.GetNETDateTimeKind(DataType);
 
         /// <summary>
         /// Column comment. MySQL only.

@@ -125,10 +125,10 @@ public class DbCheckpointStore<TPosition> : ICheckpointStore<TPosition>
     }
 
     private static IQueryParameter KeyParam(string checkpointId) =>
-        new Parameter("_checkpointId", DbType.String, checkpointId);
+        new QueryParameter("_checkpointId", DbType.String, checkpointId);
 
     private static IQueryParameter PositionParam(TPosition position) =>
-        new Parameter("_position", PositionDbType, position!);
+        new QueryParameter("_position", PositionDbType, position!);
 
     private static DbType PositionDbType
     {
@@ -146,21 +146,6 @@ public class DbCheckpointStore<TPosition> : ICheckpointStore<TPosition>
                 _ => DbType.Object,
             };
         }
-    }
-
-    private sealed class Parameter : IQueryParameter
-    {
-        public Parameter(string name, DbType dbType, object value)
-        {
-            Name = name;
-            DBType = dbType;
-            Value = value;
-        }
-
-        public string Name { get; }
-        public string Type => DBType.ToString();
-        public object Value { get; }
-        public DbType DBType { get; }
     }
 }
 

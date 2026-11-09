@@ -1,13 +1,14 @@
-using System.Text.RegularExpressions;
+using EtlKit.Common;
 using EtlKit.Primitives;
 
 namespace EtlKit.ConnectionManager
 {
     /// <summary>
-    /// Converts between SQL data type names, .NET types, and <see cref="System.Data.DbType"/>. Mixes
-    /// driver-independent type mapping with a few driver-specific conventions (<see
-    /// cref="TryGetDBSpecificType"/>); see <c>docs/tech-debt/TECH-DEBT-DataTypeConverter-Driver-Split.md</c>
-    /// for a planned separation of the two.
+    /// Compatibility facade for SQL type handling that moved out of this class. The driver-independent
+    /// mapping lives in <see cref="SqlTypeMapper"/>; the engine-specific conventions are supplied by
+    /// each connection manager through <see cref="DbConnectionManager{TConnection}.TypeConventions"/>.
+    /// Every member here is obsolete and forwards to its replacement. See
+    /// <c>docs/tech-debt/TECH-DEBT-DataTypeConverter-Driver-Split.md</c>.
     /// </summary>
     [PublicAPI]
     public static class DataTypeConverter
@@ -15,128 +16,90 @@ namespace EtlKit.ConnectionManager
         /// <summary>
         /// Default display length for a tiny integer column.
         /// </summary>
-        public const int DefaultTinyIntegerLength = 5;
+        [Obsolete("Use EtlKit.Common.SqlTypeMapper.DefaultTinyIntegerLength instead.")]
+        public const int DefaultTinyIntegerLength = SqlTypeMapper.DefaultTinyIntegerLength;
 
         /// <summary>
         /// Default display length for a small integer column.
         /// </summary>
-        public const int DefaultSmallIntegerLength = 7;
+        [Obsolete("Use EtlKit.Common.SqlTypeMapper.DefaultSmallIntegerLength instead.")]
+        public const int DefaultSmallIntegerLength = SqlTypeMapper.DefaultSmallIntegerLength;
 
         /// <summary>
         /// Default display length for an integer column.
         /// </summary>
-        public const int DefaultIntegerLength = 11;
+        [Obsolete("Use EtlKit.Common.SqlTypeMapper.DefaultIntegerLength instead.")]
+        public const int DefaultIntegerLength = SqlTypeMapper.DefaultIntegerLength;
 
         /// <summary>
         /// Default display length for a big integer column.
         /// </summary>
-        public const int DefaultBigIntegerLength = 21;
+        [Obsolete("Use EtlKit.Common.SqlTypeMapper.DefaultBigIntegerLength instead.")]
+        public const int DefaultBigIntegerLength = SqlTypeMapper.DefaultBigIntegerLength;
 
         /// <summary>
         /// Default display length for a <c>datetime2</c> column.
         /// </summary>
-        public const int DefaultDateTime2Length = 41;
+        [Obsolete("Use EtlKit.Common.SqlTypeMapper.DefaultDateTime2Length instead.")]
+        public const int DefaultDateTime2Length = SqlTypeMapper.DefaultDateTime2Length;
 
         /// <summary>
         /// Default display length for a <c>datetime</c> column.
         /// </summary>
-        public const int DefaultDateTimeLength = 27;
+        [Obsolete("Use EtlKit.Common.SqlTypeMapper.DefaultDateTimeLength instead.")]
+        public const int DefaultDateTimeLength = SqlTypeMapper.DefaultDateTimeLength;
 
         /// <summary>
         /// Default display length for a decimal column.
         /// </summary>
-        public const int DefaultDecimalLength = 41;
+        [Obsolete("Use EtlKit.Common.SqlTypeMapper.DefaultDecimalLength instead.")]
+        public const int DefaultDecimalLength = SqlTypeMapper.DefaultDecimalLength;
 
         /// <summary>
         /// Default length used for character-type columns when none can be determined, and as the
         /// <see cref="GetStringLengthFromCharString"/> fallback.
         /// </summary>
-        public const int DefaultStringLength = 255;
-
-        private const string CharTypeDefinitionRegex = @"(.*?)char\((\d*)\)(.*?)";
+        [Obsolete("Use EtlKit.Common.SqlTypeMapper.DefaultStringLength instead.")]
+        public const int DefaultStringLength = SqlTypeMapper.DefaultStringLength;
 
         /// <summary>
         /// Whether <paramref name="value"/> is a <c>char(N)</c>/<c>varchar(N)</c>/<c>nchar(N)</c>-style
         /// type definition with an explicit length.
         /// </summary>
         /// <param name="value">A SQL type definition string.</param>
+        /// <remarks>Forwards to <see cref="SqlTypeMapper.IsCharTypeDefinition"/>.</remarks>
+        [Obsolete("Use EtlKit.Common.SqlTypeMapper.IsCharTypeDefinition instead.")]
         public static bool IsCharTypeDefinition(string value) =>
-            new Regex(CharTypeDefinitionRegex, RegexOptions.IgnoreCase).IsMatch(value);
+            SqlTypeMapper.IsCharTypeDefinition(value);
 
         /// <summary>
         /// Extracts the length from a <c>char(N)</c>-style type definition matched by <see
         /// cref="IsCharTypeDefinition"/>, or <see cref="DefaultStringLength"/> if none can be parsed.
         /// </summary>
         /// <param name="value">A SQL type definition string, e.g. <c>"varchar(50)"</c>.</param>
-        public static int GetStringLengthFromCharString(string value)
-        {
-            var possibleResult = Regex.Replace(
-                value,
-                CharTypeDefinitionRegex,
-                "${2}",
-                RegexOptions.IgnoreCase
-            );
-            return int.TryParse(possibleResult, out var result) ? result : DefaultStringLength;
-        }
+        /// <remarks>Forwards to <see cref="SqlTypeMapper.GetStringLengthFromCharString"/>.</remarks>
+        [Obsolete("Use EtlKit.Common.SqlTypeMapper.GetStringLengthFromCharString instead.")]
+        public static int GetStringLengthFromCharString(string value) =>
+            SqlTypeMapper.GetStringLengthFromCharString(value);
 
         /// <summary>
         /// Maps a SQL type name (optionally with a length/precision suffix, e.g. <c>"varchar(50)"</c>)
         /// to the fully-qualified name of its .NET equivalent. Unrecognized types map to <c>"System.String"</c>.
         /// </summary>
         /// <param name="dbSpecificTypeName">A SQL type name, e.g. <c>"int"</c>, <c>"datetime2"</c>.</param>
-        public static string GetNETObjectTypeString(string dbSpecificTypeName)
-        {
-            if (dbSpecificTypeName.IndexOf("(", StringComparison.Ordinal) >= 1)
-                dbSpecificTypeName = dbSpecificTypeName.Substring(
-                    0,
-                    dbSpecificTypeName.IndexOf("(", StringComparison.Ordinal)
-                );
-            dbSpecificTypeName = dbSpecificTypeName.Trim().ToLower();
-            return dbSpecificTypeName switch
-            {
-                "bit" => "System.Boolean",
-                "boolean" => "System.Boolean",
-                "tinyint" => "System.UInt16",
-                "smallint" => "System.Int16",
-                "int2" => "System.Int16",
-                "int" => "System.Int32",
-                "int4" => "System.Int32",
-                "int8" => "System.Int32",
-                "integer" => "System.Int32",
-                "bigint" => "System.Int64",
-                "decimal" => "System.Decimal",
-                "number" => "System.Decimal",
-                "money" => "System.Decimal",
-                "smallmoney" => "System.Decimal",
-                "numeric" => "System.Decimal",
-                "real" => "System.Double",
-                "float" => "System.Double",
-                "float4" => "System.Double",
-                "float8" => "System.Double",
-                "double" => "System.Double",
-                "double precision" => "System.Double",
-                "date" => "System.DateTime",
-                "datetime" => "System.DateTime",
-                "smalldatetime" => "System.DateTime",
-                "datetime2" => "System.DateTime",
-                "time" => "System.DateTime",
-                "timetz" => "System.DateTime",
-                "timestamp" => "System.DateTime",
-                "timestamptz" => "System.DateTime",
-                "uniqueidentifier" => "System.Guid",
-                "uuid" => "System.Guid",
-                _ => "System.String",
-            };
-        }
+        /// <remarks>Forwards to <see cref="SqlTypeMapper.GetNETObjectTypeString"/>.</remarks>
+        [Obsolete("Use EtlKit.Common.SqlTypeMapper.GetNETObjectTypeString instead.")]
+        public static string GetNETObjectTypeString(string dbSpecificTypeName) =>
+            SqlTypeMapper.GetNETObjectTypeString(dbSpecificTypeName);
 
         /// <summary>
         /// Resolves a SQL type name to its .NET <see cref="Type"/>, via <see cref="GetNETObjectTypeString"/>.
         /// </summary>
         /// <param name="dbSpecificTypeName">A SQL type name, e.g. <c>"int"</c>, <c>"datetime2"</c>.</param>
-        public static Type GetTypeObject(string dbSpecificTypeName)
-        {
-            return Type.GetType(GetNETObjectTypeString(dbSpecificTypeName));
-        }
+        /// <remarks>Forwards to <see cref="SqlTypeMapper.GetTypeObject"/>.</remarks>
+        [Obsolete("Use EtlKit.Common.SqlTypeMapper.GetTypeObject instead.")]
+        public static Type GetTypeObject(string dbSpecificTypeName) =>
+            SqlTypeMapper.GetTypeObject(dbSpecificTypeName);
 
         /// <summary>
         /// Resolves a SQL type name to the matching <see cref="System.Data.DbType"/>, via <see
@@ -144,22 +107,10 @@ namespace EtlKit.ConnectionManager
         /// .NET type name has no matching <see cref="System.Data.DbType"/> value.
         /// </summary>
         /// <param name="dbSpecificTypeName">A SQL type name, e.g. <c>"int"</c>, <c>"datetime2"</c>.</param>
-        public static DbType GetDBType(string dbSpecificTypeName)
-        {
-            try
-            {
-                return (DbType)
-                    Enum.Parse(
-                        typeof(DbType),
-                        GetNETObjectTypeString(dbSpecificTypeName).Replace("System.", ""),
-                        true
-                    );
-            }
-            catch
-            {
-                return DbType.String;
-            }
-        }
+        /// <remarks>Forwards to <see cref="SqlTypeMapper.GetDBType"/>.</remarks>
+        [Obsolete("Use EtlKit.Common.SqlTypeMapper.GetDBType instead.")]
+        public static DbType GetDBType(string dbSpecificTypeName) =>
+            SqlTypeMapper.GetDBType(dbSpecificTypeName);
 
         /// <summary>
         /// Adjusts <paramref name="col"/>'s SQL data type for engine-specific quirks (e.g. SQL Server's
@@ -169,45 +120,16 @@ namespace EtlKit.ConnectionManager
         /// </summary>
         /// <param name="col">The column whose type to adjust.</param>
         /// <param name="connectionType">The target database engine.</param>
+        /// <remarks>
+        /// Superseded by <see cref="DbConnectionManager{TConnection}.TypeConventions"/>, which each
+        /// connection manager supplies for its own engine. Kept for callers that only know the engine
+        /// type; it applies the same rules.
+        /// </remarks>
+        [Obsolete("Use DbConnectionManager<TConnection>.TypeConventions instead.")]
         public static string TryGetDBSpecificType(
             ITableColumn col,
             ConnectionManagerType connectionType
-        )
-        {
-            var typeName = col.DataType.Trim().ToUpper();
-            switch (connectionType)
-            {
-                case ConnectionManagerType.SqlServer when typeName.Replace(" ", "") == "TEXT":
-                    return "VARCHAR(MAX)";
-                case ConnectionManagerType.Access when typeName == "INT":
-                    return "INTEGER";
-                case ConnectionManagerType.Access when IsCharTypeDefinition(typeName):
-                {
-                    if (typeName.StartsWith("N"))
-                        typeName = typeName.Substring(1);
-                    return GetStringLengthFromCharString(typeName) > 255 ? "LONGTEXT" : typeName;
-                }
-                case ConnectionManagerType.Access:
-                    return col.DataType;
-                case ConnectionManagerType.SQLite when typeName is "INT" or "BIGINT":
-                    return "INTEGER";
-                case ConnectionManagerType.SQLite:
-                    return col.DataType;
-                case ConnectionManagerType.Postgres:
-                {
-                    return GetPostgreSqlType(typeName, col);
-                }
-                case ConnectionManagerType.ClickHouse:
-                {
-                    return GetClickHouseType(typeName, col);
-                }
-                case ConnectionManagerType.Unknown:
-                case ConnectionManagerType.Adomd:
-                case ConnectionManagerType.MySql:
-                default:
-                    return col.DataType;
-            }
-        }
+        ) => new EngineKeyedTypeConventions(connectionType).GetDbSpecificType(col);
 
         /// <summary>
         /// Returns the <see cref="System.DateTimeKind"/> implied by a SQL date/time type name — <see
@@ -215,46 +137,9 @@ namespace EtlKit.ConnectionManager
         /// for the rest, or <see langword="null"/> for non-date/time types.
         /// </summary>
         /// <param name="dbSpecificTypeName">A SQL type name, e.g. <c>"datetime2"</c>, <c>"timestamptz"</c>.</param>
-        public static DateTimeKind? GetNETDateTimeKind(string dbSpecificTypeName)
-        {
-            return dbSpecificTypeName switch
-            {
-                "date" => DateTimeKind.Unspecified,
-                "datetime" => DateTimeKind.Unspecified,
-                "smalldatetime" => DateTimeKind.Unspecified,
-                "datetime2" => DateTimeKind.Unspecified,
-                "time" => DateTimeKind.Unspecified,
-                "timestamp" => DateTimeKind.Unspecified,
-                "timetz" => DateTimeKind.Utc,
-                "timestamptz" => DateTimeKind.Utc,
-                _ => null,
-            };
-        }
-
-        private static string GetPostgreSqlType(string typeName, ITableColumn col)
-        {
-            if (IsCharTypeDefinition(typeName))
-            {
-                if (typeName.StartsWith("N"))
-                    return typeName.Substring(1);
-            }
-            else if (typeName == "DATETIME")
-                return "TIMESTAMP";
-            return col.DataType;
-        }
-
-        private static string GetClickHouseType(string typeName, ITableColumn col)
-        {
-            var type = col.DataType;
-            if (IsCharTypeDefinition(typeName))
-            {
-                type = "String";
-            }
-            if (col.AllowNulls && !type.StartsWith("Nullable"))
-            {
-                return $"Nullable({type})";
-            }
-            return type;
-        }
+        /// <remarks>Forwards to <see cref="SqlTypeMapper.GetNETDateTimeKind"/>.</remarks>
+        [Obsolete("Use EtlKit.Common.SqlTypeMapper.GetNETDateTimeKind instead.")]
+        public static DateTimeKind? GetNETDateTimeKind(string dbSpecificTypeName) =>
+            SqlTypeMapper.GetNETDateTimeKind(dbSpecificTypeName);
     }
 }

@@ -1,9 +1,6 @@
 using System.Linq;
-
-using EtlKit.Primitives;
-
 using EtlKit.Common;
-
+using EtlKit.Primitives;
 using Npgsql;
 
 namespace EtlKit.ConnectionManager
@@ -24,6 +21,13 @@ namespace EtlKit.ConnectionManager
         public override string QB { get; } = @"""";
         public override string QE { get; } = @"""";
         public override CultureInfo ConnectionCulture => CultureInfo.CurrentCulture;
+
+        /// <inheritdoc />
+        /// <remarks>
+        /// PostgreSQL rules: a leading <c>N</c> is dropped from <c>char(N)</c>-style types and
+        /// <c>DATETIME</c> becomes <c>TIMESTAMP</c>.
+        /// </remarks>
+        public override IDbTypeConventions TypeConventions { get; } = new PostgresTypeConventions();
 
         public PostgresConnectionManager() { }
 

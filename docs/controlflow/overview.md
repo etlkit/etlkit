@@ -293,6 +293,22 @@ SqlTask.ExecuteNonQuery(connectionManager, "Test insert with parameter",
     $"INSERT INTO ParameterTest VALUES (@value1, @value2)", parameter);
 ```
 
+The second argument of `QueryParameter` is a SQL type name, from which the parameter's `DbType` is
+derived: `"INT"` becomes `DbType.Int32`. It is not a .NET type name - a name that is not a known SQL
+type (for example `"Int64"`) silently becomes `DbType.String`. If you already know the `DbType`, pass
+it directly instead:
+
+```csharp
+new QueryParameter("value1", DbType.Int32, 1)
+```
+
+A parameter created with a `DbType` keeps that `DbType`, and its `Type` holds the name of the `DbType`
+value (for example `"Int32"`), not a SQL type name. To copy such a parameter, pass its `DbType`:
+
+```csharp
+new QueryParameter(parameter.Name, parameter.DBType, parameter.Value)
+```
+
 ### Reading result sets
 
 #### Scalar values

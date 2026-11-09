@@ -79,11 +79,12 @@
     compatible)
   - Phase 1 covers interior/auxiliary types only; typed end-to-end flows blocked on the `IDataFlow`
     `ExpandoObject` boundary (Phase 2, separate decision)
-- [Split `DataTypeConverter` driver conventions before moving type-mapping to Common](docs/tech-debt/TECH-DEBT-DataTypeConverter-Driver-Split.md)
-  - Pure type-mapping → Common/Primitives; per-driver SQL-type conventions → driver packages behind
-    a DI abstraction (drop the central `switch (ConnectionManagerType)`)
-  - Unblocks moving `QueryParameter` to Common (and `ITableColumn` to Primitives); ride along with
-    broader driver-package/DI modularization
+- [Split `DataTypeConverter` driver conventions: remaining work](docs/tech-debt/TECH-DEBT-DataTypeConverter-Driver-Split.md)
+  - Done: pure mapping in `EtlKit.Common.SqlTypeMapper`, `IDbTypeConventions` supplied by each
+    connection manager, `QueryParameter` moved to Common; `DataTypeConverter` is an obsolete facade
+  - Open: move `ITableColumn`/`IDbTypeConventions` to Primitives, split the SQL Server, PostgreSQL,
+    MySQL, SQLite and Access managers (and their conventions) into driver packages with DI
+    registration, then remove the obsolete `DataTypeConverter` in the next major version
 - [UseRowAccessor mode for ScriptedRowTransformation](docs/tech-debt/TECH-DEBT-ScriptedTransformation-UseRowAccessor.md)
   - Fixes a real bug: scripts with Roslyn warnings only (e.g. CS0472) are incorrectly rejected outright
   - Null fields compile to `dynamic` and blow up with CS0656 because `Microsoft.CSharp` is never referenced (RSSL-12005) — that half has a one-line fix in `ScriptBuilder`; opt-in `Row.Field` still covers the absent-field case

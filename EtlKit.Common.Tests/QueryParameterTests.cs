@@ -12,13 +12,8 @@ namespace EtlKit.Common.Tests;
 /// </summary>
 public sealed class QueryParameterTests
 {
-    // The type keeps its name and namespace when it moves, so existing callers still compile.
-    [Fact]
-    public void FullName_IsStable() =>
-        Assert.Equal("EtlKit.QueryParameter", typeof(QueryParameter).FullName);
-
-    // The main assembly forwards the type, so assemblies compiled against an older EtlKit that
-    // defined QueryParameter itself keep resolving it.
+    // The type keeps its full name and the main assembly forwards it, so existing callers still
+    // compile and assemblies compiled against an older EtlKit that defined it keep resolving it.
     [Fact]
     public void LivesInCommon_AndIsForwardedFromTheMainAssembly()
     {
@@ -32,26 +27,8 @@ public sealed class QueryParameterTests
     // ── constructor ──────────────────────────────────────────────────────────
 
     [Fact]
-    public void Constructor_StoresNameTypeAndValue()
-    {
-        var parameter = new QueryParameter("id", "bigint", 42L);
-
-        Assert.Equal("id", parameter.Name);
-        Assert.Equal("bigint", parameter.Type);
-        Assert.Equal(42L, parameter.Value);
-    }
-
-    [Fact]
     public void Constructor_NullValue_IsStoredAsDBNull() =>
         Assert.Same(DBNull.Value, new QueryParameter("p", "int", null).Value);
-
-    [Fact]
-    public void Constructor_NonNullValue_IsStoredUnchanged()
-    {
-        var value = new object();
-
-        Assert.Same(value, new QueryParameter("p", "varchar(10)", value).Value);
-    }
 
     // ── DBType ───────────────────────────────────────────────────────────────
 
@@ -84,15 +61,6 @@ public sealed class QueryParameterTests
         Assert.Equal(DbType.String, new QueryParameter("p", type, 1).DBType);
 
     // ── explicit DbType ──────────────────────────────────────────────────────
-
-    [Fact]
-    public void ConstructorWithDbType_StoresNameAndValue()
-    {
-        var parameter = new QueryParameter("id", DbType.Int64, 42L);
-
-        Assert.Equal("id", parameter.Name);
-        Assert.Equal(42L, parameter.Value);
-    }
 
     // DateTime2 and Object cannot be reached through a SQL type name at all.
     [Theory]

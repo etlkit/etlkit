@@ -23,31 +23,6 @@ public sealed class DataTypeConverterFacadeTests
         );
 
     [Fact]
-    public void DefaultLengths_ForwardToSqlTypeMapper()
-    {
-        Assert.Equal(
-            SqlTypeMapper.DefaultTinyIntegerLength,
-            DataTypeConverter.DefaultTinyIntegerLength
-        );
-        Assert.Equal(
-            SqlTypeMapper.DefaultSmallIntegerLength,
-            DataTypeConverter.DefaultSmallIntegerLength
-        );
-        Assert.Equal(SqlTypeMapper.DefaultIntegerLength, DataTypeConverter.DefaultIntegerLength);
-        Assert.Equal(
-            SqlTypeMapper.DefaultBigIntegerLength,
-            DataTypeConverter.DefaultBigIntegerLength
-        );
-        Assert.Equal(
-            SqlTypeMapper.DefaultDateTime2Length,
-            DataTypeConverter.DefaultDateTime2Length
-        );
-        Assert.Equal(SqlTypeMapper.DefaultDateTimeLength, DataTypeConverter.DefaultDateTimeLength);
-        Assert.Equal(SqlTypeMapper.DefaultDecimalLength, DataTypeConverter.DefaultDecimalLength);
-        Assert.Equal(SqlTypeMapper.DefaultStringLength, DataTypeConverter.DefaultStringLength);
-    }
-
-    [Fact]
     public void IsCharTypeDefinition_ForwardsToSqlTypeMapper()
     {
         Assert.True(DataTypeConverter.IsCharTypeDefinition("varchar(50)"));

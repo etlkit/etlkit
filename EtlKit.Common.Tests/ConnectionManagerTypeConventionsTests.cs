@@ -43,7 +43,7 @@ public sealed class ConnectionManagerTypeConventionsTests
         ConnectionManagerType.ClickHouse,
     ];
 
-    // ── matrix: every engine x typical column types x nullability ────────────
+    // ── matrix: every listed manager x typical column types x nullability ────
 
     private sealed record EngineRow(
         ConnectionManagerType Engine,
@@ -98,18 +98,25 @@ public sealed class ConnectionManagerTypeConventionsTests
         ),
     ];
 
-    public static TheoryData<ConnectionManagerType, string, bool, string> MatrixCases
+    // Every listed manager runs the row of the engine it reports, so SQL Server over ODBC gets the
+    // same expectations as the native manager, and a newly listed manager is checked without a row of
+    // its own.
+    public static TheoryData<string, string, bool, string> MatrixCases
     {
         get
         {
-            var data = new TheoryData<ConnectionManagerType, string, bool, string>();
-            foreach (var row in Matrix)
+            var data = new TheoryData<string, string, bool, string>();
+            foreach (var name in TestConnectionManagers.Names)
             {
+                using var managerCase = TestConnectionManagers.Get(name);
+                var row = Matrix.Single(row =>
+                    row.Engine == managerCase.Manager.ConnectionManagerType
+                );
                 for (var i = 0; i < MatrixTypes.Length; i++)
                 {
-                    data.Add(row.Engine, MatrixTypes[i], false, row.Expected[i]);
+                    data.Add(name, MatrixTypes[i], false, row.Expected[i]);
                     data.Add(
-                        row.Engine,
+                        name,
                         MatrixTypes[i],
                         true,
                         (row.ExpectedWhenNullable ?? row.Expected)[i]
@@ -122,12 +129,20 @@ public sealed class ConnectionManagerTypeConventionsTests
 
     [Theory]
     [MemberData(nameof(MatrixCases))]
-    public void Matrix_ReturnsEngineSpecificType(
-        ConnectionManagerType engine,
+    public void Matrix_ManagerAppliesItsEngineRules(
+        string manager,
         string dataType,
         bool allowNulls,
         string expected
-    ) => Assert.Equal(expected, MapType(engine, dataType, allowNulls));
+    )
+    {
+        using var managerCase = TestConnectionManagers.Get(manager);
+
+        Assert.Equal(
+            expected,
+            managerCase.Conventions.GetDbSpecificType(new TableColumn("col", dataType, allowNulls))
+        );
+    }
 
     // Adding an engine must be a conscious decision: it has to get a row in the matrix above.
     [Fact]
@@ -145,62 +160,8 @@ public sealed class ConnectionManagerTypeConventionsTests
 
     // ── every concrete manager ───────────────────────────────────────────────
 
-    // What each listed manager must make of one probe column. SQL Server over ODBC is a manager of its
-    // own next to the native one and must apply the same rules.
-    private static readonly (
-        string Name,
-        string DataType,
-        bool AllowNulls,
-        string Expected
-    )[] ManagerRules =
-    [
-        ("SqlServer", "TEXT", false, "VARCHAR(MAX)"),
-        ("SqlServerOdbc", "TEXT", false, "VARCHAR(MAX)"),
-        ("Postgres", "NVARCHAR(300)", false, "VARCHAR(300)"),
-        ("MySql", "NVARCHAR(300)", false, "NVARCHAR(300)"),
-        ("SQLite", "BIGINT", false, "INTEGER"),
-        ("Access", "NVARCHAR(300)", false, "LONGTEXT"),
-        ("ClickHouse", "VARCHAR(10)", true, "Nullable(String)"),
-        ("Adomd", "TEXT", false, "TEXT"),
-    ];
-
-    public static TheoryData<string, string, bool, string> ManagerRuleCases
-    {
-        get
-        {
-            var data = new TheoryData<string, string, bool, string>();
-            foreach (var rule in ManagerRules)
-                data.Add(rule.Name, rule.DataType, rule.AllowNulls, rule.Expected);
-            return data;
-        }
-    }
-
-    [Theory]
-    [MemberData(nameof(ManagerRuleCases))]
-    public void Manager_AppliesItsEngineRules(
-        string name,
-        string dataType,
-        bool allowNulls,
-        string expected
-    )
-    {
-        using var managerCase = TestConnectionManagers.Get(name);
-
-        Assert.Equal(
-            expected,
-            managerCase.Conventions.GetDbSpecificType(new TableColumn("col", dataType, allowNulls))
-        );
-    }
-
-    [Fact]
-    public void ManagerRules_CoverEveryListedManager() =>
-        Assert.Equal(
-            TestConnectionManagers.Names.OrderBy(name => name),
-            ManagerRules.Select(rule => rule.Name).OrderBy(name => name)
-        );
-
     // A new connection manager, even one for an engine that is already listed, has to be added to
-    // TestConnectionManagers.Names and ManagerRules: that is the moment to decide which rules it applies.
+    // TestConnectionManagers.Names, and the matrix then checks it against the row of its engine.
     [Fact]
     public void EveryConcreteConnectionManager_IsListed()
     {

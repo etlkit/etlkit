@@ -44,6 +44,33 @@ public class KafkaSourceWithKeyTests : IClassFixture<KafkaFixture>
         ) => consumeResult.Message.Value;
     }
 
+    private sealed class IntValueSource : KafkaSource<int, string>
+    {
+        protected override int ConvertToOutputValue(
+            string kafkaValue,
+            Action<Exception, string>? logRowOnError = null
+        ) => int.Parse(kafkaValue);
+    }
+
+    [Fact]
+    public void ShouldSkipMessageWithNullValueInSourceWithValueTypeOutput()
+    {
+        // Arrange
+        Produce(new Message<byte[], string> { Key = null!, Value = null! });
+        Produce(new Message<byte[], string> { Key = null!, Value = "7" });
+
+        var source = new IntValueSource { ConsumerConfig = GetConsumerConfig(), Topic = TopicName };
+        var destination = new MemoryDestination<int>();
+        source.LinkTo(destination);
+
+        // Act
+        source.Execute();
+        destination.Wait();
+
+        // Assert
+        Assert.Equal(7, Assert.Single(destination.Data));
+    }
+
     [Fact]
     public void ShouldPassKeyAndPublishTimeToConversion()
     {

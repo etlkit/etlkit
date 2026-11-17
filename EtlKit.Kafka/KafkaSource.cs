@@ -37,13 +37,21 @@ public abstract class KafkaSource<TOutput, TKafkaKey, TKafkaValue>
     public Action<ConsumerBuilder<TKafkaKey, TKafkaValue>>? ConfigureConsumerBuilder { get; set; }
 
     /// <summary>
+    /// When <c>true</c>, messages with a <c>null</c> value (tombstones in compacted topics) are
+    /// skipped before <see cref="ConvertConsumeResult"/> is called. <c>false</c> by default.
+    /// </summary>
+    protected virtual bool SkipNullValues => false;
+
+    /// <summary>
     /// Override this method to convert the consumed Kafka message to the output value.
     /// It is called for every message, including messages with a <c>null</c> value
-    /// (tombstones in compacted topics); return <c>null</c> to skip a message.
+    /// (tombstones in compacted topics) unless <see cref="SkipNullValues"/> is <c>true</c>.
+    /// Return <c>null</c> to skip a message; with a value type <typeparamref name="TOutput"/>
+    /// the default value is not <c>null</c> and is sent on.
     /// </summary>
     /// <param name="consumeResult">message as read from Kafka consumer, with key, value, timestamp, headers, partition and offset</param>
     /// <param name="logRowOnError">conversion error handler; accepts the exception and a text representation of the failed message</param>
-    /// <returns>Output value to put to destination or null in case of error</returns>
+    /// <returns>Output value to put to destination or null to skip the message</returns>
     protected abstract TOutput? ConvertConsumeResult(
         ConsumeResult<TKafkaKey, TKafkaValue> consumeResult,
         Action<Exception, string>? logRowOnError = null
@@ -110,6 +118,11 @@ public abstract class KafkaSource<TOutput, TKafkaKey, TKafkaValue>
             {
                 // Return false if we reached end of partition
                 return false;
+            }
+
+            if (SkipNullValues && consumeResult.Message.Value is null)
+            {
+                return true;
             }
 
             var outputValue = ConvertConsumeResult(
@@ -192,8 +205,13 @@ public abstract class KafkaSource<TOutput, TKafkaValue> : KafkaSource<TOutput, I
         : base(logger) { }
 
     /// <summary>
-    /// Skips messages with a <c>null</c> value and converts the others with
-    /// <see cref="ConvertToOutputValue"/>; the key and the other message metadata are ignored.
+    /// Messages with a <c>null</c> value are skipped and never reach <see cref="ConvertToOutputValue"/>.
+    /// </summary>
+    protected sealed override bool SkipNullValues => true;
+
+    /// <summary>
+    /// Converts the message value with <see cref="ConvertToOutputValue"/>; the key and the other
+    /// message metadata are ignored.
     /// </summary>
     /// <param name="consumeResult">message as read from Kafka consumer</param>
     /// <param name="logRowOnError">conversion error handler; accepts the exception and a text representation of the failed message</param>
@@ -201,8 +219,5 @@ public abstract class KafkaSource<TOutput, TKafkaValue> : KafkaSource<TOutput, I
     protected override TOutput? ConvertConsumeResult(
         ConsumeResult<Ignore, TKafkaValue> consumeResult,
         Action<Exception, string>? logRowOnError = null
-    ) =>
-        consumeResult.Message.Value is null
-            ? default
-            : ConvertToOutputValue(consumeResult.Message.Value, logRowOnError);
+    ) => ConvertToOutputValue(consumeResult.Message.Value, logRowOnError);
 }

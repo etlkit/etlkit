@@ -34,9 +34,12 @@ runs the consume loop:
 
 - the end of a partition (with `EnablePartitionEof`) stops reading;
 - `ConvertConsumeResult` is called for every message, including a message with a `null` value (a
-  tombstone, which deletes the key in a compacted topic) and a message with a `null` key;
-- a conversion that returns `null` emits nothing; report the failed row through `logRowOnError` to
-  send it to the error output;
+  tombstone, which deletes the key in a compacted topic) and a message with a `null` key; override
+  `SkipNullValues` to return `true` to skip messages with a `null` value before the conversion, as
+  `KafkaSource<TOutput, TKafkaValue>` does;
+- a conversion that returns `null` emits nothing (with a value type `TOutput` the default value is
+  not `null` and is emitted); report the failed row through `logRowOnError` to send it to the error
+  output;
 - a `ConsumeException` (for example, a deserialization error, such as a message without a key read
   with `TKafkaKey = int`) goes to the error output, when one is linked, with the offset and the raw
   key and value in base64 (`null` when the key or value is missing); without an error output it is

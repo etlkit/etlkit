@@ -38,7 +38,8 @@ public abstract class KafkaSource<TOutput, TKafkaKey, TKafkaValue>
 
     /// <summary>
     /// Override this method to convert the consumed Kafka message to the output value.
-    /// Messages with a <c>null</c> value are skipped before this method is called.
+    /// It is called for every message, including messages with a <c>null</c> value
+    /// (tombstones in compacted topics); return <c>null</c> to skip a message.
     /// </summary>
     /// <param name="consumeResult">message as read from Kafka consumer, with key, value, timestamp, headers, partition and offset</param>
     /// <param name="logRowOnError">conversion error handler; accepts the exception and a text representation of the failed message</param>
@@ -111,12 +112,6 @@ public abstract class KafkaSource<TOutput, TKafkaKey, TKafkaValue>
                 return false;
             }
 
-            if (consumeResult.Message.Value is null)
-            {
-                // Nulls do not propagate through the pipeline, just skip them
-                return true;
-            }
-
             var outputValue = ConvertConsumeResult(
                 consumeResult,
                 (exception, row) =>
@@ -147,9 +142,10 @@ public abstract class KafkaSource<TOutput, TKafkaKey, TKafkaValue>
         }
         catch (ConsumeException ex)
         {
+            var record = ex.ConsumerRecord;
             ErrorHandler.Send(
                 ex,
-                $"Offset: {ex.ConsumerRecord.Offset} -- Key(base64): {Convert.ToBase64String(ex.ConsumerRecord.Message.Key)} -- Value(base64): {Convert.ToBase64String(ex.ConsumerRecord.Message.Value)}"
+                $"Offset: {record?.Offset} -- Key(base64): {ToBase64OrNull(record?.Message?.Key)} -- Value(base64): {ToBase64OrNull(record?.Message?.Value)}"
             );
         }
         catch (Exception e)
@@ -158,6 +154,9 @@ public abstract class KafkaSource<TOutput, TKafkaKey, TKafkaValue>
         }
         return true;
     }
+
+    private static string ToBase64OrNull(byte[]? data) =>
+        data is null ? "null" : Convert.ToBase64String(data);
 }
 
 /// <summary>
@@ -193,14 +192,17 @@ public abstract class KafkaSource<TOutput, TKafkaValue> : KafkaSource<TOutput, I
         : base(logger) { }
 
     /// <summary>
-    /// Converts the message value with <see cref="ConvertToOutputValue"/>; the key and the other
-    /// message metadata are ignored.
+    /// Skips messages with a <c>null</c> value and converts the others with
+    /// <see cref="ConvertToOutputValue"/>; the key and the other message metadata are ignored.
     /// </summary>
     /// <param name="consumeResult">message as read from Kafka consumer</param>
     /// <param name="logRowOnError">conversion error handler; accepts the exception and a text representation of the failed message</param>
-    /// <returns>Output value to put to destination or null in case of error</returns>
+    /// <returns>Output value to put to destination or null to skip the message</returns>
     protected override TOutput? ConvertConsumeResult(
         ConsumeResult<Ignore, TKafkaValue> consumeResult,
         Action<Exception, string>? logRowOnError = null
-    ) => ConvertToOutputValue(consumeResult.Message.Value, logRowOnError);
+    ) =>
+        consumeResult.Message.Value is null
+            ? default
+            : ConvertToOutputValue(consumeResult.Message.Value, logRowOnError);
 }

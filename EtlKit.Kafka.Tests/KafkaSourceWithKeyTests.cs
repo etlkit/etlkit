@@ -1,5 +1,6 @@
 using Confluent.Kafka;
 using EtlKit.DataFlow;
+using EtlKit.Primitives;
 using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
 
@@ -20,7 +21,7 @@ public class KafkaSourceWithKeyTests : IClassFixture<KafkaFixture>
         );
     }
 
-    public sealed record ConsumedMessage(byte[]? Key, string Value, Timestamp Timestamp);
+    public sealed record ConsumedMessage(byte[]? Key, string? Value, Timestamp Timestamp);
 
     private sealed class MessageSource : KafkaSource<ConsumedMessage, byte[], string>
     {
@@ -33,6 +34,14 @@ public class KafkaSourceWithKeyTests : IClassFixture<KafkaFixture>
                 consumeResult.Message.Value,
                 consumeResult.Message.Timestamp
             );
+    }
+
+    private sealed class IntKeySource : KafkaSource<string, int, string>
+    {
+        protected override string ConvertConsumeResult(
+            ConsumeResult<int, string> consumeResult,
+            Action<Exception, string>? logRowOnError = null
+        ) => consumeResult.Message.Value;
     }
 
     [Fact]
@@ -51,18 +60,7 @@ public class KafkaSourceWithKeyTests : IClassFixture<KafkaFixture>
         );
         Produce(new Message<byte[], string> { Key = null!, Value = "without key" });
 
-        var source = new MessageSource
-        {
-            ConsumerConfig = new ConsumerConfig
-            {
-                BootstrapServers = _fixture.BootstrapAddress,
-                GroupId = $"{TopicName}-group",
-                AutoOffsetReset = AutoOffsetReset.Earliest,
-                EnablePartitionEof = true,
-                SocketTimeoutMs = 1000,
-            },
-            Topic = TopicName,
-        };
+        var source = new MessageSource { ConsumerConfig = GetConsumerConfig(), Topic = TopicName };
         var destination = new MemoryDestination<ConsumedMessage>();
         source.LinkTo(destination);
 
@@ -84,6 +82,61 @@ public class KafkaSourceWithKeyTests : IClassFixture<KafkaFixture>
         Assert.Equal("without key", withoutKey.Value);
         Assert.Null(withoutKey.Key);
     }
+
+    [Fact]
+    public void ShouldPassMessageWithNullValueToConversion()
+    {
+        // Arrange
+        var key = new byte[] { 0x2A };
+        Produce(new Message<byte[], string> { Key = key, Value = null! });
+
+        var source = new MessageSource { ConsumerConfig = GetConsumerConfig(), Topic = TopicName };
+        var destination = new MemoryDestination<ConsumedMessage>();
+        source.LinkTo(destination);
+
+        // Act
+        source.Execute();
+        destination.Wait();
+
+        // Assert
+        var tombstone = Assert.Single(destination.Data);
+        Assert.Equal(key, tombstone.Key);
+        Assert.Null(tombstone.Value);
+    }
+
+    [Fact]
+    public void ShouldSendKeyDeserializationErrorOfMessageWithoutKeyToErrorOutput()
+    {
+        // Arrange
+        Produce(new Message<byte[], string> { Key = null!, Value = "x" });
+
+        var source = new IntKeySource { ConsumerConfig = GetConsumerConfig(), Topic = TopicName };
+        var destination = new MemoryDestination<string>();
+        var errors = new MemoryDestination<EtlKitError>();
+        source.LinkTo(destination);
+        source.LinkErrorTo(errors);
+
+        // Act
+        source.Execute();
+        destination.Wait();
+        errors.Wait();
+
+        // Assert
+        Assert.Empty(destination.Data);
+        var error = Assert.Single(errors.Data);
+        Assert.IsType<ConsumeException>(error.Exception);
+        Assert.Equal("Offset: 0 -- Key(base64): null -- Value(base64): eA==", error.RecordAsJson);
+    }
+
+    private ConsumerConfig GetConsumerConfig() =>
+        new()
+        {
+            BootstrapServers = _fixture.BootstrapAddress,
+            GroupId = $"{TopicName}-group",
+            AutoOffsetReset = AutoOffsetReset.Earliest,
+            EnablePartitionEof = true,
+            SocketTimeoutMs = 1000,
+        };
 
     private void Produce(Message<byte[], string> message)
     {

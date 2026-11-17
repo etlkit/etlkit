@@ -125,6 +125,48 @@ public partial class KafkaJsonSourceTests : IClassFixture<KafkaFixture>
     }
 
     [Fact]
+    public void ShouldSkipMessageWithNullValue()
+    {
+        // Arrange
+        ProduceJson(null!);
+        ProduceJson("{\"name\":\"test\"}");
+        var (block, target) = SetupMockTarget();
+        var errorTarget = new Mock<IDataFlowLinkTarget<EtlKitError>>();
+        var errorTargetBlock = new Mock<ITargetBlock<EtlKitError>>();
+        errorTarget.Setup(x => x.TargetBlock).Returns(errorTargetBlock.Object);
+        var kafkaSource = new KafkaJsonSource<ExpandoObject>
+        {
+            ConsumerConfig = GetConsumerConfig(true),
+            Topic = TopicName,
+        };
+        kafkaSource.LinkTo(target.Object);
+        kafkaSource.LinkErrorTo(errorTarget.Object);
+        // Act
+        kafkaSource.Execute();
+        // Assert
+        block.Verify(
+            b =>
+                b.OfferMessage(
+                    It.IsAny<DataflowMessageHeader>(),
+                    It.IsAny<ExpandoObject>(),
+                    It.IsAny<ISourceBlock<ExpandoObject>>(),
+                    It.IsAny<bool>()
+                ),
+            Times.Once
+        );
+        errorTargetBlock.Verify(
+            b =>
+                b.OfferMessage(
+                    It.IsAny<DataflowMessageHeader>(),
+                    It.IsAny<EtlKitError>(),
+                    It.IsAny<ISourceBlock<EtlKitError>>(),
+                    It.IsAny<bool>()
+                ),
+            Times.Never
+        );
+    }
+
+    [Fact]
     public void ShouldProduceErrorOnInvalidJson()
     {
         // Arrange

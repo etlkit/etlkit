@@ -12,8 +12,8 @@ so consumer configuration uses the standard `ConsumerConfig` type.
 
 `KafkaJsonSource<TOutput>` reads messages whose value is JSON and deserializes each one into
 `TOutput` (a POCO, or `ExpandoObject` for the non-generic dynamic form). It derives from the abstract
-`KafkaSource<TOutput, TKafkaValue>`, which ignores the message key and passes only the value to the
-conversion. The subscription and the consume loop live in `KafkaSource<TOutput, TKafkaKey, TKafkaValue>`
+`KafkaSource<TOutput, TKafkaValue>`, which ignores the message key, skips messages with a `null`
+value and passes only the value to the conversion. The subscription and the consume loop live in `KafkaSource<TOutput, TKafkaKey, TKafkaValue>`
 (see [below](#reading-the-key-and-message-metadata)).
 
 | Property | Meaning |
@@ -30,15 +30,16 @@ message value: the key, the publish time (`Message.Timestamp`), the headers, or 
 offset. Derive from it and override `ConvertConsumeResult`, which receives the whole
 `ConsumeResult<TKafkaKey, TKafkaValue>`. It has the same `Topic`, `ConsumerConfig` and
 `ConfigureConsumerBuilder` properties (the builder is `ConsumerBuilder<TKafkaKey, TKafkaValue>`) and
-the same consume loop:
+runs the consume loop:
 
 - the end of a partition (with `EnablePartitionEof`) stops reading;
-- a message with a `null` value is skipped before `ConvertConsumeResult` is called; a `null` key is
-  passed through;
+- `ConvertConsumeResult` is called for every message, including a message with a `null` value (a
+  tombstone, which deletes the key in a compacted topic) and a message with a `null` key;
 - a conversion that returns `null` emits nothing; report the failed row through `logRowOnError` to
   send it to the error output;
-- a `ConsumeException` (for example, a deserialization error) goes to the error output, when one is
-  linked, with the offset and the raw key and value in base64; without an error output it is
+- a `ConsumeException` (for example, a deserialization error, such as a message without a key read
+  with `TKafkaKey = int`) goes to the error output, when one is linked, with the offset and the raw
+  key and value in base64 (`null` when the key or value is missing); without an error output it is
   rethrown.
 
 `TKafkaKey` selects the key deserializer: `byte[]` gives the raw bytes (no decoding errors for keys

@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file.
 
+<a name="2.4.0"></a>
+
+# 2.4.0 (Unreleased)
+
+✨ Features
+
+- Added (MLRSSL-1727): the abstract `KafkaSource<TOutput, TKafkaKey, TKafkaValue>` gives a Kafka
+  source the whole consumed message. A derived class overrides `ConvertConsumeResult`, which receives
+  `ConsumeResult<TKafkaKey, TKafkaValue>`: the key, the publish time (`Message.Timestamp`), the
+  headers, the partition and the offset. `ConfigureConsumerBuilder` takes a
+  `ConsumerBuilder<TKafkaKey, TKafkaValue>`. `ConvertConsumeResult` also receives messages with a
+  `null` value, so a source can handle tombstones of a compacted topic; a derived class that does not
+  need them overrides `SkipNullValues` to return `true`.
+  `KafkaSource<TOutput, TKafkaValue>` now derives from it with the key type `Ignore`, still skips
+  messages with a `null` value and keeps its public and protected members, their types and its
+  constructors, so `KafkaJsonSource<TOutput>` and other existing derived sources compile and work
+  without changes.
+
+🐛 Bug Fixes
+
+- Fixed (MLRSSL-1727): a Kafka source no longer fails when a `ConsumeException` comes from a message
+  without a key or value (for example, a missing key read as `int`). The error row has `null` in
+  place of the base64 key or value and goes to the linked error output.
+
+📝 Documentation
+
+- `docs/dataflow/kafka.md` covers reading the key and message metadata with the new base source.
+
 <a name="2.2.0"></a>
 
 # 2.2.0 (2026-10-06)

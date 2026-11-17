@@ -1,24 +1,23 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks.Dataflow;
-
 using Confluent.Kafka;
-using EtlKit.Primitives;
-
 using EtlKit.Common.DataFlow;
-
+using EtlKit.Primitives;
 using JetBrains.Annotations;
 using Microsoft.Extensions.Logging;
 
 namespace EtlKit.DataFlow;
 
 /// <summary>
-/// Kafka generic source
+/// Kafka generic source that gives the conversion access to the whole consumed message:
+/// key, value, timestamp, headers, partition and offset.
 /// </summary>
 /// <typeparam name="TOutput">Result type</typeparam>
+/// <typeparam name="TKafkaKey">Kafka key type; use <see cref="Ignore"/> to skip the key</typeparam>
 /// <typeparam name="TKafkaValue">Kafka value type</typeparam>
 [PublicAPI]
-public abstract class KafkaSource<TOutput, TKafkaValue>
+public abstract class KafkaSource<TOutput, TKafkaKey, TKafkaValue>
     : DataFlowSource<TOutput>,
         IDataFlowSource<TOutput>
 {
@@ -35,16 +34,26 @@ public abstract class KafkaSource<TOutput, TKafkaValue>
     /// <summary>
     /// Additional configuration for the consumer builder, before building consumer
     /// </summary>
-    public Action<ConsumerBuilder<Ignore, TKafkaValue>>? ConfigureConsumerBuilder { get; set; }
+    public Action<ConsumerBuilder<TKafkaKey, TKafkaValue>>? ConfigureConsumerBuilder { get; set; }
 
     /// <summary>
-    /// Override this method to convert the Kafka value to the output value
+    /// When <c>true</c>, messages with a <c>null</c> value (tombstones in compacted topics) are
+    /// skipped before <see cref="ConvertConsumeResult"/> is called. <c>false</c> by default.
     /// </summary>
-    /// <param name="kafkaValue">value as read from Kafka consumer</param>
-    /// <param name="logRowOnError">conversion error handler, should accept Exception and Json representation of input data</param>
-    /// <returns>Output value to put to destination or null in case of error</returns>
-    protected abstract TOutput? ConvertToOutputValue(
-        TKafkaValue kafkaValue,
+    protected virtual bool SkipNullValues => false;
+
+    /// <summary>
+    /// Override this method to convert the consumed Kafka message to the output value.
+    /// It is called for every message, including messages with a <c>null</c> value
+    /// (tombstones in compacted topics) unless <see cref="SkipNullValues"/> is <c>true</c>.
+    /// Return <c>null</c> to skip a message; with a value type <typeparamref name="TOutput"/>
+    /// the default value is not <c>null</c> and is sent on.
+    /// </summary>
+    /// <param name="consumeResult">message as read from Kafka consumer, with key, value, timestamp, headers, partition and offset</param>
+    /// <param name="logRowOnError">conversion error handler; accepts the exception and a text representation of the failed message</param>
+    /// <returns>Output value to put to destination or null to skip the message</returns>
+    protected abstract TOutput? ConvertConsumeResult(
+        ConsumeResult<TKafkaKey, TKafkaValue> consumeResult,
         Action<Exception, string>? logRowOnError = null
     );
 
@@ -56,7 +65,7 @@ public abstract class KafkaSource<TOutput, TKafkaValue>
     /// <summary>
     /// Creates a new instance with an injected logger.
     /// </summary>
-    protected KafkaSource(ILogger<KafkaSource<TOutput, TKafkaValue>>? logger)
+    protected KafkaSource(ILogger? logger)
         : base(logger) { }
 
     /// <summary>
@@ -67,7 +76,7 @@ public abstract class KafkaSource<TOutput, TKafkaValue>
     {
         LogStart();
 
-        var builder = new ConsumerBuilder<Ignore, TKafkaValue>(ConsumerConfig);
+        var builder = new ConsumerBuilder<TKafkaKey, TKafkaValue>(ConsumerConfig);
         ConfigureConsumerBuilder?.Invoke(builder);
         using var consumer = builder.Build();
 
@@ -98,7 +107,7 @@ public abstract class KafkaSource<TOutput, TKafkaValue>
     /// <param name="cancellationToken"></param>
     /// <returns>false to exit reading cycle, true to continue</returns>
     private bool ConsumeAndSendSingleMessage(
-        IConsumer<Ignore, TKafkaValue> consumer,
+        IConsumer<TKafkaKey, TKafkaValue> consumer,
         CancellationToken cancellationToken
     )
     {
@@ -111,15 +120,13 @@ public abstract class KafkaSource<TOutput, TKafkaValue>
                 return false;
             }
 
-            var kafkaValue = consumeResult.Message.Value;
-            if (kafkaValue is null)
+            if (SkipNullValues && consumeResult.Message.Value is null)
             {
-                // Nulls do not propagate through the pipeline, just skip them
                 return true;
             }
 
-            var outputValue = ConvertToOutputValue(
-                kafkaValue,
+            var outputValue = ConvertConsumeResult(
+                consumeResult,
                 (exception, row) =>
                 {
                     if (ErrorHandler.HasErrorBuffer)
@@ -148,9 +155,10 @@ public abstract class KafkaSource<TOutput, TKafkaValue>
         }
         catch (ConsumeException ex)
         {
+            var record = ex.ConsumerRecord;
             ErrorHandler.Send(
                 ex,
-                $"Offset: {ex.ConsumerRecord.Offset} -- Key(base64): {Convert.ToBase64String(ex.ConsumerRecord.Message.Key)} -- Value(base64): {Convert.ToBase64String(ex.ConsumerRecord.Message.Value)}"
+                $"Offset: {record?.Offset} -- Key(base64): {ToBase64OrNull(record?.Message?.Key)} -- Value(base64): {ToBase64OrNull(record?.Message?.Value)}"
             );
         }
         catch (Exception e)
@@ -159,4 +167,57 @@ public abstract class KafkaSource<TOutput, TKafkaValue>
         }
         return true;
     }
+
+    private static string ToBase64OrNull(byte[]? data) =>
+        data is null ? "null" : Convert.ToBase64String(data);
+}
+
+/// <summary>
+/// Kafka generic source that ignores the message key and converts only the message value.
+/// Derive from <see cref="KafkaSource{TOutput, TKafkaKey, TKafkaValue}"/> to read the key,
+/// timestamp, headers, partition or offset.
+/// </summary>
+/// <typeparam name="TOutput">Result type</typeparam>
+/// <typeparam name="TKafkaValue">Kafka value type</typeparam>
+[PublicAPI]
+public abstract class KafkaSource<TOutput, TKafkaValue> : KafkaSource<TOutput, Ignore, TKafkaValue>
+{
+    /// <summary>
+    /// Override this method to convert the Kafka value to the output value
+    /// </summary>
+    /// <param name="kafkaValue">value as read from Kafka consumer</param>
+    /// <param name="logRowOnError">conversion error handler, should accept Exception and Json representation of input data</param>
+    /// <returns>Output value to put to destination or null in case of error</returns>
+    protected abstract TOutput? ConvertToOutputValue(
+        TKafkaValue kafkaValue,
+        Action<Exception, string>? logRowOnError = null
+    );
+
+    /// <summary>
+    /// Default constructor
+    /// </summary>
+    protected KafkaSource() { }
+
+    /// <summary>
+    /// Creates a new instance with an injected logger.
+    /// </summary>
+    protected KafkaSource(ILogger<KafkaSource<TOutput, TKafkaValue>>? logger)
+        : base(logger) { }
+
+    /// <summary>
+    /// Messages with a <c>null</c> value are skipped and never reach <see cref="ConvertToOutputValue"/>.
+    /// </summary>
+    protected sealed override bool SkipNullValues => true;
+
+    /// <summary>
+    /// Converts the message value with <see cref="ConvertToOutputValue"/>; the key and the other
+    /// message metadata are ignored.
+    /// </summary>
+    /// <param name="consumeResult">message as read from Kafka consumer</param>
+    /// <param name="logRowOnError">conversion error handler; accepts the exception and a text representation of the failed message</param>
+    /// <returns>Output value to put to destination or null to skip the message</returns>
+    protected override TOutput? ConvertConsumeResult(
+        ConsumeResult<Ignore, TKafkaValue> consumeResult,
+        Action<Exception, string>? logRowOnError = null
+    ) => ConvertToOutputValue(consumeResult.Message.Value, logRowOnError);
 }
